@@ -1,0 +1,97 @@
+/* src/App.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.main-container {
+  display: flex;
+}
+
+.sidebar {
+  background: #202038;
+  color: rgb(241, 241, 241);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar h2 {
+  text-align: center;
+  font-size: 16px;
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.sidebar ul li {
+  padding: 5px 5px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar ul li a {
+  color: rgb(241, 241, 241);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.sidebar ul li a .icon {
+  margin-right: 5px; /* Diminuído o espaçamento à direita do ícone */
+}
+
+.sidebar ul li a .link_text {
+  white-space: nowrap;
+  font-size: 10px; /* Tamanho da fonte reduzido */
+}
+
+.top_section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 10px;
+}
+
+.logo {
+  font-size: 15px;
+  line-height: 0;
+}
+
+.bars {
+  width: 25px;
+}
+
+.routes {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.link {
+  display: flex;
+  color: rgb(241, 241, 241);
+  gap: 2px;
+  padding: 8px 6px;
+  border-right: 4px solid transparent;
+  transition: 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+  align-items: center;
+}
+
+.link:hover {
+  border-right: 4px solid rgb(241, 241, 241);
+  transition: 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+  background: rgb(45, 51, 89);
+}
+
+.active {
+  border-right: 4px solid rgb(241, 241, 241);
+  background: rgb(45, 51, 89);
+}
