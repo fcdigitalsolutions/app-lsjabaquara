@@ -1,0 +1,5 @@
+Flask==2.2.2
+flask-cors==3.0.10
+SQLAlchemy==1.4.41  # ou a versão que você está utilizando para seus modelos
+mysqlclient==2.0.3   # para usar MySQL com SQLAlchemy
+    
