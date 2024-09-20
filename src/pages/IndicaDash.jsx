@@ -25,7 +25,7 @@ const IndicaDash = () => {
 
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:5000/indicaall')
+    axios.get('http://137.184.190.156:5000/indicaall')
       .then((response) => {
         setData(response.data);
       })

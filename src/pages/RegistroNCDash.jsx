@@ -25,7 +25,7 @@ const RegNCDash = () => {
 
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:5000/registncall')
+    axios.get('http://137.184.190.156:5000/registncall')
       .then((response) => {
         setData(response.data);
       })

@@ -8,7 +8,7 @@ const DashMain = () => {
   const totalConcluidos = data.filter(item => item.cod_status === 'Concluído').length;
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:5000/rastrearall')
+    axios.get('http://137.184.190.156:5000/rastrearall')
       .then((response) => {
         setData(response.data);
       })
