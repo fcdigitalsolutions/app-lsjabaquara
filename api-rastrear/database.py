@@ -6,9 +6,9 @@ def get_db_connection():
     try:
         conn = mysql.connector.connect(
             host='localhost',       # Substitua pelo endereço do seu servidor MySQL
-            user='root',     # Substitua pelo seu usuário MySQL
-            password='Gps@#rpa2022',   # Substitua pela sua senha MySQL
-            database='rpa'    # Substitua pelo nome do seu banco de dados
+            user='lsmaster',     # Substitua pelo seu usuário MySQL
+            password='LSJabaquara@#2025',   # Substitua pela sua senha MySQL
+            database='lsjabaquara'    # Substitua pelo nome do seu banco de dados
         )
         if conn.is_connected():
             print("Conexão ao MySQL foi bem-sucedida")
