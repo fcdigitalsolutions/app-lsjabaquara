@@ -204,4 +204,7 @@ def add_auth_login():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+  ## habilite essa linha modo desenvolvedor
+  #  app.run(debug=True)
+
+    app.run(host="0.0.0.0", port=5000, debug=True)
