@@ -25,7 +25,7 @@ const RegNCDash = () => {
 
 
   useEffect(() => {
-    axios.get('http://137.184.190.156:5000/registncall')
+    axios.get('https://ls-jabaquara.com.br/registncall')
       .then((response) => {
         setData(response.data);
       })

@@ -21,7 +21,7 @@ const IndicaForm = () => {
   const [obs, setObs] = useState('');
 
   useEffect(() => {
-    axios.get('http://137.184.190.156:5000/indicaall')
+    axios.get('https://ls-jabaquara.com.br/indicaall')
       .then((response) => {
         setRows(response.data);
         setIndicacoes(response.data); // Set initial data for export
@@ -56,14 +56,14 @@ const IndicaForm = () => {
 
     if (editRow) {
       try {
-        await axios.put(`http://137.184.190.156:5000/indica/${editRow.id}`, { nome_publica, enderec, end_confirm, obs });
+        await axios.put(`https://ls-jabaquara.com.br/indica/${editRow.id}`, { nome_publica, enderec, end_confirm, obs });
         setRows(rows.map(row => (row.id === editRow.id ? { ...row, nome_publica, enderec, end_confirm, obs } : row)));
       } catch (error) {
         console.error("Erro ao atualizar a indicação: ", error);
       }
     } else {
       try {
-        const response = await axios.post('http://137.184.190.156:5000/indica', { data_inclu, nome_publica, cod_congreg, cod_regiao, enderec, end_confirm, origem, obs });
+        const response = await axios.post('https://ls-jabaquara.com.br/indica', { data_inclu, nome_publica, cod_congreg, cod_regiao, enderec, end_confirm, origem, obs });
         setRows([...rows, response.data]);
         setIndicacoes([...rows, response.data]); // Update data for export
       } catch (error) {
@@ -87,7 +87,7 @@ const IndicaForm = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://137.184.190.156:5000/indica/${id}`);
+      await axios.delete(`https://ls-jabaquara.com.br/indica/${id}`);
       setRows(rows.filter((row) => row.id !== id));
       setIndicacoes(rows.filter((row) => row.id !== id)); // Update data for export
     } catch (error) {

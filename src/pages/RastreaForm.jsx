@@ -54,14 +54,14 @@ const RastreaForm = () => {
 
     if (editRow) {
       try {
-        await axios.put(`http://137.184.190.156:5000/rastrear/${editRow.id}`, { cod_congreg,data_inicio,data_fim,cod_status});
+        await axios.put(`https://ls-jabaquara.com.br/rastrear/${editRow.id}`, { cod_congreg,data_inicio,data_fim,cod_status});
         setRows(rows.map(row => (row.id === editRow.id ? { ...row, cod_congreg, data_inicio,data_fim,cod_status } : row)));
       } catch (error) {
         console.error("Erro ao atualizar o rastreamento: ", error);
       }
     } else {
       try {
-        const response = await axios.post('http://137.184.190.156:5000/rastrear', { cod_congreg,data_inclu,data_inicio,data_fim,num_enderec,num_endconcl,cod_status });
+        const response = await axios.post('https://ls-jabaquara.com.br/rastrear', { cod_congreg,data_inclu,data_inicio,data_fim,num_enderec,num_endconcl,cod_status });
         setRows([...rows, response.data]);
       } catch (error) {
         console.error("Erro ao cadastrar o rastreamento: ", error);
@@ -83,7 +83,7 @@ const RastreaForm = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://137.184.190.156:5000/regions/${id}`);
+      await axios.delete(`https://ls-jabaquara.com.br/rastrear/${id}`);
       setRows(rows.filter((row) => row.id !== id));
     } catch (error) {
       console.error("Erro ao excluir o rastreamento: ", error);

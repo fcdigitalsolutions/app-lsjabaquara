@@ -51,7 +51,7 @@ const RegistroNCOff = () => {
      
 
       // Faz uma requisição POST para a API
-      await axios.post('http://137.184.190.156:5000/registnc', {
+      await axios.post('https://ls-jabaquara.com.br/registnc', {
         data_inclu: defaultDtInclu,
         nome_publica: defaultnome_publica,
         telefone: defaultTelefone,

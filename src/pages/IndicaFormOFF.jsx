@@ -53,7 +53,7 @@ const IndicaFormOff = () => {
       const defaultDtInclu = Data_Atual.toLocaleDateString();
 
       // Faz uma requisição POST para a API
-      await axios.post('http://137.184.190.156:5000/indica', {
+      await axios.post('https://ls-jabaquara.com.br/indica', {
         data_inclu: defaultDtInclu,
         nome_publica,
         telefone,
