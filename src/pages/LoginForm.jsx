@@ -14,7 +14,7 @@ const LoginForm = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post('http://ls-jabaquara.com.br/auth/login', {
+            const response = await axios.post('https://ls-jabaquara.com.br/auth/login', {
                 user_login: username,
                 user_pswd: password,
             });
