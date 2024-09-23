@@ -12,15 +12,13 @@ const RastreaForm = () => {
   const [search, setSearch] = useState('');
   const [editRow, setEditRow] = useState(null);
   const [cod_congreg, setCodCongreg] = useState('');
-  const [data_inclu, setDtInclu] = useState('');
   const [data_inicio, setDtInicio] = useState('');
   const [data_fim   , setDtFim] = useState('');
-  const [num_enderec, setNumEnderec] = useState('');
-  const [num_endconcl, setNEndConclu] = useState('');
   const [cod_status, setCodStatus] = useState('');
+  const Data_Atual = new Date();
 
   useEffect(() => {
-    axios.get('http://137.184.190.156:5000/rastrearall')
+    axios.get('https://ls-jabaquara.com.br/rastrearall')
       .then((response) => {
         setRows(response.data);
         setRastrear(response.data); // Set initial data for export
@@ -40,11 +38,8 @@ const RastreaForm = () => {
 
   const clearForm = () => {
     setCodCongreg('');
-    setDtInclu('');
     setDtInicio('');
     setDtFim('');
-    setNumEnderec('');
-    setNEndConclu('');
     setCodStatus('');
     setEditRow(null);
   };
@@ -61,7 +56,20 @@ const RastreaForm = () => {
       }
     } else {
       try {
-        const response = await axios.post('https://ls-jabaquara.com.br/rastrear', { cod_congreg,data_inclu,data_inicio,data_fim,num_enderec,num_endconcl,cod_status });
+        const defaultDtInclu = Data_Atual.toLocaleDateString();
+        const defaultNumEnderecos = 45;
+        const defaultNumEnderconcl = 44;
+        const defaultStatus = '0';
+        
+        const response = await axios.post('https://ls-jabaquara.com.br/rastrear', { 
+          cod_congreg,
+          data_inclu: defaultDtInclu,
+          data_inicio,
+          data_fim,
+          num_enderec: defaultNumEnderecos,
+          num_endconcl: defaultNumEnderconcl,
+          cod_status: defaultStatus
+        });
         setRows([...rows, response.data]);
       } catch (error) {
         console.error("Erro ao cadastrar o rastreamento: ", error);
@@ -73,11 +81,8 @@ const RastreaForm = () => {
   const handleEdit = (row) => {
     setEditRow(row);
     setCodCongreg(row.cod_congreg);
-    setDtInclu(row.data_inclu);
     setDtInicio(row.data_inicio);
     setDtFim(row.data_fim);
-    setNumEnderec(row.num_enderec);
-    setNEndConclu(row.num_endconcl);
     setCodStatus(row.cod_status);
   };
 
@@ -100,16 +105,16 @@ const RastreaForm = () => {
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.autoTable({
-      head: [['ID', 'Data', 'Publicador', 'Congregação', 'Região', 'Endereço', 'Confirmado?', 'Origem']],
+      head: [['ID', 'Status','Congregação', 'Dt. Início', 'Dt. Fim', 'Endereços', 'Endereços Concluídos']],
       body: rastrear.map(row => [
         row.id,
-        row.data_cad,
-        row.nome_publica,
+        row.cod_status,
         row.cod_congreg,
-        row.cod_regiao,
+        row.data_inicio,
+        row.data_fim,
+        row.num_enderec,
         row.enderec,
-        row.end_confirm,
-        row.origem
+        row.num_endconcl,       
       ]),
     });
     doc.save('rastreamentos.pdf');
@@ -171,19 +176,6 @@ const RastreaForm = () => {
           placeholder="Dt. Fim"
           value={data_fim}
           onChange={(e) => setDtFim(e.target.value)}
-          style={{
-            marginRight: '5px',
-            padding: '3px',
-            fontSize: '0.75rem',
-            width: '120px',
-          }}
-        />
-
-        <input
-          type="text"
-          placeholder="Status"
-          value={cod_status}
-          onChange={(e) => setCodStatus(e.target.value)}
           style={{
             marginRight: '5px',
             padding: '3px',

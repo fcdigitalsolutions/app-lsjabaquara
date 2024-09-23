@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { DataGrid } from '@mui/x-data-grid';
-import { Box, Card, CardContent, Typography } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
+import { Box, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
 
 const RegNCDash = () => {
-
   const [data, setData] = useState([]);
-  const navigate = useNavigate(); // Use o useNavigate
+  const [page, setPage] = useState(0);
+  const [rowsPerPage] = useState(2); // Limite de linhas por página
+  const navigate = useNavigate();
 
-  // Função para determinar o status com base no número de visitas
   const getStatus = (num_visitas) => {
     if (num_visitas <= 1) {
       return 'Pendente';
@@ -23,7 +22,6 @@ const RegNCDash = () => {
   const totalConcluidos = data.filter(item => item.num_visitas >= 2).length;
   const totalRegioes = new Set(data.map(item => item.cod_regiao)).size;
 
-
   useEffect(() => {
     axios.get('https://ls-jabaquara.com.br/registncall')
       .then((response) => {
@@ -34,12 +32,10 @@ const RegNCDash = () => {
       });
   }, []);
 
-  // Função para lidar com o clique do botão
   const handleNovoRegistroNC = () => {
     navigate('/home/form-registnc'); // Navegue para a rota definida
   };
 
-  // Função para determinar a cor de fundo da célula com base no status
   const getStatusColor = (status) => {
     switch (status) {
       case 'Pendente':
@@ -51,134 +47,164 @@ const RegNCDash = () => {
     }
   };
 
-  // Colunas para o DataGrid
-  const columns = [
-    { field: 'cod_regiao', headerName: 'Região', width: 95, align: 'center', headerAlign: 'center' },
-    {
-      field: 'num_visitas',
-      headerName: 'Status',
-      width: 150,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => {
-        const status = getStatus(params.value); // Chama a função getStatus com base no valor de num_visitas
-        return (
-          <div
-            style={{
-              backgroundColor: getStatusColor(status),
-              color: 'white',
-              padding: '3px',
-              borderRadius: '4px',
-              textAlign: 'center',
-              width: '100%',
-              lineHeight: '1.2rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-            }}
-          >
-            {status}
-          </div>
-        );
-      },
-    },
-    { field: 'enderec', headerName: 'Logradouro', width: 105, align: 'center', headerAlign: 'center' },
-    { field: 'obs', headerName: 'Números', width: 150, align: 'center', headerAlign: 'center' },
-    { field: 'data_inclu', headerName: 'Primeira Visita', width: 95, align: 'center', headerAlign: 'center' },
-    { field: 'dt_ult_visit', headerName: 'Última Visita', width: 95, align: 'center', headerAlign: 'center' },
-  ];
-
   const buttonStyle = {
     padding: '4px 12px',
-    fontSize: '0.80rem',
+    fontSize: '0.75rem',
     color: 'white',
     border: 'none',
     cursor: 'pointer',
   };
 
-  return (
-    <Box sx={{ padding: '20px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
-      <h2 style={{ fontSize: '1.8rem', marginBottom: '25px' }}>Registros NC</h2>
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
-      {/* Cards de resumo */}
+  // Cálculo do índice inicial e final das linhas a serem exibidas
+  const startIndex = page * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const currentData = data.slice(startIndex, endIndex);
+  return (
+    <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
+      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Registros NC</h2>
+
       <Box
         sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(176px, 1fr))', // Aumentado em 10%
-          gap: '5px',
-          marginBottom: '20px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 1, // Reduzido o espaçamento
+          justifyContent: 'space-between',
+          '@media (max-width: 600px)': {
+            flexDirection: 'column',
+            alignItems: 'left'
+          }
         }}
       >
-        <Card sx={{ width: '85%', backgroundColor: '#202038', color: 'white' }}>
-          <CardContent>
-            <Typography variant="h5" sx={{ fontSize: '1.1rem' }}>Total de Registros NC</Typography>
-            <Typography variant="h2" sx={{ fontSize: '2.2rem' }}>{data.length}</Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ width: '85%', backgroundColor: '#202038', color: 'white' }}>
-          <CardContent>
-            <Typography variant="h5" sx={{ fontSize: '1.1rem' }}>Num. Regiões Distintas</Typography>
-            <Typography variant="h2" sx={{ fontSize: '2.2rem' }}>{totalRegioes}</Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ width: '85%', backgroundColor: '#202038;', color: 'white' }}>
-          <CardContent>
-            <Typography variant="h5" sx={{ fontSize: '1.1rem' }}>Registros Finalizados</Typography>
-            <Typography variant="h2" sx={{ fontSize: '2.2rem' }}>{totalConcluidos}</Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ width: '85%', backgroundColor: '#202038', color: 'white' }}>
-          <CardContent>
-            <Typography variant="h5" sx={{ fontSize: '1.1rem' }}>Registros Pendentes</Typography>
-            <Typography variant="h2" sx={{ fontSize: '2.2rem' }}>{totalPendentes}</Typography>
-          </CardContent>
-        </Card>
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Total de Registros</Typography> {/* Fonte ajustada */}
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{data.length}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Regiões Distintas</Typography> {/* Fonte ajustada */}
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalRegioes}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Registros Finalizados</Typography> {/* Fonte ajustada */}
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalConcluidos}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Registros Pendentes</Typography> {/* Fonte ajustada */}
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalPendentes}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
       </Box>
-
-      {/* Lista de Registros NC */}
-      <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', padding: '20px', borderRadius: '15px' }}>
-        <h3>Status dos Registros NC</h3>
-
+      <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', padding: '11px', borderRadius: '15px' }}>      </Box>
+      <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', borderRadius: '15px' }}>
         <button
           type="button"
           style={{
             ...buttonStyle,
-            backgroundColor: '#202038', // Cor de fundo para botão
-            marginLeft: '630px',
+            backgroundColor: '#202038',
+            color: '#f1f1f1',
+            transition: 'background-color 0.2s ease', // Transição suave
+            align: 'right',
+            borderRadius: '4px',
           }}
-          onClick={handleNovoRegistroNC} // Função chamada ao clicar no botão
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
+            e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#202038'; // Cor original
+            e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
+          }}
+          onClick={handleNovoRegistroNC}
         >
           + Manutenção Registros NC
         </button>
-        <br></br> 
-
-        <Box sx={{ height: 320, width: '100%' }}>
-          <DataGrid
-            rows={data}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5, 10, 20]}
-            disableSelectionOnClick
-            getRowId={(row) => row.id}
-            sx={{
-              backgroundColor: 'rgb(255, 255, 255)',
-              color: '#202038',
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: 'rgb(240, 240, 240)',
-                color: '#202038',
-                fontWeight: 'bold',
-              },
-              '& .MuiDataGrid-cell': {
-                fontSize: '0.775rem',
-                padding: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              },
-            }}
-          />
-        </Box>
+        <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Região</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Status</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Logradouro</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Números</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Primeira Visita</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Última Visita</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {currentData.map((row) => {
+                const status = getStatus(row.num_visitas);
+                return (
+                  <TableRow key={row.id} sx={{ height: '10px' }}>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.cod_regiao}</TableCell>
+                    <TableCell align="center">
+                      <div
+                        style={{
+                          backgroundColor: getStatusColor(status),
+                          color: 'white',
+                          padding: '2px',
+                          borderRadius: '4px',
+                          textAlign: 'center',
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.65rem',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {status}
+                      </div>
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.enderec}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.obs}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.data_inclu}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.dt_ult_visit}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[]}
+          component="div"
+          count={data.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          sx={{
+            '& .MuiTablePagination-toolbar': {
+              fontSize: '0.65rem',
+            },
+            '& .MuiTablePagination-selectRoot': {
+              fontSize: '0.65rem',
+            },
+            '& .MuiTablePagination-displayedRows': {
+              fontSize: '0.65rem',
+            },
+          }}
+        />
       </Box>
     </Box>
   );

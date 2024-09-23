@@ -13,10 +13,12 @@
 .sidebar {
   background: #202038;
   color: rgb(241, 241, 241);
-  height: 100vh;
+  height: 115vh;
   display: flex;
   flex-direction: column;
-}
+  top: 0; /* Início do topo */
+  left: 0; /* Começa à esquerda */
+ }
 
 .sidebar h2 {
   text-align: center;
