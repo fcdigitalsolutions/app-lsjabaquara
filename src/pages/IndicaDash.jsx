@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import { Box, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
 
@@ -17,7 +17,7 @@ const IndicaDash = () => {
 
 
   useEffect(() => {
-    axios.get('https://ls-jabaquara.com.br/indicaall')
+    api_service.get('/indicaall')
       .then((response) => {
         setData(response.data);
       })

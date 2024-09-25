@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import axios from 'axios';
+import api_service from '../services/api_service'; // Importando serviço da API
 import {Box } from '@mui/material';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -18,7 +18,7 @@ const RastreaForm = () => {
   const Data_Atual = new Date();
 
   useEffect(() => {
-    axios.get('https://ls-jabaquara.com.br/rastrearall')
+    api_service.get('/rastrearall')
       .then((response) => {
         setRows(response.data);
         setRastrear(response.data); // Set initial data for export
@@ -49,7 +49,7 @@ const RastreaForm = () => {
 
     if (editRow) {
       try {
-        await axios.put(`https://ls-jabaquara.com.br/rastrear/${editRow.id}`, { cod_congreg,data_inicio,data_fim,cod_status});
+        await api_service.put(`/rastrear/${editRow.id}`, { cod_congreg,data_inicio,data_fim,cod_status});
         setRows(rows.map(row => (row.id === editRow.id ? { ...row, cod_congreg, data_inicio,data_fim,cod_status } : row)));
       } catch (error) {
         console.error("Erro ao atualizar o rastreamento: ", error);
@@ -61,7 +61,7 @@ const RastreaForm = () => {
         const defaultNumEnderconcl = 44;
         const defaultStatus = '0';
         
-        const response = await axios.post('https://ls-jabaquara.com.br/rastrear', { 
+        const response = await api_service.post('/rastrear', { 
           cod_congreg,
           data_inclu: defaultDtInclu,
           data_inicio,
@@ -88,7 +88,7 @@ const RastreaForm = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://ls-jabaquara.com.br/rastrear/${id}`);
+      await api_service.delete(`/rastrear/${id}`);
       setRows(rows.filter((row) => row.id !== id));
     } catch (error) {
       console.error("Erro ao excluir o rastreamento: ", error);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api_service from '../services/api_service'; // Importando serviço da API
 import InputMask from 'react-input-mask';
 import { Box, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 
@@ -53,7 +53,7 @@ const IndicaFormOff = () => {
       const defaultDtInclu = Data_Atual.toLocaleDateString();
 
       // Faz uma requisição POST para a API
-      await axios.post('https://ls-jabaquara.com.br/indica', {
+      await api_service.post('/indica', {
         data_inclu: defaultDtInclu,
         nome_publica,
         telefone,

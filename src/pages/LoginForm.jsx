@@ -1,7 +1,7 @@
 // src/pages/LoginForm.js
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api_service from '../services/api_service'; // Importando serviço da API
 import '../styles/LoginForm.css'; // Importe seu arquivo CSS
 
 const LoginForm = () => {
@@ -14,7 +14,7 @@ const LoginForm = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post('https://ls-jabaquara.com.br/auth/login', {
+            const response = await api_service.post('/auth/login', {
                 user_login: username,
                 user_pswd: password,
             });

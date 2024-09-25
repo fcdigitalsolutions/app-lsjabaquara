@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api_service from '../services/api_service'; // Importando serviço da API
 import { Box, Button, TextField, Typography } from '@mui/material';
 
 const RegistroNCOff = () => {
@@ -51,7 +51,7 @@ const RegistroNCOff = () => {
      
 
       // Faz uma requisição POST para a API
-      await axios.post('https://ls-jabaquara.com.br/registnc', {
+      await api_service.post('/registnc', {
         data_inclu: defaultDtInclu,
         nome_publica: defaultnome_publica,
         telefone: defaultTelefone,

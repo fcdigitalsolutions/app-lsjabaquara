@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import axios from 'axios';
+import api_service from '../services/api_service'; // Importando serviço da API
 import {Box } from '@mui/material';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -18,7 +18,7 @@ const RegionForm = () => {
   const [descricao, setDescricao] = useState('');
 
   useEffect(() => {
-    axios.get('https://ls-jabaquara.com.br/regionsall')
+    api_service.get('/regionsall')
       .then((response) => {
         setRows(response.data);
         setRegioes(response.data); // Set initial data for export
@@ -47,14 +47,14 @@ const RegionForm = () => {
 
     if (editRow) {
       try {
-        await axios.put(`https://ls-jabaquara.com.br/regions/${editRow.id}`, { nome, descricao });
+        await api_service.put(`/regions/${editRow.id}`, { nome, descricao });
         setRows(rows.map(row => (row.id === editRow.id ? { ...row, nome, descricao } : row)));
       } catch (error) {
         console.error("Erro ao atualizar a região: ", error);
       }
     } else {
       try {
-        const response = await axios.post('https://ls-jabaquara.com.br/regions', { nome, descricao });
+        const response = await api_service.post('/regions', { nome, descricao });
         setRows([...rows, response.data]);
       } catch (error) {
         console.error("Erro ao cadastrar a região: ", error);
@@ -71,7 +71,7 @@ const RegionForm = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://ls-jabaquara.com.br/regions/${id}`);
+      await api_service.delete(`/regions/${id}`);
       setRows(rows.filter((row) => row.id !== id));
     } catch (error) {
       console.error("Erro ao excluir a região: ", error);

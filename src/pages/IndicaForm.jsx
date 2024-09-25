@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import axios from 'axios';
+import api_service from '../services/api_service'; // Importando serviço da API
 import {Box } from '@mui/material';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -21,7 +21,7 @@ const IndicaForm = () => {
   const [obs, setObs] = useState('');
 
   useEffect(() => {
-    axios.get('https://ls-jabaquara.com.br/indicaall')
+    api_service.get('/indicaall')
       .then((response) => {
         setRows(response.data);
         setIndicacoes(response.data); // Set initial data for export
@@ -56,14 +56,14 @@ const IndicaForm = () => {
 
     if (editRow) {
       try {
-        await axios.put(`https://ls-jabaquara.com.br/indica/${editRow.id}`, { nome_publica, enderec, end_confirm, obs });
+        await api_service.put(`/indica/${editRow.id}`, { nome_publica, enderec, end_confirm, obs });
         setRows(rows.map(row => (row.id === editRow.id ? { ...row, nome_publica, enderec, end_confirm, obs } : row)));
       } catch (error) {
         console.error("Erro ao atualizar a indicação: ", error);
       }
     } else {
       try {
-        const response = await axios.post('https://ls-jabaquara.com.br/indica', { data_inclu, nome_publica, cod_congreg, cod_regiao, enderec, end_confirm, origem, obs });
+        const response = await api_service.post('/indica', { data_inclu, nome_publica, cod_congreg, cod_regiao, enderec, end_confirm, origem, obs });
         setRows([...rows, response.data]);
         setIndicacoes([...rows, response.data]); // Update data for export
       } catch (error) {
@@ -87,7 +87,7 @@ const IndicaForm = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://ls-jabaquara.com.br/indica/${id}`);
+      await api_service.delete(`/indica/${id}`);
       setRows(rows.filter((row) => row.id !== id));
       setIndicacoes(rows.filter((row) => row.id !== id)); // Update data for export
     } catch (error) {

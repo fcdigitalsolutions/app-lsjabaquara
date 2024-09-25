@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api_service from '../services/api_service'; // Importando serviço da API
 import InputMask from 'react-input-mask';
 import { Box, Button, TextField, Typography } from '@mui/material';
 
@@ -17,7 +17,7 @@ const RegistroNC = () => {
   const [obs, setObs] = useState('');
 
   useEffect(() => {
-    axios.get('https://ls-jabaquara.com.br/registncall')
+    api_service.get('/registncall')
       .then((response) => {
         setRows(response.data);
       })
@@ -51,7 +51,7 @@ const RegistroNC = () => {
 
     if (editRow) {
       try {
-        const response = await axios.post('https://ls-jabaquara.com.br/registnc', { data_inclu, nome_publica, telefone, cod_congreg, cod_regiao, enderec, num_visitas,dt_ult_visit , obs });
+        const response = await api_service.post('/registnc', { data_inclu, nome_publica, telefone, cod_congreg, cod_regiao, enderec, num_visitas,dt_ult_visit , obs });
         setRows([...rows, response.data]);
       } catch (error) {
         console.error("Erro ao cadastrar o registro NC: ", error);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Card, CardContent, Typography } from '@mui/material';
 import axios from 'axios';
+import api_service from '../services/api_service'; // Importando serviço da API
+
 
 const DashMain = () => {
   const [data, setData] = useState([]);
@@ -8,7 +10,7 @@ const DashMain = () => {
   const totalConcluidos = data.filter(item => item.cod_status === 'Concluído').length;
 
   useEffect(() => {
-    axios.get('https://ls-jabaquara.com.br/rastrearall')
+    api_service.get('/rastrearall')
       .then((response) => {
         setData(response.data);
       })
