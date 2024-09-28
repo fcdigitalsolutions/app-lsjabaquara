@@ -294,7 +294,7 @@ const IndicaForm = () => {
               e.currentTarget.style.backgroundColor = '#202038'; // Cor original
               e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
             }}
-            > =>> Enviar Indicação</button>
+            > Enviar Indicação</button>
           </Box>
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
