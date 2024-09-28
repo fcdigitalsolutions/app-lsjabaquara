@@ -11,7 +11,7 @@ const routes = [
   { path: "/home/dash-registnc", name: "Registros NC", icon: <FaHouseUser /> },
   { path: "/home/dash-rastrea", name: "Rastreamento", icon: <FaFileInvoice /> },
   { path: "/home/form-enderec", name: "Endereços", icon: <FaMapMarkedAlt /> },
-  { path: "/home/login", name: "Sair", icon: <FaSignOutAlt /> },
+  { path: "/", name: "Sair", icon: <FaSignOutAlt /> },
 ];
 
 const Sidebar = ({ children }) => {
