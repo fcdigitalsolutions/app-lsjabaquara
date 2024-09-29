@@ -5,6 +5,7 @@ import LoginForm from './pages/LoginForm';
 import Sidebar from './components/Sidebar'; // Importe o componente que contém a Sidebar
 import RegionForm from './pages/RegionForm'; // Importe os componentes das páginas
 import CongregForm from './pages/CongregForm';
+import CongregDash from './pages/CongregDash';
 import IndicaDash from './pages/IndicaDash';
 import IndicaForm from './pages/IndicaForm';
 import RegNCDash from './pages/RegistroNCDash';
@@ -31,6 +32,7 @@ const App = () => {
               <Routes>
                 <Route path="form-region" element={<RegionForm />} />
                 <Route path="form-congreg" element={<CongregForm />} />
+                <Route path="dash-congreg" element={<CongregDash />} />
                 <Route path="form-indicac" element={<IndicaForm />} />  
                 <Route path="dash-indicac" element={<IndicaDash />} />                
                 <Route path="form-registnc" element={<RegistroNC />} />

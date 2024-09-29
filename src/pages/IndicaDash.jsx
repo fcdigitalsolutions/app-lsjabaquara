@@ -2,19 +2,17 @@ import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import { Box, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
-
+import { FaEdit } from 'react-icons/fa';
 
 const IndicaDash = () => {
-
   const [data, setData] = useState([]);
   const navigate = useNavigate(); // Use o useNavigate
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(2); // Limite de linhas por página
 
-  const totalPendentes = data.filter(item => item.end_confirm !=='2').length;
+  const totalPendentes = data.filter(item => item.end_confirm !== '2').length;
   const totalConcluidos = data.filter(item => item.end_confirm === '2').length;
   const totalRegioes = new Set(data.map(item => item.cod_congreg)).size;
-
 
   useEffect(() => {
     api_service.get('/indicaall')
@@ -30,12 +28,12 @@ const IndicaDash = () => {
   const handleNovoIndica = () => {
     navigate('/home/form-indicac'); // Navegue para a rota definida
   };
-  
-   // Função para determinar o status com base no número de visitas
+
+  // Função para determinar o status com base no número de visitas
   const getStatus = (end_confirm) => {
     if (end_confirm === '2') {
       return 'Concluído';
-    } else  {
+    } else {
       return 'Pendente';
     }
   };
@@ -52,7 +50,6 @@ const IndicaDash = () => {
     }
   };
 
- 
   const buttonStyle = {
     padding: '4px 12px',
     fontSize: '0.80rem',
@@ -71,25 +68,29 @@ const IndicaDash = () => {
   const currentData = data.slice(startIndex, endIndex);
 
   return (
-   <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
+    <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
       <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Indicações</h2>
 
+      {/* Box separado para os cards */}
       <Box
         sx={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: 1, // Reduzido o espaçamento
+          gap: 1,
           justifyContent: 'space-between',
+          marginBottom: '20px', // Espaçamento entre os cards e a tabela
           '@media (max-width: 600px)': {
             flexDirection: 'column',
-            alignItems: 'left'
-          }
+            alignItems: 'left',
+          },
         }}
       >
         <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
           <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
             <CardContent>
-              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Total de Registros</Typography> {/* Fonte ajustada */}
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Total de Registros
+              </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{data.length}</Typography>
             </CardContent>
           </Card>
@@ -98,7 +99,9 @@ const IndicaDash = () => {
         <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
           <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
             <CardContent>
-              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Congregações</Typography> {/* Fonte ajustada */}
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Congregações
+              </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalRegioes}</Typography>
             </CardContent>
           </Card>
@@ -107,7 +110,9 @@ const IndicaDash = () => {
         <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
           <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
             <CardContent>
-              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Indicações Confirmadas</Typography> {/* Fonte ajustada */}
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Indicações Confirmadas
+              </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalConcluidos}</Typography>
             </CardContent>
           </Card>
@@ -116,13 +121,16 @@ const IndicaDash = () => {
         <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
           <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
             <CardContent>
-              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Indicações Pendentes</Typography> {/* Fonte ajustada */}
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Indicações Pendentes
+              </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalPendentes}</Typography>
             </CardContent>
           </Card>
         </Box>
       </Box>
-      <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', padding: '11px', borderRadius: '15px' }}>      </Box>
+
+      {/* Box separado para a tabela */}
       <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', borderRadius: '15px' }}>
         <button
           type="button"
@@ -144,9 +152,10 @@ const IndicaDash = () => {
           }}
           onClick={handleNovoIndica}
         >
-          + Manutenção Indicações
+          <FaEdit  /> Manutenção Indicações {/* Ícone de adição */}
+          
         </button>
-    
+
         <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
           <Table>
             <TableHead>
@@ -165,7 +174,7 @@ const IndicaDash = () => {
                 const status = getStatus(row.num_visitas);
                 return (
                   <TableRow key={row.id} sx={{ height: '10px' }}>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.data_inclu}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap'}}>{row.data_inclu}</TableCell>
                     <TableCell align="center">
                       <div
                         style={{

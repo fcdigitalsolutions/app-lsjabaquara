@@ -90,7 +90,7 @@ const IndicaFormOff = () => {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Nome Publicador *"
+              label="Seu Nome *"
               variant="outlined"
               size="small"
               fullWidth
@@ -107,7 +107,7 @@ const IndicaFormOff = () => {
               {(inputProps) => (
                 <TextField
                   {...inputProps}
-                  label="Telefone de Contato *"
+                  label="Seu Telefone *"
                   variant="outlined"
                   size="small"
                   fullWidth
@@ -117,7 +117,7 @@ const IndicaFormOff = () => {
           </Box>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Congregação *"
+              label="Sua Congregação *"
               variant="outlined"
               size="small"
               fullWidth
@@ -127,7 +127,7 @@ const IndicaFormOff = () => {
           </Box>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Região/Bairro *"
+              label="Bairro do Surdo *"
               variant="outlined"
               size="small"
               fullWidth
@@ -137,7 +137,7 @@ const IndicaFormOff = () => {
           </Box>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Endereço *"
+              label="Endereço do Surdo *"
               variant="outlined"
               size="small"
               fullWidth
@@ -153,7 +153,7 @@ const IndicaFormOff = () => {
                 labelId="origem-label"
                 id="origem"
                 value={origem}
-                label="Informe a Origem"
+                label="Origem *"
                 onChange={(e) => setOrigem(e.target.value)}
               >
                 <MenuItem value="Rastreamento Casa em Casa">Casa em Casa</MenuItem>
@@ -165,7 +165,7 @@ const IndicaFormOff = () => {
 
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Detalhes"
+              label="Detalhes e Referências "
               variant="outlined"
               size="small"
               fullWidth

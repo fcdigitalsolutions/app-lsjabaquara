@@ -5,11 +5,11 @@ import { FaPeopleGroup, FaPersonCirclePlus, FaFileInvoice } from 'react-icons/fa
 import { AnimatePresence, motion } from 'framer-motion';
 
 const routes = [
-  { path: "/home/form-region", name: "Regiões", icon: <FaMapPin /> },         // Caminhos atualizados
-  { path: "/home/form-congreg", name: "Congregações", icon: <FaPeopleGroup /> },
+  { path: "/home/dash-rastrea", name: "Rastreamento", icon: <FaFileInvoice /> },
   { path: "/home/dash-indicac", name: "Indicações", icon: <FaPersonCirclePlus /> },
   { path: "/home/dash-registnc", name: "Registros NC", icon: <FaHouseUser /> },
-  { path: "/home/dash-rastrea", name: "Rastreamento", icon: <FaFileInvoice /> },
+  { path: "/home/dash-congreg", name: "Congregações", icon: <FaPeopleGroup /> },
+  { path: "/home/form-region", name: "Regiões", icon: <FaMapPin /> },         // Caminhos atualizados
   { path: "/home/form-enderec", name: "Endereços", icon: <FaMapMarkedAlt /> },
   { path: "/", name: "Sair", icon: <FaSignOutAlt /> },
 ];

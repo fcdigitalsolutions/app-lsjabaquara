@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import { Box, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
+import { FaEdit } from 'react-icons/fa';
 
 const RegNCDash = () => {
   const [data, setData] = useState([]);
@@ -16,6 +17,17 @@ const RegNCDash = () => {
       return 'Concluído';
     }
     return 'Desconhecido'; // Fallback para casos inesperados
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Pendente':
+        return 'green';
+      case 'Concluído':
+        return '#202038';
+      default:
+        return 'transparent';
+    }
   };
 
   const totalPendentes = data.filter(item => item.num_visitas <= 1).length;
@@ -36,16 +48,7 @@ const RegNCDash = () => {
     navigate('/home/form-registnc'); // Navegue para a rota definida
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Pendente':
-        return 'green';
-      case 'Concluído':
-        return '#202038';
-      default:
-        return 'transparent';
-    }
-  };
+
 
   const buttonStyle = {
     padding: '4px 12px',
@@ -137,7 +140,7 @@ const RegNCDash = () => {
           }}
           onClick={handleNovoRegistroNC}
         >
-          + Manutenção Registros NC
+        < FaEdit/> Manutenção Registros NC
         </button>
         <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
           <Table>

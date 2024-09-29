@@ -3,12 +3,13 @@ import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import InputMask from 'react-input-mask';
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
+import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 
 const IndicaForm = () => {
   const [data, setData] = useState([]);
   const navigate = useNavigate(); // Use o useNavigate
   const [page, setPage] = useState(0);
-  const [rowsPerPage] = useState(6); // Limite de linhas por página
+  const [rowsPerPage] = useState(5); // Limite de linhas por página
   const [editRowId, setEditRowId] = useState(null); // ID da linha sendo editada
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
   const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
@@ -165,7 +166,7 @@ const IndicaForm = () => {
             }}
             onClick={handleRetornaDash}
           >
-            DashBoard indicações
+            <FaChartPie />  DashBoard indicações
           </button>
 
           <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
@@ -224,77 +225,90 @@ const IndicaForm = () => {
               '& .MuiTablePagination-displayedRows': { fontSize: '0.65rem' },
             }}
           />
-        </Box>
-      </Box>
 
-       {/* Botão para abrir o formulário */}
-       <Box sx={{ padding: '16px', marginTop: '16px' }}>
-        <button
-          type="button"
-          style={{
-            ...buttonStyle,
-            backgroundColor: showNewIndicationForm ? '#67e7eb' : '#202038',
-            color: showNewIndicationForm ? '#202038' : '#f1f1f1',
-          }}
-          onMouseEnter={(e) => {
-            if (!showNewIndicationForm) {
-              e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
-              e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!showNewIndicationForm) {
-              e.currentTarget.style.backgroundColor = '#202038'; // Cor original
-              e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
-            }
-          }}
-          onClick={handleNovoBotao}
-        >
-          + Incluir nova Indicação
-        </button>
-      </Box>
-
-      {/* Formulário de nova indicação */}
-      <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
-        <form onSubmit={handleNewIndicationSubmit}>
-          <Box sx={formBoxStyle}>
-            <TextField label="Nome Publicador *" variant="outlined" size="small" fullWidth value={newIndication.nome_publica} onChange={(e) => setNewIndication({ ...newIndication, nome_publica: e.target.value })} sx={inputStyle} />
-            <InputMask mask="(99) 99999-9999" value={newIndication.telefone} onChange={(e) => setNewIndication({ ...newIndication, telefone: e.target.value })}>
-              {(inputProps) => <TextField {...inputProps} label="Telefone de Contato *" variant="outlined" size="small" fullWidth sx={inputStyle} />}
-            </InputMask>
-            <TextField label="Congregação *" variant="outlined" size="small" fullWidth value={newIndication.cod_congreg} onChange={(e) => setNewIndication({ ...newIndication, cod_congreg: e.target.value })} sx={inputStyle} />
-            <TextField label="Região/Bairro *" variant="outlined" size="small" fullWidth value={newIndication.cod_regiao} onChange={(e) => setNewIndication({ ...newIndication, cod_regiao: e.target.value })} sx={inputStyle} />
-            <TextField label="Endereço *" variant="outlined" size="small" fullWidth value={newIndication.enderec} onChange={(e) => setNewIndication({ ...newIndication, enderec: e.target.value })} sx={inputStyle} />
-            <FormControl fullWidth sx={inputStyle}>
-              <InputLabel id="origem-label">Origem</InputLabel>
-              <Select labelId="origem-label" id="origem" value={newIndication.origem} label="Informe a Origem" onChange={(e) => setNewIndication({ ...newIndication, origem: e.target.value })}>
-                <MenuItem value="Rastreamento Casa em Casa">Casa em Casa</MenuItem>
-                <MenuItem value="Rastreamento Comércio">Comércio</MenuItem>
-                <MenuItem value="Outros">Outros</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField label="Detalhes" variant="outlined" size="small" fullWidth value={newIndication.obs} onChange={(e) => setNewIndication({ ...newIndication, obs: e.target.value })} sx={inputStyle} />
-          </Box>
-          <Box sx={{ marginTop: '20px' }}>
+          {/* Botão para abrir o formulário */}
           <button
             type="button"
             style={{
               ...buttonStyle,
-              backgroundColor: '#202038',
-              color: '#f1f1f1',
-              transition: 'background-color 0.2s ease', // Transição suave
-              align: 'right',
-              borderRadius: '4px',
+              backgroundColor: showNewIndicationForm ? '#67e7eb' : '#202038',
+              color: showNewIndicationForm ? '#202038' : '#f1f1f1',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
-              e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
+              if (!showNewIndicationForm) {
+                e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
+                e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#202038'; // Cor original
-              e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
+              if (!showNewIndicationForm) {
+                e.currentTarget.style.backgroundColor = '#202038'; // Cor original
+                e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
+              }
             }}
-            > Enviar Indicação</button>
+            onClick={handleNovoBotao}
+          >
+            <FaUserPlus /> Nova Indicação
+          </button>
+        </Box>
+
+      </Box>
+      {/* Formulário de nova indicação */}
+      <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
+        <form onSubmit={handleNewIndicationSubmit}>
+          <Box sx={formBoxStyle}>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="Seu Nome *" variant="outlined" size="small" fullWidth value={newIndication.nome_publica} onChange={(e) => setNewIndication({ ...newIndication, nome_publica: e.target.value })} sx={inputStyle} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <InputMask mask="(99) 99999-9999" value={newIndication.telefone} onChange={(e) => setNewIndication({ ...newIndication, telefone: e.target.value })}>
+                {(inputProps) => <TextField {...inputProps} label="Seu Telefone *" variant="outlined" size="small" fullWidth sx={inputStyle} />}
+              </InputMask>
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="Sua Congregação *" variant="outlined" size="small" fullWidth value={newIndication.cod_congreg} onChange={(e) => setNewIndication({ ...newIndication, cod_congreg: e.target.value })} sx={inputStyle} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="Bairro do Surdo*" variant="outlined" size="small" fullWidth value={newIndication.cod_regiao} onChange={(e) => setNewIndication({ ...newIndication, cod_regiao: e.target.value })} sx={inputStyle} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="Endereço do Surdo *" variant="outlined" size="small" fullWidth value={newIndication.enderec} onChange={(e) => setNewIndication({ ...newIndication, enderec: e.target.value })} sx={inputStyle} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <FormControl fullWidth sx={inputStyle}>
+                <InputLabel id="origem-label">Origem</InputLabel>
+                <Select labelId="origem-label" id="origem" value={newIndication.origem} label="Origem " onChange={(e) => setNewIndication({ ...newIndication, origem: e.target.value })}>
+                  <MenuItem value="Rastreamento Casa em Casa">Casa em Casa</MenuItem>
+                  <MenuItem value="Rastreamento Comércio">Comércio</MenuItem>
+                  <MenuItem value="Outros">Outros</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="Detalhes e Referências " variant="outlined" size="small" fullWidth value={newIndication.obs} onChange={(e) => setNewIndication({ ...newIndication, obs: e.target.value })} sx={inputStyle} />
+            </Box>
+          </Box>
+          <Box sx={{ marginTop: '20px' }}>
+            <button
+              type="button"
+              style={{
+                ...buttonStyle,
+                backgroundColor: '#202038',
+                color: '#f1f1f1',
+                transition: 'background-color 0.2s ease', // Transição suave
+                align: 'right',
+                borderRadius: '4px',
+
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
+                e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#202038'; // Cor original
+                e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
+              }}
+            > <FaShareSquare /> Enviar Indicação</button>
           </Box>
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
