@@ -1,22 +1,22 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import LoginForm from './pages/LoginForm';
-import Sidebar from './components/Sidebar'; // Importe o componente que contém a Sidebar
-import RegionForm from './pages/RegionForm'; // Importe os componentes das páginas
-import CongregForm from './pages/CongregForm';
-import CongregDash from './pages/CongregDash';
-import IndicaDash from './pages/IndicaDash';
-import IndicaForm from './pages/IndicaForm';
-import IndicaFormOFF from './pages/IndicaFormOFF';
-import RegNCDash from './pages/RegistroNCDash';
-import RegistroNC from './pages/RegistroNC';
-import RegistroNCOff from './pages/RegistroNCOff';
-import RastreaDash from './pages/RastreaDash';
-import RastreaForm from './pages/RastreaForm';
-import EnderecForm from './pages/EnderecForm';
+import Sidebar        from './components/Sidebar'; // Importe o componente que contém a Sidebar
+import LoginForm      from './pages/LoginForm';
+import RegionForm     from './pages/RegionForm'; // Importe os componentes das páginas
+import CongregForm    from './pages/CongregForm';
+import CongregDash    from './pages/CongregDash';
+import IndicaDash     from './pages/IndicaDash';
+import IndicaForm     from './pages/IndicaForm';
+import IndicaFormOFF  from './pages/IndicaFormOFF';
+import RegNCDash      from './pages/RegistroNCDash';
+import RegistroNC     from './pages/RegistroNC';
+import RegistroNCOff  from './pages/RegistroNCOff';
+import RastreaDash    from './pages/RastreaDash';
+import RastreaForm    from './pages/RastreaForm';
+import EnderecForm    from './pages/EnderecForm';
 
-import RelCampForm from './pages/RelCampForm';
+import RelCampForm    from './pages/RelCampForm';
 
 import './styles/App.css'; // Verifique se o caminho está correto
 
@@ -25,10 +25,9 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<LoginForm />} />
-        <Route path="/" element={<LoginForm />} />
-        <Route path="/registro-nc-off" element={<RegistroNCOff />} />
-        <Route path="/indica-form-off" element={<IndicaFormOFF />} />
-        <Route path="/relatoriocampo" element={<RelCampForm />} />
+        <Route path="/regist-ncoff" element={<RegistroNCOff />} />
+        <Route path="/indic-formoff" element={<IndicaFormOFF />} />
+        <Route path="/relatoriocampo"  element={<RelCampForm />} />
         <Route
           path="/home/*"
           element={

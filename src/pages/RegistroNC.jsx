@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
-import InputMask from 'react-input-mask';
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 
