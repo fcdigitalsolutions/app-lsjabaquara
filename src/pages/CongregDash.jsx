@@ -10,9 +10,7 @@ const CongregDash = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(2); // Limite de linhas por página
 
-  const totalPendentes = data.filter(item => item.end_confirm !== '2').length;
-  const totalConcluidos = data.filter(item => item.end_confirm === '2').length;
-  const totalRegioes = new Set(data.map(item => item.cod_congreg)).size;
+  const totalRegioes = new Set(data.map(item => item.regiao)).size;
 
   useEffect(() => {
     api_service.get('/congregsall')
@@ -27,27 +25,6 @@ const CongregDash = () => {
   // Função para lidar com o clique do botão
   const handleNovoIndica = () => {
     navigate('/home/form-congreg'); // Navegue para a rota definida
-  };
-
-  // Função para determinar o status com base no número de visitas
-  const getStatus = (end_confirm) => {
-    if (end_confirm === '2') {
-      return 'Concluído';
-    } else {
-      return 'Pendente';
-    }
-  };
-
-  // Função para determinar a cor de fundo da célula com base no status
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Pendente':
-        return 'green';
-      case 'Concluído':
-        return '#202038';
-      default:
-        return 'transparent';
-    }
   };
 
   const buttonStyle = {
@@ -89,7 +66,7 @@ const CongregDash = () => {
           <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
             <CardContent>
               <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                Total de Registros
+                Num. de Congregações
               </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{data.length}</Typography>
             </CardContent>
@@ -100,34 +77,13 @@ const CongregDash = () => {
           <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
             <CardContent>
               <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                Congregações
+                Total de Regiões
               </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalRegioes}</Typography>
             </CardContent>
           </Card>
         </Box>
 
-        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
-          <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
-            <CardContent>
-              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                Indicações Confirmadas
-              </Typography>
-              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalConcluidos}</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
-          <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
-            <CardContent>
-              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                Indicações Pendentes
-              </Typography>
-              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalPendentes}</Typography>
-            </CardContent>
-          </Card>
-        </Box>
       </Box>
 
       {/* Box separado para a tabela */}
