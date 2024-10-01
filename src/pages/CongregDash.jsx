@@ -15,7 +15,7 @@ const CongregDash = () => {
   const totalRegioes = new Set(data.map(item => item.cod_congreg)).size;
 
   useEffect(() => {
-    api_service.get('/indicaall')
+    api_service.get('/congregsall')
       .then((response) => {
         setData(response.data);
       })
@@ -160,45 +160,30 @@ const CongregDash = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Data</TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Confirmado?</TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Publicador</TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Contato</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Congregação</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Região</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Endereço</TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Origem</TableCell>
-              </TableRow>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>CCA Nome</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Cca Contato</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>SS Nome</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>SS Contato</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Serv. Território</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Srv. Terr. Contato</TableCell>
+                </TableRow>
             </TableHead>
             <TableBody>
               {currentData.map((row) => {
-                const status = getStatus(row.num_visitas);
                 return (
                   <TableRow key={row.id} sx={{ height: '10px' }}>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap'}}>{row.data_inclu}</TableCell>
-                    <TableCell align="center">
-                      <div
-                        style={{
-                          backgroundColor: getStatusColor(status),
-                          color: 'white',
-                          padding: '2px',
-                          borderRadius: '4px',
-                          textAlign: 'center',
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.65rem',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {status}
-                      </div>
-                    </TableCell>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.nome_publica}</TableCell>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.num_contato}</TableCell>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.cod_congreg}</TableCell>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.enderec}</TableCell>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.origem}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.nome}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.regiao}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.endereco}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.cca_nome}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.cca_contato}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.ss_nome}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.ss_contato}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.srv_terr_nome}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.srv_terr_contat}</TableCell>
                   </TableRow>
                 );
               })}

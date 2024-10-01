@@ -5,14 +5,14 @@ import InputMask from 'react-input-mask';
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 
-const RastreaForm = () => {
+const RelCampForm = () => {
   const [data, setData] = useState([]);
   const navigate = useNavigate(); // Use o useNavigate
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(5); // Limite de linhas por página
   const [editRowId, setEditRowId] = useState(null); // ID da linha sendo editada
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
-  const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova rastreamento
+  const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [newIndication, setNewIndication] = useState({
     nome_publica: '',
@@ -25,7 +25,7 @@ const RastreaForm = () => {
   });
 
   useEffect(() => {
-    api_service.get('/rastrearall')
+    api_service.get('/indicaall')
       .then((response) => {
         setData(response.data);
       })
@@ -36,7 +36,7 @@ const RastreaForm = () => {
 
   // Função para redirecionar ao dashboard
   const handleRetornaDash = () => {
-    navigate('/home/dash-rastrea'); // Navegue para a rota definida
+    navigate('/home/dash-indicac'); // Navegue para a rota definida
   };
 
   // Função para iniciar a edição de uma linha
@@ -54,7 +54,7 @@ const RastreaForm = () => {
   // Função para salvar as alterações
   const handleSave = async () => {
     try {
-      await api_service.put(`/rastrear/${editedRowData.id}`, editedRowData); // Atualiza os dados no backend
+      await api_service.put(`/indica/${editedRowData.id}`, editedRowData); // Atualiza os dados no backend
       setData(data.map(row => (row.id === editedRowData.id ? editedRowData : row))); // Atualiza os dados no frontend
       setEditRowId(null); // Sai do modo de edição
     } catch (error) {
@@ -67,7 +67,7 @@ const RastreaForm = () => {
     const confirmDelete = window.confirm("Você realmente deseja excluir este registro?");
     if (confirmDelete) {
       try {
-        await api_service.delete(`/rastrear/${id}`); // Envia a solicitação de exclusão para a API
+        await api_service.delete(`/indica/${id}`); // Envia a solicitação de exclusão para a API
         setData(data.filter(row => row.id !== id)); // Remove o registro excluído do estado local
       } catch (error) {
         console.error("Erro ao excluir os dados: ", error);
@@ -75,12 +75,12 @@ const RastreaForm = () => {
     }
   };
 
-  // Função para mostrar/esconder o formulário de novo rastreamento
+  // Função para mostrar/esconder o formulário de nova indicação
   const handleNovoBotao = () => {
     setShowNewIndicationForm(!showNewIndicationForm); // Alterna entre mostrar ou esconder o formulário
   };
 
-  // Função para enviar novo rastreamento
+  // Função para enviar a nova indicação
   const handleNewIndicationSubmit = async (e) => {
     e.preventDefault();
     const { nome_publica, num_contato, cod_congreg, cod_regiao, enderec, origem, obs } = newIndication;
@@ -91,13 +91,13 @@ const RastreaForm = () => {
     }
 
     try {
-      const response = await api_service.post('/rastrear', newIndication);
-      setData([...data, response.data]); // Adiciona a nova rastreamento aos dados
+      const response = await api_service.post('/indica', newIndication);
+      setData([...data, response.data]); // Adiciona a nova indicação aos dados
       setNewIndication({ nome_publica: '', num_contato: '', cod_congreg: '', cod_regiao: '', enderec: '', origem: '', obs: '' }); // Limpa o formulário
-      setMessage('rastreamento incluído com sucesso!');
+      setMessage('Indicação incluída com sucesso!');
     } catch (error) {
       console.error("Erro ao enviar as informações: ", error);
-      setMessage('Erro ao incluir a rastreamento.');
+      setMessage('Erro ao incluir a indicação.');
     }
   };
 
@@ -138,25 +138,21 @@ const RastreaForm = () => {
     }
   };
 
-  const getStatus = (cod_status) => {
-    if (cod_status === '0') {
+  // Função para determinar o status com base no número de visitas
+  const getStatus = (end_confirm) => {
+    if (end_confirm === '2') {
+      return 'Confirmado';
+    } else {
       return 'Pendente';
-    } else if (cod_status === '1') {
-      return 'Em Andamento';
-    
-  } else if (cod_status === '2') {
-    return 'Concluído';
-  }
-    return 'Desconhecido'; // Fallback para casos inesperados
+    }
   };
 
+  // Função para determinar a cor de fundo da célula com base no status
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Em Andamento':
-        return 'green';
       case 'Pendente':
-        return 'gray';
-      case 'Concluído':
+        return 'green';
+      case 'Confirmado':
         return '#202038';
       default:
         return 'transparent';
@@ -165,12 +161,12 @@ const RastreaForm = () => {
 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
-      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Rastreamentos</h2>
+      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Relatório Mensal de Pregação</h2>
 
       {/* Box separado para a tabela */}
       <Box sx={{ marginBottom: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
         <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', borderRadius: '16px' }}>
-          {/* Botão Dashboard rastreamentos */}
+          {/* Botão Dashboard indicações */}
           <button
             type="button"
             style={{
@@ -191,29 +187,30 @@ const RastreaForm = () => {
             }}
             onClick={handleRetornaDash}
           >
-            <FaChartPie />  DashBoard rastreamentos
+            <FaChartPie />  DashBoard indicações
           </button>
 
           <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
             <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell align="center">Data</TableCell>
+                  <TableCell align="center">Confirmado?</TableCell>
+                  <TableCell align="center">Publicador</TableCell>
+                  <TableCell align="center">Contato</TableCell>
                   <TableCell align="center">Congregação</TableCell>
-                  <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Dt. Início</TableCell>
-                  <TableCell align="center">Dt. Fim</TableCell>
-                  <TableCell align="center">Endereços</TableCell>
-                  <TableCell align="center">Endereços Concluídos</TableCell>
-                   <TableCell align="center">Ações</TableCell>
+                  <TableCell align="center">Endereço</TableCell>
+                  <TableCell align="center">Origem</TableCell>
+                  <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {currentData.map((row) => {
                   const isEditing = row.id === editRowId;
-                  const status = getStatus(row.cod_status);
+                  const status = getStatus(row.end_confirm);
                   return (
                     <TableRow key={row.id}>
-                      <TableCell align="center">{isEditing ? <TextField name="cod_congreg" value={editedRowData.cod_congreg || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_congreg}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
                       <TableCell align="center">
                       <div
                         style={{
@@ -232,12 +229,12 @@ const RastreaForm = () => {
                       >
                         {status}
                       </div>
-                    </TableCell> 
-                      <TableCell align="center">{isEditing ? <TextField name="cod_status" value={editedRowData.cod_status || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_status === '2' ? 'Concluído' : row.cod_status === '1'? 'Em Andamento': 'Pendente' }</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="data_inicio" value={editedRowData.data_inicio || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inicio}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="data_fim" value={editedRowData.data_fim || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_fim}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="num_enderec" value={editedRowData.num_enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.num_enderec}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="num_endconcl" value={editedRowData.num_endconcl || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.num_endconcl}</TableCell>
+                    </TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="nome_publica" value={editedRowData.nome_publica || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.nome_publica}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="num_contato" value={editedRowData.num_contato || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.num_contato}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="cod_congreg" value={editedRowData.cod_congreg || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_congreg}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="origem" value={editedRowData.origem || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.origem}</TableCell>
                       <TableCell align="center">
                         {isEditing ? (
                           <Button variant="contained" color="primary" size="small" onClick={handleSave} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Salvar</Button>
@@ -291,12 +288,12 @@ const RastreaForm = () => {
             }}
             onClick={handleNovoBotao}
           >
-            <FaUserPlus /> Novo Rastreamento
+            <FaUserPlus /> Nova Indicação
           </button>
         </Box>
 
       </Box>
-      {/* Formulário de nova rastreamento */}
+      {/* Formulário de nova indicação */}
       <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
         <form onSubmit={handleNewIndicationSubmit}>
           <Box sx={formBoxStyle}>
@@ -351,7 +348,7 @@ const RastreaForm = () => {
                 e.currentTarget.style.backgroundColor = '#202038'; // Cor original
                 e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
               }}
-            > <FaShareSquare /> Enviar rastreamento</button>
+            > <FaShareSquare /> Enviar Indicação</button>
           </Box>
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
@@ -361,4 +358,4 @@ const RastreaForm = () => {
   );
 };
 
-export default RastreaForm;
+export default RelCampForm;

@@ -7,7 +7,7 @@ import { Box, Button, TextField, Typography, MenuItem, Select, InputLabel, FormC
 const IndicaFormOff = () => {
   // Estados para armazenar os valores dos campos do formulário
   const [nome_publica, setNomePub] = useState('');
-  const [telefone, setTelefone] = useState('');
+  const [num_contato, setTelefone] = useState('');
   const [cod_congreg, setCodCongreg] = useState('');
   const [cod_regiao, setCodRegiao] = useState('');
   const [enderec, setEnderec] = useState('');
@@ -43,7 +43,7 @@ const IndicaFormOff = () => {
     e.preventDefault();
 
     // Verifica se todos os campos obrigatórios estão preenchidos
-    if (!nome_publica || !telefone || !cod_congreg || !cod_regiao || !enderec || !origem) {
+    if (!nome_publica || !num_contato || !cod_congreg || !cod_regiao || !enderec || !origem) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return; // Impede o envio para a API
     }
@@ -56,7 +56,7 @@ const IndicaFormOff = () => {
       await api_service.post('/indica', {
         data_inclu: defaultDtInclu,
         nome_publica,
-        telefone,
+        num_contato,
         cod_congreg,
         cod_regiao,
         enderec,
@@ -101,7 +101,7 @@ const IndicaFormOff = () => {
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <InputMask
               mask="(99) 99999-9999"
-              value={telefone}
+              value={num_contato}
               onChange={(e) => setTelefone(e.target.value)}
             >
               {(inputProps) => (

@@ -11,7 +11,7 @@ const CadastroCongreg = () => {
   const [descricao, setDescricao] = useState('');
 
   useEffect(() => {
-    api_service.get('/regionsall')
+    api_service.get('/congregsall')
       .then((response) => {
         setRows(response.data);
       })
@@ -39,14 +39,14 @@ const CadastroCongreg = () => {
 
     if (editRow) {
       try {
-        await api_service.put(`/regions/${editRow.id}`, { nome, descricao });
+        await api_service.put(`/congregs/${editRow.id}`, { nome, descricao });
         setRows(rows.map(row => (row.id === editRow.id ? { ...row, nome, descricao } : row)));
       } catch (error) {
         console.error("Erro ao atualizar a região: ", error);
       }
     } else {
       try {
-        const response = await api_service.post('/regions', { nome, descricao });
+        const response = await api_service.post('/congregs', { nome, descricao });
         setRows([...rows, response.data]);
       } catch (error) {
         console.error("Erro ao cadastrar a região: ", error);

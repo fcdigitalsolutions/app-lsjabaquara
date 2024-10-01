@@ -16,7 +16,7 @@ const IndicaForm = () => {
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [newIndication, setNewIndication] = useState({
     nome_publica: '',
-    telefone: '',
+    num_contato: '',
     cod_congreg: '',
     cod_regiao: '',
     enderec: '',
@@ -83,9 +83,9 @@ const IndicaForm = () => {
   // Função para enviar a nova indicação
   const handleNewIndicationSubmit = async (e) => {
     e.preventDefault();
-    const { nome_publica, telefone, cod_congreg, cod_regiao, enderec, origem, obs } = newIndication;
+    const { nome_publica, num_contato, cod_congreg, cod_regiao, enderec, origem, obs } = newIndication;
 
-    if (!nome_publica || !telefone || !cod_congreg || !cod_regiao || !enderec || !origem) {
+    if (!nome_publica || !num_contato || !cod_congreg || !cod_regiao || !enderec || !origem) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -93,7 +93,7 @@ const IndicaForm = () => {
     try {
       const response = await api_service.post('/indica', newIndication);
       setData([...data, response.data]); // Adiciona a nova indicação aos dados
-      setNewIndication({ nome_publica: '', telefone: '', cod_congreg: '', cod_regiao: '', enderec: '', origem: '', obs: '' }); // Limpa o formulário
+      setNewIndication({ nome_publica: '', num_contato: '', cod_congreg: '', cod_regiao: '', enderec: '', origem: '', obs: '' }); // Limpa o formulário
       setMessage('Indicação incluída com sucesso!');
     } catch (error) {
       console.error("Erro ao enviar as informações: ", error);
@@ -135,6 +135,27 @@ const IndicaForm = () => {
     justifyContent: 'space-between', // Alinha inputs horizontalmente
     '@media (max-width: 600px)': {
       flexDirection: 'column', // Em telas menores, alinha verticalmente
+    }
+  };
+
+  // Função para determinar o status com base no número de visitas
+  const getStatus = (end_confirm) => {
+    if (end_confirm === '2') {
+      return 'Confirmado';
+    } else {
+      return 'Pendente';
+    }
+  };
+
+  // Função para determinar a cor de fundo da célula com base no status
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Pendente':
+        return 'green';
+      case 'Confirmado':
+        return '#202038';
+      default:
+        return 'transparent';
     }
   };
 
@@ -186,10 +207,29 @@ const IndicaForm = () => {
               <TableBody>
                 {currentData.map((row) => {
                   const isEditing = row.id === editRowId;
+                  const status = getStatus(row.end_confirm);
                   return (
                     <TableRow key={row.id}>
                       <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="end_confirm" value={editedRowData.end_confirm || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.end_confirm === '2' ? 'Concluído' : 'Pendente'}</TableCell>
+                      <TableCell align="center">
+                      <div
+                        style={{
+                          backgroundColor: getStatusColor(status),
+                          color: 'white',
+                          padding: '2px',
+                          borderRadius: '4px',
+                          textAlign: 'center',
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.65rem',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {status}
+                      </div>
+                    </TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="nome_publica" value={editedRowData.nome_publica || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.nome_publica}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="num_contato" value={editedRowData.num_contato || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.num_contato}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="cod_congreg" value={editedRowData.cod_congreg || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_congreg}</TableCell>
@@ -261,7 +301,7 @@ const IndicaForm = () => {
               <TextField label="Seu Nome *" variant="outlined" size="small" fullWidth value={newIndication.nome_publica} onChange={(e) => setNewIndication({ ...newIndication, nome_publica: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <InputMask mask="(99) 99999-9999" value={newIndication.telefone} onChange={(e) => setNewIndication({ ...newIndication, telefone: e.target.value })}>
+              <InputMask mask="(99) 99999-9999" value={newIndication.num_contato} onChange={(e) => setNewIndication({ ...newIndication, num_contato: e.target.value })}>
                 {(inputProps) => <TextField {...inputProps} label="Seu Telefone *" variant="outlined" size="small" fullWidth sx={inputStyle} />}
               </InputMask>
             </Box>

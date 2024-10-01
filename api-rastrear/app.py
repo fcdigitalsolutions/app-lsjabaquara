@@ -158,6 +158,18 @@ def update_rastrear(rastrear_id):
     updated_rastrear_id = rastrear_service.update_rastrear(rastrear_id, rastrear)
     return jsonify({"message": "Rastreamento atualizado com sucesso!", "rastrear_id": updated_rastrear_id}), 200
 
+
+@app.route('/congregs/<int:congregation_id>', methods=['PUT'])
+def update_congregation(congregation_id):
+    data = request.json
+    congregation = Congregation(nome=data['nome'], regiao=data.get('regiao'), endereco=data.get('endereco'),
+                                cca_nome=data.get('cca_nome'), cca_contato=data.get('cca_contato'),
+                                ss_nome=data.get('ss_nome'), ss_contato=data.get('ss_contato'),
+                                srv_terr_nome=data.get('srv_terr_nome'), srv_terr_contat=data.get('srv_terr_contat'))
+    update_congregation_id = congregation_service.update_congregation(congregation_id, congregation)
+    return jsonify({"message": "Congregação add com sucesso!", "congregation_id": update_congregation_id}), 200
+
+
 @app.route('/congregs', methods=['POST'])
 def add_congregation():
     data = request.json
@@ -205,6 +217,6 @@ def add_auth_login():
 
 if __name__ == '__main__':
   ## habilite essa linha modo desenvolvedor
-  #  app.run(debug=True)
+    app.run(debug=True)
 
-    app.run(host="0.0.0.0", port=5000, debug=True)
+  #  app.run(host="0.0.0.0", port=5000, debug=True)

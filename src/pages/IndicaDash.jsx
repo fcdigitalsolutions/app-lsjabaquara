@@ -32,7 +32,7 @@ const IndicaDash = () => {
   // Função para determinar o status com base no número de visitas
   const getStatus = (end_confirm) => {
     if (end_confirm === '2') {
-      return 'Concluído';
+      return 'Confirmado';
     } else {
       return 'Pendente';
     }
@@ -43,7 +43,7 @@ const IndicaDash = () => {
     switch (status) {
       case 'Pendente':
         return 'green';
-      case 'Concluído':
+      case 'Confirmado':
         return '#202038';
       default:
         return 'transparent';
@@ -171,7 +171,7 @@ const IndicaDash = () => {
             </TableHead>
             <TableBody>
               {currentData.map((row) => {
-                const status = getStatus(row.num_visitas);
+                const status = getStatus(row.end_confirm);
                 return (
                   <TableRow key={row.id} sx={{ height: '10px' }}>
                     <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap'}}>{row.data_inclu}</TableCell>

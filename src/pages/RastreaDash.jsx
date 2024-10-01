@@ -9,19 +9,6 @@ const RegNCDash = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(2); // Limite de linhas por página
   const navigate = useNavigate();
-
-  const getStatus = (cod_status) => {
-    if (cod_status === '0') {
-      return 'Pendente';
-    } else if (cod_status === '1') {
-      return 'Em Andamento';
-    
-  } else if (cod_status === '2') {
-    return 'Concluído';
-  }
-    return 'Desconhecido'; // Fallback para casos inesperados
-  };
-
   const totalPendentes = data.filter(item => item.num_visitas <= 1).length;
   const totalConcluidos = data.filter(item => item.num_visitas >= 2).length;
   const totalRegioes = new Set(data.map(item => item.cod_regiao)).size;
@@ -40,9 +27,21 @@ const RegNCDash = () => {
     navigate('/home/form-rastrea'); // Navegue para a rota definida
   };
 
+  const getStatus = (cod_status) => {
+    if (cod_status === '0') {
+      return 'Pendente';
+    } else if (cod_status === '1') {
+      return 'Em Andamento';
+    
+  } else if (cod_status === '2') {
+    return 'Concluído';
+  }
+    return 'Desconhecido'; // Fallback para casos inesperados
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Em andamento':
+      case 'Em Andamento':
         return 'green';
       case 'Pendente':
         return 'gray';
