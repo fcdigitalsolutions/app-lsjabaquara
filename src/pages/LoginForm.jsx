@@ -59,8 +59,8 @@ const LoginForm = () => {
                 </form>
                 {message && <p className="error-message">{message}</p>}
                 <div className="external-links">
-                    <button onClick={() => navigate('/registro-nc-off')} className="external-button">+ Ninguém em Casa</button>
-                    <button onClick={() => navigate('/indica-form-off')} className="external-button">+ Indicação de Surdos</button>
+                    <button onClick={() => navigate('/regist-ncoff')} className="external-button">+ Ninguém em Casa</button>
+                    <button onClick={() => navigate('/indic-formoff')} className="external-button">+ Indicação de Surdos</button>
                 </div>
             </div>
         </div>
