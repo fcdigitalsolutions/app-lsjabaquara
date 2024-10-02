@@ -14,24 +14,22 @@ const RegistroNCOff = () => {
   const clearForm = () => {
     setCodRegiao('');
     setEnderec('');
-    setObs('');    
+    setObs('');
     setMessage('');
-  };
-
-  // Função para limitar o comprimento do campo 'obs' a 200 caracteres
-  const handleInputChange = (e) => {
-    if (e.target.value.length <= 200) {
-      setObs(e.target.value);
-    } else {
-      e.target.value = e.target.value.slice(0, 200);
-    }
   };
 
   // Função para enviar os dados do formulário para a API
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const formatDateTime = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
+      const day = String(date.getDate()).padStart(2, '0');
     
+      return `${day}/${month}/${year}`;
+    };
+
     // Verifica se todos os campos obrigatórios estão preenchidos
     if (!cod_regiao || !enderec || !obs) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
@@ -40,15 +38,20 @@ const RegistroNCOff = () => {
 
 
     try {
-
-      // Define valores padrão para num_visitas e dt_ult_visit
       const defaultNumVisitas = 1;
-      const defaultDtUltVisit = Data_Atual.toLocaleDateString();
-      const defaultDtInclu = Data_Atual.toLocaleDateString();
+    //  const defaultDtUltVisit = Data_Atual.toISOString(); // Gera 'YYYY-MM-DD'
+    //  const defaultDtInclu = Data_Atual.toISOString(); // Gera 'YYYY-MM-DD'
+
+      const defaultDtUltVisit = formatDateTime(Data_Atual); // Formato 'YYYY-MM-DD HH:mm:ss'
+      const defaultDtInclu = formatDateTime(Data_Atual);
+
       const defaultTelefone = "";
       const defaultcod_congreg = "";
       const defaultnome_publica = "";
-     
+
+      console.log(defaultDtInclu); 
+      console.log(defaultDtUltVisit); 
+
       // Faz uma requisição POST para a API
       await api_service.post('/registnc', {
         data_inclu: defaultDtInclu,
@@ -62,13 +65,13 @@ const RegistroNCOff = () => {
         obs
       });
 
-      // Limpa o formulário após o envio bem-sucedido
       clearForm();
       setMessage('Informações enviadas com sucesso!');
     } catch (error) {
       console.error("Erro ao cadastrar o registro NC: ", error);
       setMessage('Erro ao cadastrar o registro NC. Tente novamente.');
     }
+
   };
 
   return (
@@ -113,7 +116,7 @@ const RegistroNCOff = () => {
               size="small"
               fullWidth
               value={obs}
-              onChange={handleInputChange}
+              onChange={(e) => setObs(e.target.value)}
             />
           </Box>
         </Box>

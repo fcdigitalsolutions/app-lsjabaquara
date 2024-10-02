@@ -29,6 +29,14 @@ const IndicaFormOff = () => {
     setMessage('');
   };
 
+  const formatDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
+    const day = String(date.getDate()).padStart(2, '0');
+  
+    return `${day}/${month}/${year}`;
+  };
+
   // Função para limitar o comprimento do campo 'obs' a 200 caracteres
   const handleInputChange = (e) => {
     if (e.target.value.length <= 200) {
@@ -50,7 +58,7 @@ const IndicaFormOff = () => {
 
     try {
 
-      const defaultDtInclu = Data_Atual.toLocaleDateString();
+      const defaultDtInclu = formatDateTime(Data_Atual);
 
       // Faz uma requisição POST para a API
       await api_service.post('/indica', {
@@ -146,7 +154,7 @@ const IndicaFormOff = () => {
             />
           </Box>
           {/* Campo Origem com lista de opções */}
-          <Box item xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
+          <Box xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
             <FormControl fullWidth>
               <InputLabel id="origem-label">Origem</InputLabel>
               <Select

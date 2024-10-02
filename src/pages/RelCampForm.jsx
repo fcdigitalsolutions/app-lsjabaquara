@@ -7,9 +7,6 @@ import nomeImg from '../img/nome.png'; // Importando a imagem
 import voceImg from '../img/voce.png'; // Importando a imagem
 import ensinarImg from '../img/ensinar.png'; // Importando a imagem
 
-
-
-
 const RelCampForm = () => {
   // Estados para armazenar os valores dos campos do formulário
   const [cod_regiao, setCodRegiao] = useState('');
@@ -33,14 +30,6 @@ const RelCampForm = () => {
     setMessage('');
   };
 
-  // Função para limitar o comprimento do campo 'obs' a 200 caracteres
-  const handleInputChange = (e) => {
-    if (e.target.value.length <= 200) {
-      setObs(e.target.value);
-    } else {
-      e.target.value = e.target.value.slice(0, 200);
-    }
-  };
 
   // Função para enviar os dados do formulário para a API
   const handleSubmit = async (e) => {
@@ -100,7 +89,7 @@ const RelCampForm = () => {
       {/* Formulário de cadastro */}
       <form onSubmit={handleSubmit} style={{ marginBottom: '25px' }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-          <Box item xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
+          <Box xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
             <img
               src={mesDoAnoImg}
               alt="mesano"
@@ -132,7 +121,7 @@ const RelCampForm = () => {
           </Box>
 
 
-          <Box item xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
+          <Box xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
             <img
               src={nomeImg}
               alt="Nome"
@@ -155,7 +144,7 @@ const RelCampForm = () => {
               </Select>
             </FormControl>
           </Box>
-          <Box item xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
+          <Box xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
             <img
               src={voceImg}
               alt="Voce"
