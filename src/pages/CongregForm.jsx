@@ -15,13 +15,15 @@ const CongregaForm = () => {
   const [showNewRegistroForm, setShowNewRegistroForm] = useState(false); // Controla a exibição do formulário de nova congregação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [newRegistro, setNewRegistro] = useState({
-    nome_publica: '',
-    num_contato: '',
-    cod_congreg: '',
-    cod_regiao: '',
-    enderec: '',
-    origem: '',
-    obs: ''
+    nome: '',
+    regiao: '',
+    enderedo: '',
+    cca_nome: '',
+    cca_contato: '',
+    ss_nome: '',
+    ss_contato: '',
+    srv_terr_nome: '',    
+    srv_terr_contat: ''
   });
 
   useEffect(() => {
@@ -96,7 +98,7 @@ const CongregaForm = () => {
       const response = await api_service.post('/congregs', newRegistro);
       setData([...data, response.data]); // Adiciona a nova congregação aos dados
       setNewRegistro({ nome: '', regiao: '', endereco: '', cca_nome: '', cca_contato: '', ss_nome: '', ss_contato: '', srv_terr_nome: '', srv_terr_contat: '' }); // Limpa o formulário
-      setMessage('congregação incluída com sucesso!');
+      setMessage('Congregação incluída com sucesso!');
     } catch (error) {
       console.error("Erro ao enviar as informações: ", error);
       setMessage('Erro ao incluir a congregação.');

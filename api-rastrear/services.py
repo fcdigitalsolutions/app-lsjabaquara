@@ -21,7 +21,7 @@ class CongregacaoService:
     def update_congregation(self, congregation_id, congregacao):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE cad_congregacoes SET nome = %s, regiao = %s, regiao = %s, cca_nome = %s, cca_contato = %s, ss_nome = %s, ss_contato = %s, srv_terr_nome = %s, srv_terr_contat = %s WHERE id = %s',
+        cursor.execute('UPDATE cad_congregacoes SET nome = %s, regiao = %s, endereco = %s, cca_nome = %s, cca_contato = %s, ss_nome = %s, ss_contato = %s, srv_terr_nome = %s, srv_terr_contat = %s WHERE id = %s',
                        (congregacao.nome, congregacao.regiao, congregacao.endereco,congregacao.cca_nome, congregacao.cca_contato, congregacao.ss_nome, congregacao.ss_contato, congregacao.srv_terr_nome, congregacao.srv_terr_contat, congregation_id))
         conn.commit()
         conn.close()
