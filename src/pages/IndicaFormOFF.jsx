@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import InputMask from 'react-input-mask';
-import { Box, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
+import { Box, Button, TextField, Typography, Select, MenuItem, InputLabel, FormControl} from '@mui/material';
 import { FaArrowCircleLeft } from 'react-icons/fa';
 
 
@@ -13,9 +13,10 @@ const IndicaFormOff = () => {
   const [cod_congreg, setCodCongreg] = useState('');
   const [cod_regiao, setCodRegiao] = useState('');
   const [enderec, setEnderec] = useState('');
-  const [origem, setOrigem] = useState('');
   const [obs, setObs] = useState('');
   const [message, setMessage] = useState('');
+  const [congregacoes, setCongregacoes] = useState([]); // Estado para armazenar as opções de Congregaçoes
+
   const Data_Atual = new Date();
 
 
@@ -26,7 +27,6 @@ const IndicaFormOff = () => {
     setCodCongreg('');
     setCodRegiao('');
     setEnderec('');
-    setOrigem('');
     setObs('');
     setMessage('');
   };
@@ -65,12 +65,26 @@ const IndicaFormOff = () => {
     }
   };
 
+    // Função para buscar as congregações da API
+    useEffect(() => {
+      const fetchCongregacoes = async () => {
+        try {
+          const response = await api_service.get('/congregsall'); // rota da sua API
+          setCongregacoes(response.data); // a API retorna um array de Congregações
+        } catch (error) {
+          console.error('Erro ao carregar as Congregações:', error);
+        }
+      };
+  
+      fetchCongregacoes(); // Chama a função para carregar as Congregações
+    }, []);
+
   // Função para enviar os dados do formulário para a API
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Verifica se todos os campos obrigatórios estão preenchidos
-    if (!nome_publica || !num_contato || !cod_congreg || !cod_regiao || !enderec || !origem) {
+    if (!nome_publica || !num_contato || !cod_congreg || !cod_regiao || !enderec ) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return; // Impede o envio para a API
     }
@@ -78,6 +92,7 @@ const IndicaFormOff = () => {
     try {
 
       const defaultDtInclu = formatDateTime(Data_Atual);
+      const defaultOrigem = '';
 
       // Faz uma requisição POST para a API
       await api_service.post('/indica', {
@@ -87,7 +102,7 @@ const IndicaFormOff = () => {
         cod_congreg,
         cod_regiao,
         enderec,
-        origem,
+        origem: defaultOrigem,
         obs
       });
 
@@ -108,10 +123,7 @@ const IndicaFormOff = () => {
       <Typography variant="h5" sx={{ color: 'blue', marginBottom: '20px' }}>
         "Encontrei o surdo, o que eu faço?"
       </Typography>
-      <Typography variant="h5" sx={{ color: '#202038', marginBottom: '20px' }}>
-        Preencha o formulário abaixo com as informações:
-      </Typography>
-
+      
       {/* Formulário de cadastro/edição */}
       <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -143,14 +155,22 @@ const IndicaFormOff = () => {
             </InputMask>
           </Box>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
-            <TextField
-              label="Sua Congregação *"
-              variant="outlined"
-              size="small"
-              fullWidth
-              value={cod_congreg}
-              onChange={(e) => setCodCongreg(e.target.value)}
-            />
+          <FormControl fullWidth>
+              <InputLabel id="congrega-label">Sua Congregação? </InputLabel>
+              <Select
+                labelId="congrega-label"
+                id="congregacoes"
+                value={cod_congreg}
+                label="Seu Nome? *"
+                onChange={(e) => setCodCongreg(e.target.value)}
+              >
+                {congregacoes.map((congregacao) => (
+                  <MenuItem key={congregacao.id} value={congregacao.nome}>
+                    {congregacao.nome}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
@@ -172,24 +192,6 @@ const IndicaFormOff = () => {
               onChange={(e) => setEnderec(e.target.value)}
             />
           </Box>
-          {/* Campo Origem com lista de opções */}
-          <Box xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
-            <FormControl fullWidth>
-              <InputLabel id="origem-label">Origem</InputLabel>
-              <Select
-                labelId="origem-label"
-                id="origem"
-                value={origem}
-                label="Origem *"
-                onChange={(e) => setOrigem(e.target.value)}
-              >
-                <MenuItem value="Rastreamento Casa em Casa">Casa em Casa</MenuItem>
-                <MenuItem value="Rastreamento Comércio">Comércio</MenuItem>
-                <MenuItem value="Outros">Outros</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
               label="Detalhes e Referências "

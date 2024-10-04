@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
-import { Box, Button, TextField, Typography } from '@mui/material';
+import InputMask from 'react-input-mask';
+import { Box, Button, TextField, Typography} from '@mui/material';
 import { FaArrowCircleLeft } from 'react-icons/fa';
 
-const RegistroNCOff = () => {
+
+const IndicaFormOff = () => {
   // Estados para armazenar os valores dos campos do formulário
+  const [nome_publica, setNomePub] = useState('');
+  const [num_contato, setTelefone] = useState('');
+  const [cod_congreg, setCodCongreg] = useState('');
   const [cod_regiao, setCodRegiao] = useState('');
   const [enderec, setEnderec] = useState('');
   const [obs, setObs] = useState('');
   const [message, setMessage] = useState('');
   const Data_Atual = new Date();
 
+
   // Função para limpar o formulário
   const clearForm = () => {
+    setNomePub('');
+    setTelefone('');
+    setCodCongreg('');
     setCodRegiao('');
     setEnderec('');
     setObs('');
@@ -37,77 +46,111 @@ const RegistroNCOff = () => {
     transition: 'background-color 0.2s ease'
   };
 
+  const formatDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
+    const day = String(date.getDate()).padStart(2, '0');
+  
+    return `${day}/${month}/${year}`;
+  };
+
+  // Função para limitar o comprimento do campo 'obs' a 200 caracteres
+  const handleInputChange = (e) => {
+    if (e.target.value.length <= 200) {
+      setObs(e.target.value);
+    } else {
+      e.target.value = e.target.value.slice(0, 200);
+    }
+  };
+
   // Função para enviar os dados do formulário para a API
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formatDateTime = (date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
-      const day = String(date.getDate()).padStart(2, '0');
-
-      return `${day}/${month}/${year}`;
-    };
-
     // Verifica se todos os campos obrigatórios estão preenchidos
-    if (!cod_regiao || !enderec || !obs) {
+    if (!nome_publica || !num_contato || !cod_congreg || !cod_regiao || !enderec ) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return; // Impede o envio para a API
     }
 
-
     try {
-      const defaultNumVisitas = 1;
-      //  const defaultDtUltVisit = Data_Atual.toISOString(); // Gera 'YYYY-MM-DD'
-      //  const defaultDtInclu = Data_Atual.toISOString(); // Gera 'YYYY-MM-DD'
 
-      const defaultDtUltVisit = formatDateTime(Data_Atual); // Formato 'YYYY-MM-DD HH:mm:ss'
       const defaultDtInclu = formatDateTime(Data_Atual);
-
-      const defaultTelefone = "";
-      const defaultcod_congreg = "";
-      const defaultnome_publica = "";
-
-      console.log(defaultDtInclu);
-      console.log(defaultDtUltVisit);
+      const defaultOrigem = '';
 
       // Faz uma requisição POST para a API
-      await api_service.post('/registnc', {
+      await api_service.post('/indica', {
         data_inclu: defaultDtInclu,
-        nome_publica: defaultnome_publica,
-        telefone: defaultTelefone,
-        cod_congreg: defaultcod_congreg,
+        nome_publica,
+        num_contato,
+        cod_congreg,
         cod_regiao,
         enderec,
-        num_visitas: defaultNumVisitas,
-        dt_ult_visit: defaultDtUltVisit,
+        origem: defaultOrigem,
         obs
       });
 
+      // Limpa o formulário após o envio bem-sucedido
       clearForm();
       setMessage('Informações enviadas com sucesso!');
     } catch (error) {
-      console.error("Erro ao cadastrar o registro NC: ", error);
-      setMessage('Erro ao cadastrar o registro NC. Tente novamente.');
+      console.error("Erro ao enviar as informações: ", error);
+      setMessage('Erro ao enviar as informações');
     }
-
   };
 
   return (
     <Box sx={{ padding: '20px', color: '#202038', backgroundColor: 'rgb(255,255,255)' }}>
       <Typography variant="h4" sx={{ color: '#202038', marginBottom: '20px' }}>
-        Registro dos Não em Casa (NC)
+        Indicação de Surdo
       </Typography>
       <Typography variant="h5" sx={{ color: 'blue', marginBottom: '20px' }}>
-        "Não encontrei pessoas em casa, o que eu faço?"
+        "Encontrei o surdo, o que eu faço?"
       </Typography>
-
-      {/* Formulário de cadastro */}
+      
+      {/* Formulário de cadastro/edição */}
       <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Região/Bairro *"
+              label="Seu Nome *"
+              variant="outlined"
+              size="small"
+              fullWidth
+              value={nome_publica}
+              onChange={(e) => setNomePub(e.target.value)}
+            />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: '200px' }}>
+            <InputMask
+              mask="(99) 99999-9999"
+              value={num_contato}
+              onChange={(e) => setTelefone(e.target.value)}
+            >
+              {(inputProps) => (
+                <TextField
+                  {...inputProps}
+                  label="Seu Telefone *"
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                />
+              )}
+            </InputMask>
+          </Box>
+          <Box sx={{ flex: 1, minWidth: '200px' }}>
+            <TextField
+              label="Sua Congregação *"
+              variant="outlined"
+              size="small"
+              fullWidth
+              value={cod_congreg}
+              onChange={(e) => setCodCongreg(e.target.value)}
+            />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: '200px' }}>
+            <TextField
+              label="Bairro do Surdo *"
               variant="outlined"
               size="small"
               fullWidth
@@ -117,7 +160,7 @@ const RegistroNCOff = () => {
           </Box>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Informe a Rua/Av/Trav/ *"
+              label="Endereço do Surdo *"
               variant="outlined"
               size="small"
               fullWidth
@@ -127,12 +170,12 @@ const RegistroNCOff = () => {
           </Box>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Numeros exemp: 1234 / 34553 / 34344"
+              label="Detalhes e Referências "
               variant="outlined"
               size="small"
               fullWidth
               value={obs}
-              onChange={(e) => setObs(e.target.value)}
+              onChange={handleInputChange}
             />
           </Box>
         </Box>
@@ -162,11 +205,10 @@ const RegistroNCOff = () => {
               e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
             }}
           >
-            Enviar Informações
+            Enviar Indicação
           </Button>
         </Box>
       </form>
-
       <Box sx={{ marginTop: '20px' }}>
         <button
           type="button"
@@ -195,4 +237,4 @@ const RegistroNCOff = () => {
   );
 };
 
-export default RegistroNCOff;
+export default IndicaFormOff;

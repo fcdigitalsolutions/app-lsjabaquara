@@ -69,7 +69,7 @@ const IndicaDash = () => {
 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
-      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Indicações</h2>
+      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Indicações de Surdos</h2>
 
       {/* Box separado para os cards */}
       <Box
@@ -162,7 +162,6 @@ const IndicaDash = () => {
               <TableRow>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Endereço</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Detalhes</TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Origem</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Confirmado?</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Data</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Publicador</TableCell>
@@ -177,8 +176,6 @@ const IndicaDash = () => {
                   <TableRow key={row.id} sx={{ height: '10px' }}>
                     <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.enderec}</TableCell>
                     <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.obs}</TableCell>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.origem}</TableCell>
-                    
                     <TableCell align="center">
                       <div
                         style={{

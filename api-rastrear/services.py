@@ -79,8 +79,8 @@ class IndicaService:
     def update_indica(self, indica_id, indica):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE cad_indicacoes SET nome_publica = %s, enderec = %s,  end_confirm = %s,  origem = %s, obs = %s WHERE id = %s',
-            (indica.nome_publica,indica.enderec,indica.end_confirm,indica.origem,indica.obs,indica_id ))
+        cursor.execute('UPDATE cad_indicacoes SET nome_publica= %s, num_contato= %s, cod_congreg= %s, cod_regiao= %s, enderec= %s, end_confirm= %s, origem= %s, obs= %s WHERE id = %s',
+            (indica.nome_publica,indica.num_contato,indica.cod_congreg,indica.cod_regiao,indica.enderec,indica.end_confirm,indica.origem,indica.obs,indica_id ))
         conn.commit()
         conn.close()
         return indica_id
@@ -98,8 +98,8 @@ class RegistroNCService:
     def add_registnc(self,registnc):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO cad_registro_nc (data_inclu,nome_publica,num_contato,cod_congreg,cod_regiao,enderec,num_visitas,dt_ult_visit,obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-            (registnc.data_inclu,registnc.nome_publica,registnc.num_contato,registnc.cod_congreg,registnc.cod_regiao,registnc.enderec,registnc.num_visitas,registnc.dt_ult_visit,registnc.obs ))
+        cursor.execute('INSERT INTO cad_registro_nc (data_inclu,cod_regiao,enderec,num_visitas,dt_ult_visit,obs) VALUES (%s,%s,%s,%s,%s,%s)',
+            (registnc.data_inclu,registnc.cod_regiao,registnc.enderec,registnc.num_visitas,registnc.dt_ult_visit,registnc.obs ))
         conn.commit()
         registnc_id = cursor.lastrowid
         conn.close()
@@ -108,8 +108,8 @@ class RegistroNCService:
     def update_registnc(self, registnc_id, registnc):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE cad_registro_nc SET dt_ult_visit = %s, enderec = %s,  num_visitas = %s WHERE id = %s',
-            (registnc.dt_ult_visit,registnc.num_visitas,registnc_id ))
+        cursor.execute('UPDATE cad_registro_nc SET cod_regiao=%s,enderec= %s,obs= %s, dt_ult_visit= %s, num_visitas= %s WHERE id= %s',
+            (registnc.cod_regiao,registnc.enderec,registnc.obs,registnc.dt_ult_visit,registnc.num_visitas,registnc_id ))
         conn.commit()
         conn.close()
         return registnc_id

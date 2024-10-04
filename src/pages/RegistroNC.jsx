@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography } from '@mui/material';
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl } from '@mui/material';
 import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 
 const RegistroNC = () => {
@@ -14,14 +14,18 @@ const RegistroNC = () => {
   const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [newIndication, setNewIndication] = useState({
-    nome_publica: '',
-    telefone: '',
-    cod_congreg: '',
     cod_regiao: '',
     enderec: '',
-    origem: '',
-    obs: ''
+    obs: '',
   });
+
+  const formatDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${day}/${month}/${year}`;
+  };
 
   useEffect(() => {
     api_service.get('/registncall')
@@ -50,14 +54,26 @@ const RegistroNC = () => {
     setEditedRowData({ ...editedRowData, [name]: value }); // Atualiza os dados editados
   };
 
-  // Função para salvar as alterações
   const handleSave = async () => {
     try {
-      await api_service.put(`/indica/${editedRowData.id}`, editedRowData); // Atualiza os dados no backend
-      setData(data.map(row => (row.id === editedRowData.id ? editedRowData : row))); // Atualiza os dados no frontend
+      // Criar um objeto com apenas os campos que a API espera
+
+      const updatedRowData = {
+        cod_regiao: editedRowData.cod_regiao,
+        enderec: editedRowData.enderec,
+        obs: editedRowData.obs,
+        dt_ult_visit: formatDateTime(editedRowData.dt_ult_visit),
+        num_visitas: editedRowData.num_visitas,
+      };
+  
+      // Fazer a requisição PUT enviando somente os campos necessários
+      await api_service.put(`/registnc/${editedRowData.id}`, updatedRowData); // Atualiza os dados no backend
+      setData(data.map(row => (row.id === editedRowData.id ? { ...row, ...updatedRowData } : row))); // Atualiza os dados no frontend
       setEditRowId(null); // Sai do modo de edição
+      setMessage('Registro atualizado com sucesso!');
     } catch (error) {
       console.error("Erro ao salvar os dados: ", error);
+      setMessage('Erro ao salvar os dados.');
     }
   };
 
@@ -82,9 +98,9 @@ const RegistroNC = () => {
   // Função para enviar a nova indicação
   const handleNewIndicationSubmit = async (e) => {
     e.preventDefault();
-    const { cod_regiao, enderec, obs} = newIndication;
+    const { cod_regiao, enderec, obs } = newIndication;
 
-    if (!cod_regiao || !enderec || !obs ) {
+    if (!cod_regiao || !enderec || !obs) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -93,10 +109,10 @@ const RegistroNC = () => {
       const response = await api_service.post('/registnc', newIndication);
       setData([...data, response.data]); // Adiciona a nova indicação aos dados
       setNewIndication({ cod_regiao: '', enderec: '', obs: '' }); // Limpa o formulário
-      setMessage('Indicação incluída com sucesso!');
+      setMessage('Registro incluído com sucesso!');
     } catch (error) {
       console.error("Erro ao enviar as informações: ", error);
-      setMessage('Erro ao incluir a indicação.');
+      setMessage('Erro ao incluir o registro.');
     }
   };
 
@@ -133,60 +149,34 @@ const RegistroNC = () => {
         return 'transparent';
     }
   };
-  // Cálculo do índice inicial e final das linhas a serem exibidas
+
   const startIndex = page * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const currentData = data.slice(startIndex, endIndex);
-
-  // Estilo para inputs menores
-  const inputStyle = {
-    flex: 1,
-    minWidth: '120px', // Largura reduzida em até 60% conforme solicitado
-    maxWidth: '250px'
-  };
-
-  // Estilo responsivo para inputs
-  const formBoxStyle = {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 2,
-    justifyContent: 'space-between', // Alinha inputs horizontalmente
-    '@media (max-width: 600px)': {
-      flexDirection: 'column', // Em telas menores, alinha verticalmente
-    }
-  };
 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
       <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Registro NC</h2>
 
-      {/* Box separado para a tabela */}
+      {/* Botão Dashboard */}
       <Box sx={{ marginBottom: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
         <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', borderRadius: '16px' }}>
-          {/* Botão Dashboard Registro NC */}
           <button
             type="button"
             style={{
               ...buttonStyle,
               backgroundColor: '#202038',
               color: '#f1f1f1',
-              transition: 'background-color 0.2s ease', // Transição suave
+              transition: 'background-color 0.2s ease',
               align: 'right',
               borderRadius: '4px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
-              e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#202038'; // Cor original
-              e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
             }}
             onClick={handleRetornaDash}
           >
             <FaChartPie />  DashBoard Registro NC
           </button>
 
+          {/* Tabela de registros */}
           <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
             <Table>
               <TableHead>
@@ -196,7 +186,7 @@ const RegistroNC = () => {
                   <TableCell align="center">Logradouro</TableCell>
                   <TableCell align="center">Números</TableCell>
                   <TableCell align="center">Primeira Visita</TableCell>
-                  <TableCell align="center">última Visita</TableCell>
+                  <TableCell align="center">Última Visita</TableCell>
                   <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
@@ -205,27 +195,36 @@ const RegistroNC = () => {
                   const isEditing = row.id === editRowId;
                   const status = getStatus(row.num_visitas);
                   return (
-                    <TableRow key={row.id} sx={{ height: '10px' }}>
+                    <TableRow key={row.id}>
                       <TableCell align="center">{isEditing ? <TextField name="cod_regiao" value={editedRowData.cod_regiao || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_regiao}</TableCell>
                       <TableCell align="center">
-                      <div
-                        style={{
-                          backgroundColor: getStatusColor(status),
-                          color: 'white',
-                          padding: '2px',
-                          borderRadius: '4px',
-                          textAlign: 'center',
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.65rem',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {status}
-                      </div>
-                    </TableCell>  <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
+                        {isEditing ? (
+                          <FormControl fullWidth>
+                            <Select
+                              name="num_visitas"
+                              value={editedRowData.num_visitas || '1'}
+                              onChange={handleInputChange}
+                            >
+                              <MenuItem value="1">Pendente</MenuItem>
+                              <MenuItem value="2">Concluído</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <div
+                            style={{
+                              backgroundColor: getStatusColor(status),
+                              color: 'white',
+                              padding: '2px',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              fontSize: '0.65rem',
+                            }}
+                          >
+                            {status}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="obs" value={editedRowData.obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.obs}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="dt_ult_visit" value={editedRowData.dt_ult_visit || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dt_ult_visit}</TableCell>
@@ -253,11 +252,6 @@ const RegistroNC = () => {
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
-            sx={{
-              '& .MuiTablePagination-toolbar': { fontSize: '0.65rem' },
-              '& .MuiTablePagination-selectRoot': { fontSize: '0.65rem' },
-              '& .MuiTablePagination-displayedRows': { fontSize: '0.65rem' },
-            }}
           />
 
           {/* Botão para abrir o formulário */}
@@ -268,37 +262,25 @@ const RegistroNC = () => {
               backgroundColor: showNewIndicationForm ? '#67e7eb' : '#202038',
               color: showNewIndicationForm ? '#202038' : '#f1f1f1',
             }}
-            onMouseEnter={(e) => {
-              if (!showNewIndicationForm) {
-                e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
-                e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!showNewIndicationForm) {
-                e.currentTarget.style.backgroundColor = '#202038'; // Cor original
-                e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
-              }
-            }}
             onClick={handleNovoBotao}
           >
             <FaUserPlus /> Novo Registro NC
           </button>
         </Box>
-
       </Box>
+
       {/* Formulário de nova indicação */}
       <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
         <form onSubmit={handleNewIndicationSubmit}>
-          <Box sx={formBoxStyle}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between' }}>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Região/Bairro *" variant="outlined" size="small" fullWidth value={newIndication.cod_regiao} onChange={(e) => setNewIndication({ ...newIndication, cod_regiao: e.target.value })} sx={inputStyle} />
+              <TextField label="Região/Bairro *" variant="outlined" size="small" fullWidth value={newIndication.cod_regiao} onChange={(e) => setNewIndication({ ...newIndication, cod_regiao: e.target.value })} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Informe a Rua/Av/Trav/ *" variant="outlined" size="small" fullWidth value={newIndication.enderec} onChange={(e) => setNewIndication({ ...newIndication, enderec: e.target.value })} sx={inputStyle} />
+              <TextField label="Informe a Rua/Av/Trav/ *" variant="outlined" size="small" fullWidth value={newIndication.enderec} onChange={(e) => setNewIndication({ ...newIndication, enderec: e.target.value })} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Numeros exemp: 1234 / 34553 / 34344 *" variant="outlined" size="small" fullWidth value={newIndication.obs} onChange={(e) => setNewIndication({ ...newIndication, obs: e.target.value })} sx={inputStyle} />
+              <TextField label="Numeros exemp: 1234 / 34553 / 34344 *" variant="outlined" size="small" fullWidth value={newIndication.obs} onChange={(e) => setNewIndication({ ...newIndication, obs: e.target.value })} />
             </Box>
           </Box>
           <Box sx={{ marginTop: '20px' }}>
@@ -308,10 +290,9 @@ const RegistroNC = () => {
                 ...buttonStyle,
                 backgroundColor: '#202038',
                 color: '#f1f1f1',
-                transition: 'background-color 0.2s ease', // Transição suave
+                transition: 'background-color 0.2s ease',
                 align: 'right',
                 borderRadius: '4px',
-
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
@@ -321,12 +302,13 @@ const RegistroNC = () => {
                 e.currentTarget.style.backgroundColor = '#202038'; // Cor original
                 e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
               }}
-            > <FaShareSquare /> Enviar Registro NC</button>
+            >
+              <FaShareSquare /> Enviar Registro NC
+            </button>
           </Box>
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
       </Box>
-
     </Box>
   );
 };

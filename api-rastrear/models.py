@@ -18,11 +18,8 @@ class Indicacoes:
         self.obs = obs
 
 class RegistroNC:
-    def __init__(self, data_inclu, nome_publica,num_contato, cod_congreg, cod_regiao, enderec, num_visitas, dt_ult_visit, obs=None ):
+    def __init__(self, data_inclu, cod_regiao, enderec, num_visitas, dt_ult_visit, obs=None ):
         self.data_inclu = data_inclu
-        self.nome_publica = nome_publica
-        self.num_contato = num_contato
-        self.cod_congreg = cod_congreg
         self.cod_regiao = cod_regiao
         self.enderec = enderec
         self.num_visitas = num_visitas       

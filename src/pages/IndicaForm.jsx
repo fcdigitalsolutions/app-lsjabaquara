@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import InputMask from 'react-input-mask';
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl } from '@mui/material';
 import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 
 const IndicaForm = () => {
@@ -80,12 +80,14 @@ const IndicaForm = () => {
     setShowNewIndicationForm(!showNewIndicationForm); // Alterna entre mostrar ou esconder o formulário
   };
 
+
   // Função para enviar a nova indicação
   const handleNewIndicationSubmit = async (e) => {
     e.preventDefault();
-    const { nome_publica, num_contato, cod_congreg, cod_regiao, enderec, origem, obs } = newIndication;
 
-    if (!nome_publica || !num_contato || !cod_congreg || !cod_regiao || !enderec || !origem) {
+    const { nome_publica, end_confirm, num_contato, cod_congreg, cod_regiao, enderec } = newIndication;
+
+    if (!nome_publica || !end_confirm || !num_contato || !cod_congreg || !cod_regiao || !enderec ) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -93,7 +95,7 @@ const IndicaForm = () => {
     try {
       const response = await api_service.post('/indica', newIndication);
       setData([...data, response.data]); // Adiciona a nova indicação aos dados
-      setNewIndication({ nome_publica: '', num_contato: '', cod_congreg: '', cod_regiao: '', enderec: '', origem: '', obs: '' }); // Limpa o formulário
+      setNewIndication({ nome_publica: '', end_confirm: '', num_contato: '', cod_congreg: '', cod_regiao: '', enderec: '', origem: '', obs: '' }); // Limpa o formulário
       setMessage('Indicação incluída com sucesso!');
     } catch (error) {
       console.error("Erro ao enviar as informações: ", error);
@@ -161,7 +163,7 @@ const IndicaForm = () => {
 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
-      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Indicações</h2>
+      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Manutenção das Indicações de Surdos</h2>
 
       {/* Box separado para a tabela */}
       <Box sx={{ marginBottom: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
@@ -196,7 +198,6 @@ const IndicaForm = () => {
                 <TableRow>
                   <TableCell align="center">Endereço</TableCell>
                   <TableCell align="center">Detalhes</TableCell>
-                  <TableCell align="center">Origem</TableCell>
                   <TableCell align="center">Confirmado?</TableCell>
                   <TableCell align="center">Data</TableCell>
                   <TableCell align="center">Publicador</TableCell>
@@ -213,31 +214,40 @@ const IndicaForm = () => {
                     <TableRow key={row.id}>
                       <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="obs" value={editedRowData.obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.obs}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="origem" value={editedRowData.origem || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.origem}</TableCell>
-                      <TableCell align="center">
-                      <div
-                        style={{
-                          backgroundColor: getStatusColor(status),
-                          color: 'white',
-                          padding: '2px',
-                          borderRadius: '4px',
-                          textAlign: 'center',
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.65rem',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {status}
-                      </div>
+                     {/* Campo editável de status */}
+                     <TableCell align="center">
+                      {isEditing ? (
+                        <FormControl fullWidth>
+                          <Select
+                            name="end_confirm"
+                            value={editedRowData.end_confirm || '1'}
+                            onChange={handleInputChange}
+                          >
+                            <MenuItem value="1">Pendente</MenuItem>
+                            <MenuItem value="2">Confirmado</MenuItem>
+                          </Select>
+                        </FormControl>
+                      ) : (
+                        <div
+                          style={{
+                            backgroundColor: getStatusColor(status),
+                            color: 'white',
+                            padding: '2px',
+                            borderRadius: '4px',
+                            textAlign: 'center',
+                            fontSize: '0.65rem',
+                          }}
+                        >
+                          {status}
+                        </div>
+                      )}
                     </TableCell>
-                    <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
-                    <TableCell align="center">{isEditing ? <TextField name="nome_publica" value={editedRowData.nome_publica || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.nome_publica}</TableCell>
+
+                      <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="nome_publica" value={editedRowData.nome_publica || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.nome_publica}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="num_contato" value={editedRowData.num_contato || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.num_contato}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="cod_congreg" value={editedRowData.cod_congreg || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_congreg}</TableCell>
-                       <TableCell align="center">
+                      <TableCell align="center">
                         {isEditing ? (
                           <Button variant="contained" color="primary" size="small" onClick={handleSave} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Salvar</Button>
                         ) : (
@@ -315,16 +325,6 @@ const IndicaForm = () => {
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <TextField label="Endereço do Surdo *" variant="outlined" size="small" fullWidth value={newIndication.enderec} onChange={(e) => setNewIndication({ ...newIndication, enderec: e.target.value })} sx={inputStyle} />
-            </Box>
-            <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <FormControl fullWidth sx={inputStyle}>
-                <InputLabel id="origem-label">Origem</InputLabel>
-                <Select labelId="origem-label" id="origem" value={newIndication.origem} label="Origem " onChange={(e) => setNewIndication({ ...newIndication, origem: e.target.value })}>
-                  <MenuItem value="Rastreamento Casa em Casa">Casa em Casa</MenuItem>
-                  <MenuItem value="Rastreamento Comércio">Comércio</MenuItem>
-                  <MenuItem value="Outros">Outros</MenuItem>
-                </Select>
-              </FormControl>
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <TextField label="Detalhes e Referências " variant="outlined" size="small" fullWidth value={newIndication.obs} onChange={(e) => setNewIndication({ ...newIndication, obs: e.target.value })} sx={inputStyle} />

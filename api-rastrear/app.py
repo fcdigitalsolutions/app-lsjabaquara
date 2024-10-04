@@ -81,7 +81,11 @@ def add_indica():
 @app.route('/indica/<int:indica_id>', methods=['PUT'])
 def update_indica(indica_id):
     data = request.json
-    indica = Indicacoes(nome_publica=data.get('nome_publica'),
+    indica = Indicacoes(data_inclu=parse_date(data.get('data_inclu')),
+                        nome_publica=data.get('nome_publica'),
+                        num_contato=data.get('num_contato'),
+                        cod_congreg=data.get('cod_congreg'),
+                        cod_regiao=data.get('cod_regiao'),
                         enderec=data.get('enderec'),
                         end_confirm=data.get('end_confirm'),
                         origem=data.get('origem'),
@@ -103,10 +107,7 @@ def get_registncall():
 @app.route('/registnc', methods=['POST'])
 def add_registnc():
     data = request.json
-    registnc = RegistroNC(data_inclu=parse_date(data['data_inclu']),
-                        nome_publica=data.get('nome_publica'),
-                        num_contato=data.get('num_contato'),
-                        cod_congreg=data.get('cod_congreg'),
+    registnc = RegistroNC(data_inclu=parse_date(data.get('data_inclu')),
                         cod_regiao=data.get('cod_regiao'),
                         enderec=data.get('enderec'),
                         num_visitas=data.get('num_visitas'),
@@ -118,8 +119,12 @@ def add_registnc():
 @app.route('/registnc/<int:registnc_id>', methods=['PUT'])
 def update_registnc(registnc_id):
     data = request.json
-    registnc = RegistroNC(num_visitas=data.get('num_visitas'),
-                        dt_ult_visit=parse_date(data.get('dt_ult_visit')))
+    registnc = RegistroNC(data_inclu=parse_date(data.get('data_inclu')),
+                        cod_regiao=data.get('cod_regiao'),
+                        enderec=data.get('enderec'),
+                        obs=data.get('obs'),                      
+                        dt_ult_visit=parse_date(data.get('dt_ult_visit')),
+                        num_visitas=data.get('num_visitas'))
     updated_registnc_id = registnc_service.update_registnc(registnc_id, registnc)
     return jsonify({"message": "Registro NC atualizado com sucesso!", "registnc_id": updated_registnc_id}), 200
 
@@ -217,6 +222,5 @@ def add_auth_login():
 
 if __name__ == '__main__':
   ## habilite essa linha modo desenvolvedor
-    app.run(debug=True)
-
-  #  app.run(host="0.0.0.0", port=5000, debug=True)
+  #  app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
