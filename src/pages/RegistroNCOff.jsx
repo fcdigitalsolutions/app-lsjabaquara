@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
+import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import { Box, Button, TextField, Typography } from '@mui/material';
+import { FaArrowCircleLeft } from 'react-icons/fa';
 
 const RegistroNCOff = () => {
   // Estados para armazenar os valores dos campos do formulário
@@ -18,6 +20,23 @@ const RegistroNCOff = () => {
     setMessage('');
   };
 
+  const navigate = useNavigate(); // Use o useNavigate
+
+  // Função para redirecionar ao login
+  const handleRetornaLogin = () => {
+    navigate('/'); // Navegue para a rota definida
+  };
+
+  const buttonStyle = {
+    padding: '8px 14px',
+    fontSize: '0.80rem',
+    color: 'white',
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: '4px',
+    transition: 'background-color 0.2s ease'
+  };
+
   // Função para enviar os dados do formulário para a API
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +45,7 @@ const RegistroNCOff = () => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
       const day = String(date.getDate()).padStart(2, '0');
-    
+
       return `${day}/${month}/${year}`;
     };
 
@@ -39,8 +58,8 @@ const RegistroNCOff = () => {
 
     try {
       const defaultNumVisitas = 1;
-    //  const defaultDtUltVisit = Data_Atual.toISOString(); // Gera 'YYYY-MM-DD'
-    //  const defaultDtInclu = Data_Atual.toISOString(); // Gera 'YYYY-MM-DD'
+      //  const defaultDtUltVisit = Data_Atual.toISOString(); // Gera 'YYYY-MM-DD'
+      //  const defaultDtInclu = Data_Atual.toISOString(); // Gera 'YYYY-MM-DD'
 
       const defaultDtUltVisit = formatDateTime(Data_Atual); // Formato 'YYYY-MM-DD HH:mm:ss'
       const defaultDtInclu = formatDateTime(Data_Atual);
@@ -49,8 +68,8 @@ const RegistroNCOff = () => {
       const defaultcod_congreg = "";
       const defaultnome_publica = "";
 
-      console.log(defaultDtInclu); 
-      console.log(defaultDtUltVisit); 
+      console.log(defaultDtInclu);
+      console.log(defaultDtUltVisit);
 
       // Faz uma requisição POST para a API
       await api_service.post('/registnc', {
@@ -137,11 +156,44 @@ const RegistroNCOff = () => {
             type="submit"
             variant="contained"
             sx={{ backgroundColor: '#202038', marginRight: '10px' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
+              e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#202038'; // Cor original
+              e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
+            }}
           >
             Enviar Informações
           </Button>
         </Box>
       </form>
+
+      <Box sx={{ marginTop: '20px' }}>
+        <button
+          type="button"
+          style={{
+            ...buttonStyle,
+            backgroundColor: '#202038',
+            color: '#f1f1f1',
+            transition: 'background-color 0.2s ease', // Transição suave
+            align: 'right',
+            borderRadius: '4px',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
+            e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#202038'; // Cor original
+            e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
+          }}
+          onClick={handleRetornaLogin}
+        >
+          <FaArrowCircleLeft /> Retornar
+        </button>
+      </Box>
     </Box>
   );
 };

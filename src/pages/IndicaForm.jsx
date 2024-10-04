@@ -194,13 +194,14 @@ const IndicaForm = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell align="center">Data</TableCell>
+                  <TableCell align="center">Endereço</TableCell>
+                  <TableCell align="center">Detalhes</TableCell>
+                  <TableCell align="center">Origem</TableCell>
                   <TableCell align="center">Confirmado?</TableCell>
+                  <TableCell align="center">Data</TableCell>
                   <TableCell align="center">Publicador</TableCell>
                   <TableCell align="center">Contato</TableCell>
                   <TableCell align="center">Congregação</TableCell>
-                  <TableCell align="center">Endereço</TableCell>
-                  <TableCell align="center">Origem</TableCell>
                   <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
@@ -210,7 +211,9 @@ const IndicaForm = () => {
                   const status = getStatus(row.end_confirm);
                   return (
                     <TableRow key={row.id}>
-                      <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="obs" value={editedRowData.obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.obs}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="origem" value={editedRowData.origem || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.origem}</TableCell>
                       <TableCell align="center">
                       <div
                         style={{
@@ -230,12 +233,11 @@ const IndicaForm = () => {
                         {status}
                       </div>
                     </TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="nome_publica" value={editedRowData.nome_publica || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.nome_publica}</TableCell>
+                    <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
+                    <TableCell align="center">{isEditing ? <TextField name="nome_publica" value={editedRowData.nome_publica || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.nome_publica}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="num_contato" value={editedRowData.num_contato || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.num_contato}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="cod_congreg" value={editedRowData.cod_congreg || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_congreg}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="origem" value={editedRowData.origem || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.origem}</TableCell>
-                      <TableCell align="center">
+                       <TableCell align="center">
                         {isEditing ? (
                           <Button variant="contained" color="primary" size="small" onClick={handleSave} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Salvar</Button>
                         ) : (

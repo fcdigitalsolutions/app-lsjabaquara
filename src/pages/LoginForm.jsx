@@ -10,15 +10,23 @@ const LoginForm = () => {
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
+    console.log(localStorage.getItem('token'));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Verifica se todos os campos obrigatórios estão preenchidos
+    if (!username || !password ) {
+        setMessage('Por favor, preencha os campos de usuário e senha.');
+        return; // Impede o envio para a API
+      }
 
         try {
             const response = await api_service.post('/auth/login', {
                 user_login: username,
                 user_pswd: password,
             });
-            
+
             if (response.status === 200) {
                 localStorage.setItem('token', response.data.token);
                 navigate('/home');
@@ -40,7 +48,7 @@ const LoginForm = () => {
                             id="username"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            required
+                    //        required
                             className="form-input"
                         />
                     </div>
@@ -51,7 +59,7 @@ const LoginForm = () => {
                             id="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            required
+                      //      required
                             className="form-input"
                         />
                     </div>
@@ -59,8 +67,8 @@ const LoginForm = () => {
                 </form>
                 {message && <p className="error-message">{message}</p>}
                 <div className="external-links">
-                    <button onClick={() => navigate('/regist-ncoff')} className="external-button">+ Ninguém em Casa</button>
-                    <button onClick={() => navigate('/indic-formoff')} className="external-button">+ Indicação de Surdos</button>
+                    <button onClick={() => navigate('/regist-ncoff')} className="external-button">+ Não em Casa</button>
+                    <button onClick={() => navigate('/indic-formoff')} className="external-button">+ Indicação de Surdo</button>
                 </div>
             </div>
         </div>

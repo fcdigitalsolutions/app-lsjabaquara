@@ -8,7 +8,7 @@ import * as XLSX from 'xlsx';
 
 const RegionForm = () => {
   
-  console.log('RegionForm rendered');
+  console.log('Token ativo: ',localStorage.getItem('token')); 
 
   const [regioes, setRegioes] = useState([]);
   const [rows, setRows] = useState([]);

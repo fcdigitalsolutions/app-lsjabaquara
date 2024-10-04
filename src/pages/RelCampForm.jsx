@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { Box, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import mesDoAnoImg from '../img/mes_do_ano.png'; // Importando a imagem
@@ -9,9 +9,6 @@ import ensinarImg from '../img/ensinar.png'; // Importando a imagem
 
 const RelCampForm = () => {
   // Estados para armazenar os valores dos campos do formulário
-  const [cod_regiao, setCodRegiao] = useState('');
-  const [enderec, setEnderec] = useState('');
-  const [obs, setObs] = useState('');
   const [message, setMessage] = useState('');
   const Data_Atual = new Date();
   const [mesano, setMesAno] = useState('');
@@ -20,50 +17,64 @@ const RelCampForm = () => {
   const [horas, setHoras] = useState('');
   const [estudos, setEstudos] = useState('');
   const [observa, setObserva] = useState('');
+  const [publicadores, setPublicadores] = useState([]); // Estado para armazenar as opções de publicadores
 
+  // Função para buscar os publicadores da API
+  useEffect(() => {
+    const fetchPublicadores = async () => {
+      try {
+        const response = await api_service.get('/rota-da-sua-api-para-publicadores'); // Insira a rota da sua API
+        setPublicadores(response.data); // Supondo que a API retorna um array de publicadores
+      } catch (error) {
+        console.error('Erro ao carregar os publicadores:', error);
+      }
+    };
+
+    fetchPublicadores(); // Chama a função para carregar os publicadores
+  }, []);
+
+  const formatDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
+    const day = String(date.getDate()).padStart(2, '0');
+  
+    return `${day}/${month}/${year}`;
+  };
 
   // Função para limpar o formulário
   const clearForm = () => {
-    setCodRegiao('');
-    setEnderec('');
-    setObs('');
+    setMesAno('');
+    setPublica('');
+    setDesigna('');
+    setHoras('');
+    setEstudos('');
+    setObserva('');    
     setMessage('');
   };
-
 
   // Função para enviar os dados do formulário para a API
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-
     // Verifica se todos os campos obrigatórios estão preenchidos
-    if (!cod_regiao || !enderec || !obs) {
+    if (!mesano || !publica || !designa || !horas) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return; // Impede o envio para a API
     }
 
-
     try {
-
-      // Define valores padrão para num_visitas e dt_ult_visit
-      const defaultNumVisitas = 1;
-      const defaultDtUltVisit = Data_Atual.toLocaleDateString();
-      const defaultDtInclu = Data_Atual.toLocaleDateString();
-      const defaultTelefone = "";
-      const defaultcod_congreg = "";
-      const defaultnome_publica = "";
+      // Define valores padrão para campos que podem ser opcionais
+      const defaultDtInclu = formatDateTime(Data_Atual);
 
       // Faz uma requisição POST para a API
-      await api_service.post('/registnc', {
-        data_inclu: defaultDtInclu,
-        nome_publica: defaultnome_publica,
-        telefone: defaultTelefone,
-        cod_congreg: defaultcod_congreg,
-        cod_regiao,
-        enderec,
-        num_visitas: defaultNumVisitas,
-        dt_ult_visit: defaultDtUltVisit,
-        obs
+      await api_service.post('/relatcampo', {
+        data_inclu: defaultDtInclu, 
+        mesano,
+        publica,
+        designa,
+        horas,
+        estudos: estudos || '', // Caso o campo não tenha sido preenchido, envia string vazia
+        observa: observa || '', // Caso o campo não tenha sido preenchido, envia string vazia
       });
 
       // Limpa o formulário após o envio bem-sucedido
@@ -84,7 +95,6 @@ const RelCampForm = () => {
       <Typography variant="h5" sx={{ color: '#202038', marginBottom: '20px' }}>
         Preencha o formulário abaixo com as informações:
       </Typography>
-
 
       {/* Formulário de cadastro */}
       <form onSubmit={handleSubmit} style={{ marginBottom: '25px' }}>
@@ -120,7 +130,6 @@ const RelCampForm = () => {
             </FormControl>
           </Box>
 
-
           <Box xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
             <img
               src={nomeImg}
@@ -128,22 +137,23 @@ const RelCampForm = () => {
               style={{ width: '100%', maxWidth: '200px', marginBottom: '20px', display: 'block', margin: '0 auto' }}
             />
             <FormControl fullWidth>
-              <InputLabel id="publica-label">Nome Publicador</InputLabel>
+              <InputLabel id="publica-label">Seu Nome? </InputLabel>
               <Select
                 labelId="publica-label"
                 id="publica"
                 value={publica}
-                label="Mês do Ano *"
+                label="Seu Nome? *"
                 onChange={(e) => setPublica(e.target.value)}
               >
-                <MenuItem value="Felipe Wanzava">Felipe Wanzava</MenuItem>
-                <MenuItem value="Felipe Bená">Felipe Bená</MenuItem>
-                <MenuItem value="Cintia Wanzava">Cintia Wanzava</MenuItem>
-                <MenuItem value="Thiago Ramos">Thiago Ramos</MenuItem>
-
+                {publicadores.map((publicador) => (
+                  <MenuItem key={publicador.id} value={publicador.nome}>
+                    {publicador.nome}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Box>
+
           <Box xs={12} sm={6} md={4} sx={{ flex: 1, minWidth: '200px' }}>
             <img
               src={voceImg}
@@ -151,7 +161,7 @@ const RelCampForm = () => {
               style={{ width: '100%', maxWidth: '100px', marginBottom: '20px', display: 'block', margin: '0 auto' }}
             />
             <FormControl fullWidth>
-              <InputLabel id="designa-label">Você? </InputLabel>
+              <InputLabel id="designa-label">Você?</InputLabel>
               <Select
                 labelId="designa-label"
                 id="designa"
@@ -163,10 +173,10 @@ const RelCampForm = () => {
                 <MenuItem value="Pioneiro Auxiliar">Pioneiro Auxiliar</MenuItem>
                 <MenuItem value="Pioneiro Regular">Pioneiro Regular</MenuItem>
                 <MenuItem value="Pioneiro Especial">Pioneiro Especial</MenuItem>
-
               </Select>
             </FormControl>
           </Box>
+
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <img
               src={horasImg}
@@ -182,6 +192,7 @@ const RelCampForm = () => {
               onChange={(e) => setHoras(e.target.value)}
             />
           </Box>
+
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <br></br>
             <img
@@ -190,7 +201,7 @@ const RelCampForm = () => {
               style={{ width: '100%', maxWidth: '115px', marginBottom: '20px', display: 'block', margin: '0 auto' }}
             />
             <TextField
-              label="Quantos Estudos? *"
+              label="Quantos Estudos?"
               variant="outlined"
               size="small"
               fullWidth
@@ -198,12 +209,13 @@ const RelCampForm = () => {
               onChange={(e) => setEstudos(e.target.value)}
             />
           </Box>
-          </Box>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap:2 }}> 
+        </Box>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
-          <br></br>
+            <br></br>
             <TextField
-              label="Observações: "
+              label="Observações:"
               variant="outlined"
               size="small"
               fullWidth
@@ -211,7 +223,6 @@ const RelCampForm = () => {
               onChange={(e) => setObserva(e.target.value)}
             />
           </Box>
-
         </Box>
 
         {/* Exibe mensagem no corpo do formulário */}
@@ -226,7 +237,7 @@ const RelCampForm = () => {
 
         {/* Botão de ação */}
         <Box sx={{ marginTop: '20px' }}>
-        <br></br>
+          <br></br>
           <Button
             type="submit"
             variant="contained"
@@ -236,7 +247,6 @@ const RelCampForm = () => {
           </Button>
         </Box>
       </form>
-
     </Box>
   );
 };

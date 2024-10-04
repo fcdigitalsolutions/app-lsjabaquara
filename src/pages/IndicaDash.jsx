@@ -160,13 +160,14 @@ const IndicaDash = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Data</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Endereço</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Detalhes</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Origem</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Confirmado?</TableCell>
+                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Data</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Publicador</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Contato</TableCell>
                 <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Congregação</TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Endereço</TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>Origem</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -174,7 +175,10 @@ const IndicaDash = () => {
                 const status = getStatus(row.end_confirm);
                 return (
                   <TableRow key={row.id} sx={{ height: '10px' }}>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap'}}>{row.data_inclu}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.enderec}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.obs}</TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.origem}</TableCell>
+                    
                     <TableCell align="center">
                       <div
                         style={{
@@ -194,11 +198,10 @@ const IndicaDash = () => {
                         {status}
                       </div>
                     </TableCell>
+                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap'}}>{row.data_inclu}</TableCell>
                     <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.nome_publica}</TableCell>
                     <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.num_contato}</TableCell>
                     <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.cod_congreg}</TableCell>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.enderec}</TableCell>
-                    <TableCell align="center" sx={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{row.origem}</TableCell>
                   </TableRow>
                 );
               })}

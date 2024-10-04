@@ -14,9 +14,25 @@ const routes = [
   { path: "/", name: "Sair", icon: <FaSignOutAlt /> },
 ];
 
+console.log(localStorage.getItem('token')); 
+
 const Sidebar = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const toggle = () => setIsOpen(!isOpen);
+  const isAuthenticated = localStorage.getItem('token'); // Verifica se o token existe
+  
+  // Função de logout
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Remove o token de autenticação
+    window.location.href = '/'; // Redireciona para a página de login
+  };
+
+    // Exemplo de uso do isAuthenticated: oculta o menu se o usuário não estiver autenticado
+    if (!isAuthenticated) {
+      return null; // Ou você pode redirecionar para a página de login, por exemplo.
+    }
+  
+
   const showAnimation = {
     hidden: { width: 0, opacity: 0, transition: { duration: 0.5 } },
     show: { width: 'auto', opacity: 1, transition: { duration: 0.5 } },
@@ -56,6 +72,7 @@ const Sidebar = ({ children }) => {
               to={route.path}
               key={index}
               className={({ isActive }) => (isActive ? 'link active' : 'link')}
+              onClick={route.name === 'Sair' ? handleLogout : null} // Chama logout se for o link "Sair"
             >
               <ul>
                 <li>

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
+import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import InputMask from 'react-input-mask';
 import { Box, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
+import { FaArrowCircleLeft } from 'react-icons/fa';
 
 
 const IndicaFormOff = () => {
@@ -27,6 +29,23 @@ const IndicaFormOff = () => {
     setOrigem('');
     setObs('');
     setMessage('');
+  };
+
+  const navigate = useNavigate(); // Use o useNavigate
+
+  // Função para redirecionar ao login
+  const handleRetornaLogin = () => {
+    navigate('/'); // Navegue para a rota definida
+  };
+
+  const buttonStyle = {
+    padding: '8px 14px',
+    fontSize: '0.80rem',
+    color: 'white',
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: '4px',
+    transition: 'background-color 0.2s ease'
   };
 
   const formatDateTime = (date) => {
@@ -84,7 +103,7 @@ const IndicaFormOff = () => {
   return (
     <Box sx={{ padding: '20px', color: '#202038', backgroundColor: 'rgb(255,255,255)' }}>
       <Typography variant="h4" sx={{ color: '#202038', marginBottom: '20px' }}>
-        Indicações de Surdos
+        Indicação de Surdo
       </Typography>
       <Typography variant="h5" sx={{ color: 'blue', marginBottom: '20px' }}>
         "Encontrei o surdo, o que eu faço?"
@@ -199,11 +218,43 @@ const IndicaFormOff = () => {
             type="submit"
             variant="contained"
             sx={{ backgroundColor: '#202038', marginRight: '10px' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
+              e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#202038'; // Cor original
+              e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
+            }}
           >
             Enviar Indicação
           </Button>
         </Box>
       </form>
+      <Box sx={{ marginTop: '20px' }}>
+        <button
+          type="button"
+          style={{
+            ...buttonStyle,
+            backgroundColor: '#202038',
+            color: '#f1f1f1',
+            transition: 'background-color 0.2s ease', // Transição suave
+            align: 'right',
+            borderRadius: '4px',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
+            e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#202038'; // Cor original
+            e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
+          }}
+          onClick={handleRetornaLogin}
+        >
+          <FaArrowCircleLeft /> Retornar
+        </button>
+      </Box>
     </Box>
   );
 };
