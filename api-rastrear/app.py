@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import Region, Congregation, Indicacoes, Rastreamento, AuthLogin, RegistroNC
-from services import RegionService, CongregacaoService, IndicaService, RastrearService, AuthService,RegistroNCService
+from models import Region, Congregation, Indicacoes, Rastreamento, AuthLogin, RegistroNC, Publicadores, Designacoes
+from services import RegionService, CongregacaoService, IndicaService, RastrearService, AuthService,RegistroNCService, PublicaService,DesignService
 from database import init_db
 from datetime import datetime
 
@@ -13,6 +13,8 @@ indica_service = IndicaService()
 registnc_service = RegistroNCService()
 rastrear_service = RastrearService()
 auth_service = AuthService()
+pubc_service = PublicaService()
+desig_service = DesignService()
 
 # Inicializa o banco de dados
 init_db()
@@ -29,6 +31,31 @@ def parse_date(date_str):
         return datetime.strptime(date_str, '%d/%m/%Y').strftime('%Y-%m-%d')
     except ValueError:
         return None
+
+@app.route('/auth/login', methods=['POST'])
+def authenticate_user():
+    data = request.json
+    user_login = data.get('user_login')
+    user_pswd = data.get('user_pswd')
+
+    if not user_login or not user_pswd:
+        return jsonify({"message": "Login e senha são obrigatórios!"}), 400
+
+    user = auth_service.get_auth_login(user_login, user_pswd)
+    
+    if user:
+        return jsonify({"message": "Autenticação bem-sucedida!"}), 200
+    else:
+        return jsonify({"message": "Credenciais inválidas!"}), 401
+
+@app.route('/authxadd1', methods=['POST'])
+def add_auth_login():
+    data = request.json
+    authlogin = AuthLogin(user_login=data['user_login'],
+                            user_name=data.get('user_name'),
+                            user_pswd=data.get('user_pswd'))
+    authlogin_id = auth_service.add_auth_login(authlogin)
+    return jsonify({"id": authlogin_id, "message": "Usuário add com sucesso!"}), 201
 
 @app.route('/regionsall', methods=['GET'])
 def get_regionsall():
@@ -174,7 +201,6 @@ def update_congregation(congregation_id):
     update_congregation_id = congregation_service.update_congregation(congregation_id, congregation)
     return jsonify({"message": "Congregação add com sucesso!", "congregation_id": update_congregation_id}), 200
 
-
 @app.route('/congregs', methods=['POST'])
 def add_congregation():
     data = request.json
@@ -191,33 +217,101 @@ def get_congregations():
     return jsonify([dict(congregation) for congregation in congregations])
 
 
+## Rotas da API para o cadastro de puiblicadores 
+@app.route('/pubcall', methods=['GET'])
+def get_pubcall():
+    pubc = pubc_service.get_all_pubc()
+    return jsonify([{
+        **dict(pubc),
+        'data_inclu': format_date(pubc.get('data_inclu'))
+    } for pubc in pubc])
 
-@app.route('/auth/login', methods=['POST'])
-def authenticate_user():
+@app.route('/pubc', methods=['POST'])
+def add_pubc():
     data = request.json
-    user_login = data.get('user_login')
-    user_pswd = data.get('user_pswd')
+    pubc = Publicadores(data_inclu=parse_date(data.get('data_inclu')),
+                        pub_nome=data.get('pub_nome'),
+                        pub_contat=data.get('pub_contat'),
+                        pub_login=data.get('pub_login'),
+                        pub_email=data.get('pub_email'),
+                        pub_endereco=data.get('pub_endereco'),
+                        pub_regiao=data.get('pub_regiao'),
+                        pub_uf=data.get('pub_uf'),
+                        pub_dtbatism=parse_date(data.get('pub_dtbatism')),
+                        pub_dtnasc=parse_date(data.get('pub_dtnasc')),
+                        desig_servic=data.get('desig_servic'),
+                        desig_campo=data.get('desig_campo'),
+                        pub_status=data.get('pub_status'),
+                        resp_obs=data.get('resp_obs')
+                        )
+    pubc_id = pubc_service.add_pubc(pubc)
+    return jsonify({"id": pubc_id, "message": "Publicador add com sucesso!"}), 201
 
-    if not user_login or not user_pswd:
-        return jsonify({"message": "Login e senha são obrigatórios!"}), 400
-
-    user = auth_service.get_auth_login(user_login, user_pswd)
-    
-    if user:
-        return jsonify({"message": "Autenticação bem-sucedida!"}), 200
-    else:
-        return jsonify({"message": "Credenciais inválidas!"}), 401
-
-
-
-@app.route('/authxadd1', methods=['POST'])
-def add_auth_login():
+@app.route('/pubc/<int:pubc_id>', methods=['PUT'])
+def update_pubc(pubc_id):
     data = request.json
-    authlogin = AuthLogin(user_login=data['user_login'],
-                            user_name=data.get('user_name'),
-                            user_pswd=data.get('user_pswd'))
-    authlogin_id = auth_service.add_auth_login(authlogin)
-    return jsonify({"id": authlogin_id, "message": "Usuário add com sucesso!"}), 201
+    pubc = Publicadores(data_inclu=parse_date(data.get('data_inclu')),
+                        pub_nome=data.get('pub_nome'),
+                        pub_contat=data.get('pub_contat'),
+                        pub_login=data.get('pub_login'),
+                        pub_email=data.get('pub_email'),
+                        pub_endereco=data.get('pub_endereco'),
+                        pub_regiao=data.get('pub_regiao'),
+                        pub_uf=data.get('pub_uf'),
+                        pub_dtbatism=parse_date(data.get('pub_dtbatism')),
+                        pub_dtnasc=parse_date(data.get('pub_dtnasc')),
+                        desig_servic=data.get('desig_servic'),
+                        desig_campo=data.get('desig_campo'),
+                        pub_status=data.get('pub_status'),
+                        resp_obs=data.get('resp_obs')
+                        )
+    updated_pubc_id = pubc_service.update_pubc(pubc_id, pubc)
+    return jsonify({"message": "Publicador atualizado com sucesso!", "pubc_id": updated_pubc_id}), 200
+
+
+## Rotas da API para o cadastro de Designações 
+@app.route('/desigaall', methods=['GET'])
+def get_desigall():
+    desig = desig_service.get_all_desig()
+    return jsonify([{
+        **dict(desig),
+        'data_inclu': format_date(desig.get('data_inclu'))
+    } for desig in desig])
+
+@app.route('/desig', methods=['POST'])
+def add_desig():
+    data = request.json
+    desig = Designacoes(data_inclu=parse_date(data.get('data_inclu')),
+                        dsg_data=parse_date(data.get('dsg_data')),
+                        pub_nome=data.get('pub_nome'),
+                        dsg_tipo=data.get('dsg_tipo'),
+                        dsg_detalhes=data.get('dsg_detalhes'),
+                        dsg_conselh=data.get('dsg_conselh'),
+                        dsg_mapa_cod=data.get('dsg_mapa_cod'),
+                        dsg_mapa_end=data.get('dsg_mapa_end'),
+                        dsg_status=data.get('dsg_status'),
+                        dsg_obs=data.get('dsg_obs')
+                        )                
+    desig_id = desig_service.add_desig(desig)
+    return jsonify({"id": desig_id, "message": "Designação add com sucesso!"}), 201
+
+@app.route('/desig/<int:desig_id>', methods=['PUT'])
+def update_desig(desig_id):
+    data = request.json
+    desig = Designacoes(data_inclu=parse_date(data.get('data_inclu')),
+                        dsg_data=parse_date(data.get('dsg_data')),
+                        pub_nome=data.get('pub_nome'),
+                        dsg_tipo=data.get('dsg_tipo'),
+                        dsg_detalhes=data.get('dsg_detalhes'),
+                        dsg_conselh=data.get('dsg_conselh'),
+                        dsg_mapa_cod=data.get('dsg_mapa_cod'),
+                        dsg_mapa_end=data.get('dsg_mapa_end'),
+                        dsg_status=data.get('dsg_status'),
+                        dsg_obs=data.get('dsg_obs')
+                        )
+    updated_desig_id = desig_service.update_desig(desig_id, desig)
+    return jsonify({"message": "Designação atualizada com sucesso!", "desig_id": updated_desig_id}), 200
+	   
 
 
 if __name__ == '__main__':

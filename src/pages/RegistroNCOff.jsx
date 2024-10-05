@@ -68,9 +68,6 @@ const RegistroNCOff = () => {
       const defaultcod_congreg = "";
       const defaultnome_publica = "";
 
-      console.log(defaultDtInclu);
-      console.log(defaultDtUltVisit);
-
       // Faz uma requisição POST para a API
       await api_service.post('/registnc', {
         data_inclu: defaultDtInclu,

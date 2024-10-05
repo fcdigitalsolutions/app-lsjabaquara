@@ -17,6 +17,10 @@ import RastreaDash from './pages/RastreaDash';
 import RastreaForm from './pages/RastreaForm';
 import EnderecForm from './pages/EnderecForm';
 import RelCampForm from './pages/RelCampForm';
+import PubcDash from './pages/PubcDash';
+import PubcForm from './pages/PubcForm';
+import DesigDash from './pages/DesigDash';
+import DesigForm from './pages/DesigForm';
 
 import './styles/App.css'; // Certifique-se de que o caminho está correto
 
@@ -48,6 +52,10 @@ const App = () => {
                   <Route path="form-rastrea" element={<RastreaForm />} />
                   <Route path="dash-rastrea" element={<RastreaDash />} />
                   <Route path="form-enderec" element={<EnderecForm />} />
+                  <Route path="dash-pubc"    element={<PubcDash />} />
+                  <Route path="form-pubc"    element={<PubcForm />} />
+                  <Route path="dash-desig"   element={<DesigDash />} />
+                  <Route path="form-desig"   element={<DesigForm />} />
                 </Routes>
               </Sidebar>
             )} />

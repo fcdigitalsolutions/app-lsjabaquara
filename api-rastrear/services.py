@@ -1,11 +1,33 @@
 # services.py
 from database import get_db_connection
-from models import Region, Congregation, Indicacoes, Rastreamento, RegistroNC
+from models import Region, Congregation, Indicacoes, Rastreamento, RegistroNC, Publicadores, Designacoes
 
 def rows_to_dict(cursor, rows):
     """Converte uma lista de tuplas em uma lista de dicionários usando os nomes das colunas."""
     columns = [desc[0] for desc in cursor.description]
     return [dict(zip(columns, row)) for row in rows]
+
+
+class AuthService:
+    def get_auth_login(self, user_login, user_pswd):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM master_login WHERE user_login = %s AND user_pswd = %s', (user_login, user_pswd))
+        authlogin = cursor.fetchone()  # Usar fetchone para obter um único registro
+        conn.close()
+        if authlogin:
+            return dict(zip([desc[0] for desc in cursor.description], authlogin))
+        return None
+    
+    def add_auth_login(self, authlogin):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO master_login (user_login, user_name, user_pswd) VALUES (%s, %s, %s)',
+                       (authlogin.user_login, authlogin.user_name, authlogin.user_pswd))
+        conn.commit()
+        authlogin_id = cursor.lastrowid
+        conn.close()
+        return authlogin_id
 
 class CongregacaoService:
     def add_congregation(self, congregacao):
@@ -152,23 +174,60 @@ class RastrearService:
         conn.close()
         return result
 
-class AuthService:
-    def get_auth_login(self, user_login, user_pswd):
+class PublicaService:
+    def add_pubc(self,pubc):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM master_login WHERE user_login = %s AND user_pswd = %s', (user_login, user_pswd))
-        authlogin = cursor.fetchone()  # Usar fetchone para obter um único registro
-        conn.close()
-        if authlogin:
-            return dict(zip([desc[0] for desc in cursor.description], authlogin))
-        return None
-    
-    def add_auth_login(self, authlogin):
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO master_login (user_login, user_name, user_pswd) VALUES (%s, %s, %s)',
-                       (authlogin.user_login, authlogin.user_name, authlogin.user_pswd))
+        cursor.execute('INSERT INTO cad_publicador (data_inclu,pub_nome,pub_contat,pub_login,pub_email,pub_endereco,pub_regiao,pub_uf,pub_dtbatism,pub_dtnasc,desig_servic,desig_campo,pub_status,resp_obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (pubc.data_inclu,pubc.pub_nome,pubc.pub_contat,pubc.pub_login,pubc.pub_email,pubc.pub_endereco,pubc.pub_regiao,pubc.pub_uf,pubc.pub_dtbatism,pubc.pub_dtnasc,pubc.desig_servic,pubc.desig_campo,pubc.pub_status,pubc.resp_obs ))
         conn.commit()
-        authlogin_id = cursor.lastrowid
+        pubc_id = cursor.lastrowid
         conn.close()
-        return authlogin_id
+        return pubc_id
+    
+    def update_pubc(self, pubc_id, pubc):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE cad_publicador SET pub_nome= %s,pub_contat= %s,pub_login= %s,pub_email= %s,pub_endereco= %s,pub_regiao= %s,pub_uf= %s,pub_dtbatism= %s,pub_dtnasc= %s,desig_servic= %s,desig_campo= %s,pub_status= %s,resp_obs= %s WHERE id = %s',
+            (pubc.pub_nome,pubc.pub_contat,pubc.pub_login,pubc.pub_email,pubc.pub_endereco,pubc.pub_regiao,pubc.pub_uf,pubc.pub_dtbatism,pubc.pub_dtnasc,pubc.desig_servic,pubc.desig_campo,pubc.pub_status,pubc.resp_obs, pubc_id ))
+        conn.commit()
+        conn.close()
+        return pubc_id
+
+    def get_all_pubc(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM cad_publicador')
+        pubc = cursor.fetchall()
+        result = rows_to_dict(cursor, pubc)
+        conn.close()
+        return result
+
+class DesignService:
+    def add_desig(self,desig):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO cad_designacoes (data_inclu, dsg_data, pub_nome, dsg_tipo, dsg_detalhes, dsg_conselh, dsg_mapa_cod, dsg_mapa_end, dsg_status, dsg_obs, pub_obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (desig.data_inclu,desig.dsg_data,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_obs,desig.pub_obs ))
+        conn.commit()
+        desig_id = cursor.lastrowid
+        conn.close()
+        return desig_id
+    
+    def update_desig(self, desig_id, desig):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE cad_designacoes SET dsg_data= %s,pub_nome= %s,dsg_tipo= %s,dsg_detalhes= %s,dsg_conselh= %s,dsg_mapa_cod= %s,dsg_mapa_end= %s,dsg_status= %s,dsg_obs= %s,pub_obs= %s WHERE id = %s',
+            (desig.dsg_data,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_obs,desig.pub_obs, desig_id ))
+        conn.commit()
+        conn.close()
+        return desig_id
+
+    def get_all_desig(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM cad_designacoes')
+        desig = cursor.fetchall()
+        result = rows_to_dict(cursor, desig)
+        conn.close()
+        return result

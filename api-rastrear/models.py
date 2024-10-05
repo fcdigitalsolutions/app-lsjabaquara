@@ -54,3 +54,35 @@ class AuthLogin:
         self.user_name = user_name
         self.user_pswd = user_pswd
      
+class Publicadores: 
+    def __init__(self, data_inclu, pub_nome,pub_contat, pub_login, pub_email, pub_endereco, pub_regiao, pub_uf, pub_dtbatism, pub_dtnasc, desig_servic, desig_campo, pub_status, resp_obs ):
+        self.data_inclu	  = data_inclu
+        self.pub_nome     = pub_nome
+        self.pub_contat    = pub_contat
+        self.pub_login    = pub_login
+        self.pub_email    = pub_email
+        self.pub_endereco = pub_endereco
+        self.pub_regiao   = pub_regiao
+        self.pub_uf       = pub_uf
+        self.pub_dtbatism = pub_dtbatism
+        self.pub_dtnasc	  = pub_dtnasc
+        self.desig_servic = desig_servic
+        self.desig_campo  = desig_campo
+        self.pub_status   = pub_status
+        self.resp_obs	  = resp_obs			   
+    
+class Designacoes: 
+    def __init__(self, data_inclu, dsg_data, pub_nome, dsg_tipo, dsg_detalhes, dsg_conselh, dsg_mapa_cod, dsg_mapa_end, dsg_status, dsg_obs, pub_obs ):
+        self.data_inclu	  = data_inclu
+        self.dsg_data     = dsg_data
+        self.pub_nome     = pub_nome
+        self.dsg_tipo     = dsg_tipo
+        self.dsg_detalhes = dsg_detalhes
+        self.dsg_conselh  = dsg_conselh
+        self.dsg_mapa_cod = dsg_mapa_cod
+        self.dsg_mapa_end = dsg_mapa_end
+        self.dsg_status	  = dsg_status
+        self.dsg_obs      = dsg_obs
+        self.pub_obs      = pub_obs
+       	
+

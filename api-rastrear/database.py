@@ -21,6 +21,16 @@ def init_db():
     conn = get_db_connection()
     if conn is not None:
         cursor = conn.cursor()
+
+        cursor.execute('''
+         create table if not exists master_login (
+	            id int auto_increment primary key,
+                user_login	       varchar(255) NULL, 
+                user_name     	   varchar(255) NULL,
+                user_pswd          varchar(255) NULL
+            )
+        ''')        
+
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS regioes (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -88,13 +98,42 @@ def init_db():
         ''')   
     
         cursor.execute('''
-         create table if not exists master_login (
-	            id int auto_increment primary key,
-                user_login	       varchar(255) NULL, 
-                user_name     	   varchar(255) NULL,
-                user_pswd          varchar(255) NULL
+            CREATE TABLE IF NOT EXISTS cad_publicador (
+	            id INT AUTO_INCREMENT PRIMARY KEY,
+                data_inclu	  datetime NULL,
+                pub_nome      VARCHAR(255) NULL,
+                pub_contat    VARCHAR(255) NULL,
+                pub_login     VARCHAR(255) NULL,
+                pub_email     VARCHAR(255) NULL,
+                pub_endereco  VARCHAR(255) NULL,
+                pub_regiao    VARCHAR(255) NULL,
+                pub_uf        VARCHAR(255) NULL,
+                pub_dtbatism  datetime NULL,
+                pub_dtnasc	  datetime NULL,
+                desig_servic  VARCHAR(255) NULL, 
+                desig_campo   VARCHAR(255) NULL,
+                pub_status    VARCHAR(255) NULL,
+	            resp_obs	  TEXT
+            )
+        ''')            
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cad_designacoes (
+	            id INT AUTO_INCREMENT PRIMARY KEY,
+	            data_inclu	  datetime NULL,
+                dsg_data	  datetime NULL,
+	            pub_nome      VARCHAR(255) NULL,	
+                dsg_tipo      VARCHAR(255) NULL,
+                dsg_detalhes  VARCHAR(255) NULL, 
+                dsg_conselh   VARCHAR(255) NULL, 
+                dsg_mapa_cod  VARCHAR(255) NULL, 
+                dsg_mapa_end  VARCHAR(255) NULL,
+                dsg_status    VARCHAR(255) NULL,                 
+	            dsg_obs		  TEXT,
+                pub_obs		  TEXT
             )
         ''')        
+
         conn.commit()
         cursor.close()
         conn.close()
