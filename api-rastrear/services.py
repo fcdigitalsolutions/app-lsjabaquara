@@ -57,6 +57,24 @@ class CongregacaoService:
         result = rows_to_dict(cursor, congregacoes)
         conn.close()
         return result
+    
+    def delete_congregation(self, congregation_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM cad_congregacoes WHERE id = %s', (congregation_id,))
+        congregacoes = cursor.fetchone()
+
+        if not congregacoes:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM cad_congregacoes WHERE id = %s', (congregation_id,))
+        conn.commit()
+        conn.close()
+        return congregation_id
 
 class RegionService:
     def add_region(self, region):
@@ -87,6 +105,9 @@ class RegionService:
         conn.close()
         return result
 
+
+##
+## Serviços para o Cadastro de Indicações
 class IndicaService:
     def add_indica(self,indica):
         conn = get_db_connection()
@@ -115,7 +136,27 @@ class IndicaService:
         result = rows_to_dict(cursor, indica)
         conn.close()
         return result
+    
+    def delete_indica(self, indica_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
+        # Verifica se a indicação existe antes de tentar deletar
+        cursor.execute('SELECT * FROM cad_indicacoes WHERE id = %s', (indica_id,))
+        indica = cursor.fetchone()
+
+        if not indica:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se a indicação existe, faz a exclusão
+        cursor.execute('DELETE FROM cad_indicacoes WHERE id = %s', (indica_id,))
+        conn.commit()
+        conn.close()
+        return indica_id
+
+##
+## Serviços para o Registro NC
 class RegistroNCService:
     def add_registnc(self,registnc):
         conn = get_db_connection()
@@ -145,6 +186,27 @@ class RegistroNCService:
         conn.close()
         return result
     
+    def delete_registnc(self, registnc_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM cad_registro_nc WHERE id = %s', (registnc_id,))
+        registnc = cursor.fetchone()
+
+        if not registnc:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM cad_registro_nc WHERE id = %s', (registnc_id,))
+        conn.commit()
+        conn.close()
+        return registnc_id
+    
+
+##
+## Serviços para os Rastreamentos
 class RastrearService:
     def add_rastrear(self,rastrear):
         conn = get_db_connection()
@@ -174,6 +236,26 @@ class RastrearService:
         conn.close()
         return result
 
+    def delete_rastrear(self, rastrear_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM master_rastrear WHERE id = %s', (rastrear_id,))
+        rastrear = cursor.fetchone()
+
+        if not rastrear:
+            conn.close()
+            raise ValueError("Registro não encontrada")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM master_rastrear WHERE id = %s', (rastrear_id,))
+        conn.commit()
+        conn.close()
+        return rastrear_id
+    
+##
+## Serviços para o cadastro de Publicador
 class PublicaService:
     def add_pubc(self,pubc):
         conn = get_db_connection()
@@ -203,6 +285,27 @@ class PublicaService:
         conn.close()
         return result
 
+    def delete_publi(self, pubc_id):
+        print(f"Excluindo publicador com ID: {pubc_id}")  # Adiciona um print para debug
+  
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM cad_publicador WHERE id = %s', (pubc_id,))
+        pubc = cursor.fetchone()
+
+        if not pubc:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM cad_publicador WHERE id = %s', (pubc_id,))
+        conn.commit()
+        conn.close()
+        return pubc_id
+
+
 class DesignService:
     def add_desig(self,desig):
         conn = get_db_connection()
@@ -231,3 +334,21 @@ class DesignService:
         result = rows_to_dict(cursor, desig)
         conn.close()
         return result
+    
+    def delete_desig(self, desig_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM cad_designacoes WHERE id = %s', (desig_id,))
+        desig = cursor.fetchone()
+
+        if not desig:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM cad_designacoes WHERE id = %s', (desig_id,))
+        conn.commit()
+        conn.close()
+        return desig_id

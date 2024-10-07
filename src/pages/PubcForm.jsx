@@ -3,6 +3,7 @@ import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import InputMask from 'react-input-mask';
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+
 import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 
 const PubcForm = () => {
@@ -17,7 +18,6 @@ const PubcForm = () => {
   const [pub_status, setPubStatus] = useState('');
   const [desig_campo, setPubDCampo] = useState('');
   const [desig_servic, setPubDServico] = useState('');
-  const Data_Atual = new Date();
 
   const [newPublicad, setnewPublicad] = useState({
     data_inclu: '',
@@ -35,6 +35,14 @@ const PubcForm = () => {
     pub_status: '',
     resp_obs: '',
   });
+
+  const formatDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${day}/${month}/${year}`;
+  };
 
   useEffect(() => {
     api_service.get('/pubcall')
@@ -65,6 +73,7 @@ const PubcForm = () => {
 
   // Função para salvar as alterações
   const handleSave = async () => {
+
     try {
       await api_service.put(`/pubc/${editedRowData.id}`, editedRowData); // Atualiza os dados no backend
       setData(data.map(row => (row.id === editedRowData.id ? editedRowData : row))); // Atualiza os dados no frontend
@@ -83,6 +92,7 @@ const PubcForm = () => {
         setData(data.filter(row => row.id !== id)); // Remove o registro excluído do estado local
       } catch (error) {
         console.error("Erro ao excluir os dados: ", error);
+        console.error("Erro ao excluir os dados: ", id);
       }
     }
   };
@@ -97,27 +107,19 @@ const PubcForm = () => {
   const handlenewPublicadSubmit = async (e) => {
     e.preventDefault();
 
-      const formatDateTime = (date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
-      const day = String(date.getDate()).padStart(2, '0');
+    //  const { pub_nome,pub_contat,pub_login,pub_email,pub_endereco,pub_regiao,pub_uf,desig_servic,desig_campo,pub_status } = newPublicad;
 
-      return `${day}/${month}/${year}`;
-    };
-
-    const { pub_nome,pub_contat,pub_login,pub_email,pub_endereco,pub_regiao,pub_uf,desig_servic,desig_campo,pub_status } = newPublicad;
-
-  //  if (!pub_nome || !pub_contat || !pub_login || !pub_email || !pub_endereco || !pub_regiao || !pub_uf || !desig_servic || !desig_campo || !pub_status ) {
-  //    setMessage('Por favor, preencha todos os campos obrigatórios.');
-  //    return;
-  //  }
+    //  if (!pub_nome || !pub_contat || !pub_login || !pub_email || !pub_endereco || !pub_regiao || !pub_uf || !desig_servic || !desig_campo || !pub_status ) {
+    //    setMessage('Por favor, preencha todos os campos obrigatórios.');
+    //    return;
+    //  }
 
     try {
-      
+
       const response = await api_service.post('/pubc', newPublicad);
       setData([...data, response.data]); // Adiciona um novo Publicador aos dados
-       setnewPublicad({ pub_nome: '', pub_contat: '', pub_login: '', pub_email: '', pub_endereco: '', pub_regiao: '', pub_uf: '', pub_dtbatism: '', pub_dtnasc: '', desig_servic: '',desig_campo: '' ,pub_status: '',resp_obs: ''}); // Limpa o formulário
-    
+      setnewPublicad({ pub_nome: '', pub_contat: '', pub_login: '', pub_email: '', pub_endereco: '', pub_regiao: '', pub_uf: '', pub_dtbatism: '', pub_dtnasc: '', desig_servic: '', desig_campo: '', pub_status: '', resp_obs: '' }); // Limpa o formulário
+
       setMessage('Publicador incluído com sucesso!');
     } catch (error) {
       console.error("Erro ao enviar as informações: ", error);
@@ -218,19 +220,20 @@ const PubcForm = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell align="center">Publicador</TableCell>
-                  <TableCell align="center">Contato</TableCell>
-                  <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Login</TableCell>
-                  <TableCell align="center">Email</TableCell>
-                  <TableCell align="center">Endereço</TableCell>
-                  <TableCell align="center">Região</TableCell>
-                  <TableCell align="center">UF</TableCell>
-                  <TableCell align="center">Batismo</TableCell>
-                  <TableCell align="center">Nascimento</TableCell>
-                  <TableCell align="center">Desig. Serviço</TableCell>
-                  <TableCell align="center">Desig. Campo</TableCell>
-                  <TableCell align="center">Ações</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Publicador</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Contato</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Login</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Email</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Endereço</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Região</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>UF</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Batismo</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Nascimento</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Desig. Serviço</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Desig. Campo</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Obs Respon.</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -270,7 +273,6 @@ const PubcForm = () => {
                           </div>
                         )}
                       </TableCell>
-
                       <TableCell align="center">{isEditing ? <TextField name="pub_login" value={editedRowData.pub_login || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_login}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="pub_email" value={editedRowData.pub_email || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_email}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="pub_endereco" value={editedRowData.pub_endereco || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_endereco}</TableCell>
@@ -368,35 +370,35 @@ const PubcForm = () => {
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <InputMask
-              mask="99/99/9999"
-              onChange={(e) => setnewPublicad({ ...newPublicad, pub_dtbatism: e.target.value })}
-            >
-              {(inputProps) => (
-                <TextField
-                  {...inputProps}
-                  label="Batismo *"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                />
-              )}
-            </InputMask>
+                mask="99/99/9999"
+                onChange={(e) => setnewPublicad({ ...newPublicad, pub_dtbatism: e.target.value })}
+              >
+                {(inputProps) => (
+                  <TextField
+                    {...inputProps}
+                    label="Batismo *"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                  />
+                )}
+              </InputMask>
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <InputMask
-              mask="99/99/9999"
-              onChange={(e) => setnewPublicad({ ...newPublicad, pub_dtnasc: e.target.value })}
-            >
-              {(inputProps) => (
-                <TextField
-                  {...inputProps}
-                  label="Dt. Nasc. *"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                />
-              )}
-            </InputMask>
+                mask="99/99/9999"
+                onChange={(e) => setnewPublicad({ ...newPublicad, pub_dtnasc: e.target.value })}
+              >
+                {(inputProps) => (
+                  <TextField
+                    {...inputProps}
+                    label="Dt. Nasc. *"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                  />
+                )}
+              </InputMask>
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <FormControl fullWidth>
@@ -432,7 +434,7 @@ const PubcForm = () => {
                 </Select>
               </FormControl>
             </Box>
-       
+
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <FormControl fullWidth>
                 <InputLabel id="status-label">Situação ?</InputLabel>
@@ -450,9 +452,9 @@ const PubcForm = () => {
               </FormControl>
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-            <FormControl fullWidth>
-              <TextField label="Obs do Responsável " variant="outlined" size="small" fullWidth value={newPublicad.resp_obs} onChange={(e) => setnewPublicad({ ...newPublicad, resp_obs: e.target.value })} sx={inputStyle} />
-            </FormControl>
+              <FormControl fullWidth>
+                <TextField label="Obs do Responsável " variant="outlined" size="small" fullWidth value={newPublicad.resp_obs} onChange={(e) => setnewPublicad({ ...newPublicad, resp_obs: e.target.value })} sx={inputStyle} />
+              </FormControl>
             </Box>
 
           </Box>

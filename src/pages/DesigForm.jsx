@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import InputMask from 'react-input-mask';
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl } from '@mui/material';
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, Checkbox } from '@mui/material';
 import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 
 const DesigForm = () => {
@@ -14,6 +14,8 @@ const DesigForm = () => {
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
   const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
+  const [selected, setSelected] = useState([]);
+
   const [newIndication, setNewIndication] = useState({
     nome_publica: '',
     num_contato: '',
@@ -25,7 +27,7 @@ const DesigForm = () => {
   });
 
   useEffect(() => {
-    api_service.get('/desigaall')
+    api_service.get('/indicaall')
       .then((response) => {
         setData(response.data);
       })
@@ -34,9 +36,31 @@ const DesigForm = () => {
       });
   }, []);
 
+  const handleSelect = (id) => {
+    setSelected((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((item) => item !== id) // Desmarca se já estiver selecionado
+        : [...prevSelected, id] // Marca se não estiver
+    );
+  };
+  const isSelected = (id) => selected.includes(id);
+
+  // Função para controlar a seleção de todas as linhas
+  const handleSelectAllClick = (event) => {
+    if (event.target.checked) {
+      const newSelected = data.map((row) => row.id);
+      setSelected(newSelected);
+    } else {
+      setSelected([]);
+    }
+  };
+
+  // Verifica se todas as linhas estão selecionadas
+  const isAllSelected = selected.length === data.length;
+
   // Função para redirecionar ao dashboard
   const handleRetornaDash = () => {
-    navigate('/home/dash-desig'); // Navegue para a rota definida
+    navigate('/home/dash-enderec'); // Navegue para a rota definida
   };
 
   // Função para iniciar a edição de uma linha
@@ -75,28 +99,28 @@ const DesigForm = () => {
     }
   };
 
-  // Função para mostrar/esconder o formulário de nova indicação
+  // Função para mostrar/esconder o formulário de novo mapa
   const handleNovoBotao = () => {
     setShowNewIndicationForm(!showNewIndicationForm); // Alterna entre mostrar ou esconder o formulário
   };
 
 
-  // Função para enviar a nova indicação
+  // Função para enviar ao novo mapa
   const handleNewIndicationSubmit = async (e) => {
     e.preventDefault();
 
-    const { nome_publica, end_confirm, num_contato, cod_congreg, cod_regiao, enderec } = newIndication;
+    const { nome_publica, end_confirm, num_contato, cod_congreg, enderec } = newIndication;
 
-    if (!nome_publica || !end_confirm || !num_contato || !cod_congreg || !cod_regiao || !enderec ) {
+    if (!nome_publica || !end_confirm || !num_contato || !cod_congreg || !enderec) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
     try {
       const response = await api_service.post('/indica', newIndication);
-      setData([...data, response.data]); // Adiciona a nova indicação aos dados
+      setData([...data, response.data]); // Adiciona novo mapa aos dados
       setNewIndication({ nome_publica: '', end_confirm: '', num_contato: '', cod_congreg: '', cod_regiao: '', enderec: '', origem: '', obs: '' }); // Limpa o formulário
-      setMessage('Indicação incluída com sucesso!');
+      setMessage('Mapa incluído com sucesso!');
     } catch (error) {
       console.error("Erro ao enviar as informações: ", error);
       setMessage('Erro ao incluir a indicação.');
@@ -163,12 +187,12 @@ const DesigForm = () => {
 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
-      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Manutenção das Designações</h2>
+      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Designações de Territórios</h2>
 
       {/* Box separado para a tabela */}
       <Box sx={{ marginBottom: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
         <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', borderRadius: '16px' }}>
-          {/* Botão Dashboard Designações */}
+          {/* Botão Dashboard Mapas */}
           <button
             type="button"
             style={{
@@ -189,21 +213,29 @@ const DesigForm = () => {
             }}
             onClick={handleRetornaDash}
           >
-            <FaChartPie />  DashBoard designações
+            <FaChartPie />  DashBoard Mapas
           </button>
 
           <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell align="center">Endereço</TableCell>
-                  <TableCell align="center">Detalhes</TableCell>
-                  <TableCell align="center">Confirmado?</TableCell>
-                  <TableCell align="center">Data</TableCell>
-                  <TableCell align="center">Publicador</TableCell>
-                  <TableCell align="center">Contato</TableCell>
-                  <TableCell align="center">Congregação</TableCell>
-                  <TableCell align="center">Ações</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }} padding="checkbox">
+                    <Checkbox
+                      indeterminate={selected.length > 0 && selected.length < data.length}
+                      checked={isAllSelected}
+                      onChange={handleSelectAllClick}
+                      inputProps={{ 'aria-label': 'select all items' }}
+                    />
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Endereço</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Detalhes</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Confirmado?</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Data</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Publicador</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Contato</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Congregação</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -212,36 +244,42 @@ const DesigForm = () => {
                   const status = getStatus(row.end_confirm);
                   return (
                     <TableRow key={row.id}>
+                      <TableCell TableCell align="center">
+                        <Checkbox
+                          checked={isSelected(row.id)}
+                          onChange={() => handleSelect(row.id)}
+                        />
+                      </TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="obs" value={editedRowData.obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.obs}</TableCell>
-                     {/* Campo editável de status */}
-                     <TableCell align="center">
-                      {isEditing ? (
-                        <FormControl fullWidth>
-                          <Select
-                            name="end_confirm"
-                            value={editedRowData.end_confirm || '1'}
-                            onChange={handleInputChange}
+                      {/* Campo editável de status */}
+                      <TableCell align="center">
+                        {isEditing ? (
+                          <FormControl fullWidth>
+                            <Select
+                              name="end_confirm"
+                              value={editedRowData.end_confirm || '1'}
+                              onChange={handleInputChange}
+                            >
+                              <MenuItem value="1">Pendente</MenuItem>
+                              <MenuItem value="2">Confirmado</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <div
+                            style={{
+                              backgroundColor: getStatusColor(status),
+                              color: 'white',
+                              padding: '2px',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              fontSize: '0.65rem',
+                            }}
                           >
-                            <MenuItem value="1">Pendente</MenuItem>
-                            <MenuItem value="2">Confirmado</MenuItem>
-                          </Select>
-                        </FormControl>
-                      ) : (
-                        <div
-                          style={{
-                            backgroundColor: getStatusColor(status),
-                            color: 'white',
-                            padding: '2px',
-                            borderRadius: '4px',
-                            textAlign: 'center',
-                            fontSize: '0.65rem',
-                          }}
-                        >
-                          {status}
-                        </div>
-                      )}
-                    </TableCell>
+                            {status}
+                          </div>
+                        )}
+                      </TableCell>
 
                       <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="nome_publica" value={editedRowData.nome_publica || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.nome_publica}</TableCell>

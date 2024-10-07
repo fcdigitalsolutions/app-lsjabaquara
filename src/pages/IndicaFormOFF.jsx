@@ -22,10 +22,10 @@ const IndicaFormOff = () => {
 
   // Função para limpar o formulário
   const clearForm = () => {
-    setNomePub('');
-    setTelefone('');
-    setCodCongreg('');
-    setCodRegiao('');
+  //  setNomePub('');
+  //  setTelefone('');
+  //  setCodCongreg('');
+  //  setCodRegiao('');
     setEnderec('');
     setObs('');
     setMessage('');
@@ -84,7 +84,7 @@ const IndicaFormOff = () => {
     e.preventDefault();
 
     // Verifica se todos os campos obrigatórios estão preenchidos
-    if (!nome_publica || !num_contato || !cod_congreg || !cod_regiao || !enderec ) {
+    if (!nome_publica || !num_contato || !cod_congreg ||!enderec ) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return; // Impede o envio para a API
     }
@@ -174,7 +174,7 @@ const IndicaFormOff = () => {
           </Box>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Bairro do Surdo *"
+              label="Bairro do Surdo(se necessário) "
               variant="outlined"
               size="small"
               fullWidth

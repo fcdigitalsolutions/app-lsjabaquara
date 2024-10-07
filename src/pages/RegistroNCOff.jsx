@@ -15,7 +15,7 @@ const RegistroNCOff = () => {
   // Função para limpar o formulário
   const clearForm = () => {
     setCodRegiao('');
-    setEnderec('');
+   // setEnderec('');
     setObs('');
     setMessage('');
   };
@@ -50,7 +50,7 @@ const RegistroNCOff = () => {
     };
 
     // Verifica se todos os campos obrigatórios estão preenchidos
-    if (!cod_regiao || !enderec || !obs) {
+    if (!enderec || !obs) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return; // Impede o envio para a API
     }
@@ -104,7 +104,7 @@ const RegistroNCOff = () => {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
-              label="Região/Bairro *"
+              label="Região/Bairro (se necessário)"
               variant="outlined"
               size="small"
               fullWidth

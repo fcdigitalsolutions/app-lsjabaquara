@@ -120,6 +120,17 @@ def update_indica(indica_id):
     updated_indica_id = indica_service.update_indica(indica_id, indica)
     return jsonify({"message": "Indicação atualizada com sucesso!", "indica_id": updated_indica_id}), 200
 
+# Rota DELETE para excluir uma indicação existente
+@app.route('/indica/<int:indica_id>', methods=['DELETE'])
+def delete_indica(indica_id):
+    try:
+        indica_service.delete_indica(indica_id)  # Chama o serviço para deletar a indicação
+        return jsonify({"message": "Indicação excluída com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Indicação não encontrada!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir a indicação", "error": str(e)}), 500
+
 ## 
 ## Rotas da API para o Registros NC  
 @app.route('/registncall', methods=['GET'])
@@ -154,6 +165,17 @@ def update_registnc(registnc_id):
                         num_visitas=data.get('num_visitas'))
     updated_registnc_id = registnc_service.update_registnc(registnc_id, registnc)
     return jsonify({"message": "Registro NC atualizado com sucesso!", "registnc_id": updated_registnc_id}), 200
+
+# Rota DELETE para excluir um Registro NC
+@app.route('/registnc/<int:registnc_id>', methods=['DELETE'])
+def delete_registnc(registnc_id):
+    try:
+        registnc_service.delete_registnc(registnc_id)  # Chama o serviço para deletar Registro NC
+        return jsonify({"message": "Registro NC excluída com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Registro NC não encontrada!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Registro NC", "error": str(e)}), 500
 
 ## 
 ## Rotas da API para cadastro de Rastreamentos  
@@ -190,6 +212,17 @@ def update_rastrear(rastrear_id):
     updated_rastrear_id = rastrear_service.update_rastrear(rastrear_id, rastrear)
     return jsonify({"message": "Rastreamento atualizado com sucesso!", "rastrear_id": updated_rastrear_id}), 200
 
+# Rota DELETE para excluir Rastreamentos
+@app.route('/rastrear/<int:rastrear_id>', methods=['DELETE'])
+def delete_rastrear(rastrear_id):
+    try:
+        rastrear_service.delete_rastrear(rastrear_id)  # Chama o serviço para deletar Rastreamentos
+        return jsonify({"message": "Rastreamentos excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Rastreamentos não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Rastreamentos", "error": str(e)}), 500
+
 
 @app.route('/congregs/<int:congregation_id>', methods=['PUT'])
 def update_congregation(congregation_id):
@@ -215,6 +248,18 @@ def add_congregation():
 def get_congregations():
     congregations = congregation_service.get_all_congregations()
     return jsonify([dict(congregation) for congregation in congregations])
+
+
+# Rota DELETE para excluir Congregação
+@app.route('/congregs/<int:congregation_id>', methods=['DELETE'])
+def delete_congregation(congregation_id):
+    try:
+        congregation_service.delete_congregation(congregation_id)  # Chama o serviço para deletar Congregação
+        return jsonify({"message": "Rastreamentos excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Rastreamentos não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Rastreamentos", "error": str(e)}), 500
 
 
 ## Rotas da API para o cadastro de puiblicadores 
@@ -268,6 +313,17 @@ def update_pubc(pubc_id):
     updated_pubc_id = pubc_service.update_pubc(pubc_id, pubc)
     return jsonify({"message": "Publicador atualizado com sucesso!", "pubc_id": updated_pubc_id}), 200
 
+# Rota DELETE para excluir Publicador
+@app.route('/pubc/<int:pubc_id>', methods=['DELETE'])
+def delete_publi(pubc_id):
+    try:
+        pubc_service.delete_publi(pubc_id)  # Chama o serviço para deletar Publicador
+        return jsonify({"message": "Publicador excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Publicador não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Publicador", "error": str(e)}), 500
+
 
 ## Rotas da API para o cadastro de Designações 
 @app.route('/desigaall', methods=['GET'])
@@ -312,6 +368,16 @@ def update_desig(desig_id):
     updated_desig_id = desig_service.update_desig(desig_id, desig)
     return jsonify({"message": "Designação atualizada com sucesso!", "desig_id": updated_desig_id}), 200
 	   
+# Rota DELETE para excluir Designação
+@app.route('/desig/<int:desig_id>', methods=['DELETE'])
+def delete_desig(desig_id):
+    try:
+        desig_service.delete_desig(desig_id)  # Chama o serviço para deletar Publicador
+        return jsonify({"message": "Designação excluída com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Designação não encontrada!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir a Designação", "error": str(e)}), 500
 
 
 if __name__ == '__main__':

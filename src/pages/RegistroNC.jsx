@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl } from '@mui/material';
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, Checkbox } from '@mui/material';
 import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 
 const RegistroNC = () => {
@@ -13,6 +13,7 @@ const RegistroNC = () => {
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
   const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
+  const [selected, setSelected] = useState([]);
   const [newIndication, setNewIndication] = useState({
     cod_regiao: '',
     enderec: '',
@@ -36,6 +37,29 @@ const RegistroNC = () => {
         console.error("Erro ao buscar os dados: ", error);
       });
   }, []);
+
+  const handleSelect = (id) => {
+    setSelected((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((item) => item !== id) // Desmarca se já estiver selecionado
+        : [...prevSelected, id] // Marca se não estiver
+    );
+  };
+  const isSelected = (id) => selected.includes(id);
+
+  // Função para controlar a seleção de todas as linhas
+  const handleSelectAllClick = (event) => {
+    if (event.target.checked) {
+      const newSelected = data.map((row) => row.id);
+      setSelected(newSelected);
+    } else {
+      setSelected([]);
+    }
+  };
+
+  // Verifica se todas as linhas estão selecionadas
+  const isAllSelected = selected.length === data.length;
+
 
   // Função para redirecionar ao dashboard
   const handleRetornaDash = () => {
@@ -181,13 +205,21 @@ const RegistroNC = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell align="center">Região/Bairro</TableCell>
-                  <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Logradouro</TableCell>
-                  <TableCell align="center">Números</TableCell>
-                  <TableCell align="center">Primeira Visita</TableCell>
-                  <TableCell align="center">Última Visita</TableCell>
-                  <TableCell align="center">Ações</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }} padding="checkbox">
+                    <Checkbox
+                      indeterminate={selected.length > 0 && selected.length < data.length}
+                      checked={isAllSelected}
+                      onChange={handleSelectAllClick}
+                      inputProps={{ 'aria-label': 'select all items' }}
+                    />
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Região/Bairro</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Logradouro</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Números</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Primeira Visita</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Última Visita</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -196,6 +228,12 @@ const RegistroNC = () => {
                   const status = getStatus(row.num_visitas);
                   return (
                     <TableRow key={row.id}>
+                       <TableCell TableCell align="center">
+                        <Checkbox
+                          checked={isSelected(row.id)}
+                          onChange={() => handleSelect(row.id)}
+                        />
+                      </TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="cod_regiao" value={editedRowData.cod_regiao || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_regiao}</TableCell>
                       <TableCell align="center">
                         {isEditing ? (
