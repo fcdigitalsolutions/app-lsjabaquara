@@ -134,6 +134,30 @@ def init_db():
             )
         ''')        
 
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cad_territorios (
+	            id INT AUTO_INCREMENT PRIMARY KEY,
+	            data_inclu	  datetime NULL,
+                dt_ultvisit   datetime NULL,
+                pub_ultvisi   VARCHAR(255) NULL,
+                dt_visit02    datetime NULL,
+                pub_tvis02    VARCHAR(255) NULL,
+                dt_visit03    datetime NULL,
+                pub_tvis03    VARCHAR(255) NULL,
+                dt_visit04    datetime NULL,
+                pub_tvis04    VARCHAR(255) NULL,
+	            terr_nome     VARCHAR(255) NULL,	
+                terr_morador  VARCHAR(255) NULL, 
+                terr_enderec  VARCHAR(255) NULL, 
+                terr_regiao   VARCHAR(255) NULL, 
+                terr_link     VARCHAR(255) NULL,  
+                terr_coord    VARCHAR(255) NULL,  
+                terr_cor      VARCHAR(255) NULL,      
+                terr_status   VARCHAR(255) NULL,
+                terr_obs      TEXT                
+            )
+        ''')        
+
         conn.commit()
         cursor.close()
         conn.close()

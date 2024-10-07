@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import Region, Congregation, Indicacoes, Rastreamento, AuthLogin, RegistroNC, Publicadores, Designacoes
-from services import RegionService, CongregacaoService, IndicaService, RastrearService, AuthService,RegistroNCService, PublicaService,DesignService
+from models import Region,Congregation,Indicacoes,Rastreamento,AuthLogin,RegistroNC,Publicadores,Designacoes,Territorios
+from services import RegionService,CongregacaoService,IndicaService,RastrearService,AuthService,RegistroNCService,PublicaService,DesignService,TerritService
 from database import init_db
 from datetime import datetime
 
@@ -15,6 +15,8 @@ rastrear_service = RastrearService()
 auth_service = AuthService()
 pubc_service = PublicaService()
 desig_service = DesignService()
+territ_service = TerritService()
+
 
 # Inicializa o banco de dados
 init_db()
@@ -378,6 +380,76 @@ def delete_desig(desig_id):
         return jsonify({"message": "Designação não encontrada!"}), 404
     except Exception as e:
         return jsonify({"message": "Erro ao excluir a Designação", "error": str(e)}), 500
+
+
+## Rotas da API para o cadastro de Territórios 
+@app.route('/territall', methods=['GET'])
+def get_territall():
+    territ = territ_service.get_all_territ()
+    return jsonify([{
+        **dict(territ),
+        'data_inclu': format_date(territ.get('data_inclu'))
+    } for territ in territ])
+
+@app.route('/territ', methods=['POST'])
+def add_territ():
+    data = request.json
+    territ = Territorios(data_inclu=parse_date(data.get('data_inclu')),
+                        dt_ultvisit=parse_date(data.get('dt_ultvisit')),
+                        pub_ultvisi=data.get('pub_ultvisi'),
+                        dt_visit02=parse_date(data.get('dt_visit02')),
+                        pub_tvis02=data.get('pub_tvis02'),
+                        dt_visit03=parse_date(data.get('dt_visit03')),
+                        pub_tvis03=data.get('pub_tvis03'),
+                        dt_visit04=parse_date(data.get('dt_visit04')),
+                        pub_tvis04=data.get('pub_tvis04'),
+                        terr_nome=data.get('terr_nome'),
+                        terr_morador=data.get('terr_morador'),
+                        terr_enderec=data.get('terr_enderec'),
+                        terr_regiao=data.get('terr_regiao'),
+                        terr_link=data.get('terr_link'),
+                        terr_coord=data.get('terr_coord'),
+                        terr_cor=data.get('terr_cor'),
+                        terr_status=data.get('terr_status'),
+                        terr_obs=data.get('terr_obs')
+                        )     
+    territ_id = territ_service.add_territ(territ)
+    return jsonify({"id": territ_id, "message": "Território add com sucesso!"}), 201
+
+@app.route('/territ/<int:territ_id>', methods=['PUT'])
+def update_territ(territ_id):
+    data = request.json
+    territ = Territorios(dt_ultvisit=parse_date(data.get('dt_ultvisit')),
+                        pub_ultvisi=data.get('pub_ultvisi'),
+                        dt_visit02=parse_date(data.get('dt_visit02')),
+                        pub_tvis02=data.get('pub_tvis02'),
+                        dt_visit03=parse_date(data.get('dt_visit03')),
+                        pub_tvis03=data.get('pub_tvis03'),
+                        dt_visit04=parse_date(data.get('dt_visit04')),
+                        pub_tvis04=data.get('pub_tvis04'),
+                        terr_nome=data.get('terr_nome'),
+                        terr_morador=data.get('terr_morador'),
+                        terr_enderec=data.get('terr_enderec'),
+                        terr_regiao=data.get('terr_regiao'),
+                        terr_link=data.get('terr_link'),
+                        terr_coord=data.get('terr_coord'),
+                        terr_cor=data.get('terr_cor'),
+                        terr_status=data.get('terr_status'),
+                        terr_obs=data.get('terr_obs')
+                        )
+    updated_territ_id = territ_service.update_territ(territ_id, territ)
+    return jsonify({"message": "Território atualizado com sucesso!", "desig_id": updated_territ_id}), 200
+	   
+# Rota DELETE para excluir Território
+@app.route('/territ/<int:territ_id>', methods=['DELETE'])
+def delete_territ(territ_id):
+    try:
+        territ_service.delete_territ(territ_id)  # Chama o serviço para deletar Publicador
+        return jsonify({"message": "Território excluída com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Território não encontrada!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir a Território", "error": str(e)}), 500
 
 
 if __name__ == '__main__':

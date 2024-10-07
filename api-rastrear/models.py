@@ -85,4 +85,24 @@ class Designacoes:
         self.dsg_obs      = dsg_obs
         self.pub_obs      = pub_obs
        	
+class Territorios:
+    def __init__(self,data_inclu,dt_ultvisit,pub_ultvisi,dt_visit02,pub_tvis02,dt_visit03,pub_tvis03,dt_visit04,pub_tvis04,terr_nome,terr_morador,terr_enderec,terr_regiao,terr_link,terr_coord,terr_cor,terr_status,terr_obs  ):
+        self.data_inclu	 = data_inclu	  
+        self.dt_ultvisit  = dt_ultvisit   
+        self.pub_ultvisi  = pub_ultvisi   
+        self.dt_visit02   = dt_visit02    
+        self.pub_tvis02   = pub_tvis02    
+        self.dt_visit03   = dt_visit03    
+        self.pub_tvis03   = pub_tvis03    
+        self.dt_visit04   = dt_visit04    
+        self.pub_tvis04   = pub_tvis04
+        self.terr_nome    = terr_nome     	
+        self.terr_morador = terr_morador   
+        self.terr_enderec = terr_enderec   
+        self.terr_regiao  = terr_regiao    
+        self.terr_link    = terr_link    
+        self.terr_coord   = terr_coord    
+        self.terr_cor     = terr_cor    
+        self.terr_status  = terr_status   
+        self.terr_obs     = terr_obs          
 
