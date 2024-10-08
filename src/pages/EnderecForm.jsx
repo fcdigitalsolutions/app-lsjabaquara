@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
-import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Checkbox } from '@mui/material';
-import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
+import { Box, Menu, Table, Card, CardContent, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Checkbox } from '@mui/material';
+import { FaUserPlus, FaShareSquare, FaChevronDown } from 'react-icons/fa';
 
 const EnderecForm = () => {
   const [data, setData] = useState([]);
-  const navigate = useNavigate(); // Use o useNavigate
   const [page, setPage] = useState(0);
-  const [rowsPerPage] = useState(5); // Limite de linhas por página
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Limite de linhas por página
   const [editRowId, setEditRowId] = useState(null); // ID da linha sendo editada
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
   const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [selected, setSelected] = useState([]);
+
+  const totalRevisitas = data.filter(item => item.terr_status === '1').length;
+  const totalEstudantes = data.filter(item => item.terr_status === '2').length;
+  const totalDoentes = data.filter(item => item.terr_status === '3').length;
+  const totalNaoQuer = data.filter(item => item.terr_status === '6').length;
+  const totalCasal = data.filter(item => item.terr_cor === '2').length;
+  const totalEnderecos = new Set(data.map(item => item.id)).size;
+
 
   const Data_Atual = new Date();
 
@@ -31,6 +37,44 @@ const EnderecForm = () => {
     const day = String(date.getDate()).padStart(2, '0');
 
     return `${day}/${month}/${year}`;
+  };
+
+  const [filters, setFilters] = useState({
+    terr_status: '',
+    terr_cor: ''
+  });
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [filterColumn, setFilterColumn] = useState(''); // Guarda a coluna sendo filtrada
+
+  const handleClick = (event, column) => {
+    setAnchorEl(event.currentTarget);
+    setFilterColumn(column);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleFilterSelect = (value) => {
+    setFilters({
+      ...filters,
+      [filterColumn]: value
+    });
+    handleClose(); // Fecha o menu
+  };
+
+  // Dados filtrados com base nos filtros das colunas
+  const filteredData = data.filter((row) => {
+    return (
+      (!filters.terr_status || row.terr_status === filters.terr_status) &&
+      (!filters.terr_cor || row.terr_cor === filters.terr_cor)
+    );
+  });
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10)); // Atualiza o número de linhas por página
+    setPage(0); // Reseta a página para a primeira sempre que mudar o número de linhas por página
   };
 
   const [newIndication, setNewIndication] = useState({
@@ -81,11 +125,6 @@ const EnderecForm = () => {
 
   // Verifica se todas as linhas estão selecionadas
   const isAllSelected = selected.length === data.length;
-
-  // Função para redirecionar ao dashboard
-  const handleRetornaDash = () => {
-    navigate('/home/dash-enderec'); // Navegue para a rota definida
-  };
 
   // Função para iniciar a edição de uma linha
   const handleEdit = (row) => {
@@ -183,6 +222,17 @@ const EnderecForm = () => {
     transition: 'background-color 0.2s ease'
   };
 
+  const TableCellTHStyle = {
+    fontSize: '0.80rem',
+    color: '#202038',
+    fontWeight: 'bold'
+  };
+
+  const TableCellBDStyle = {
+    fontSize: '0.72rem',
+    color: '#202038',
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -190,7 +240,9 @@ const EnderecForm = () => {
   // Cálculo do índice inicial e final das linhas a serem exibidas
   const startIndex = page * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const currentData = data.slice(startIndex, endIndex);
+
+  // Aplicar a paginação aos dados filtrados
+  const paginatedData = filteredData.slice(startIndex, endIndex);
 
   // Estilo para inputs menores
   const inputStyle = {
@@ -236,7 +288,7 @@ const EnderecForm = () => {
   const getStatusSitColor = (statusSit) => {
     switch (statusSit) {
       case 'Ativo':
-        return 'green';
+        return '#32CD32';
       case 'Revisita':
         return '#D9D919';
       case 'Estudante':
@@ -276,48 +328,105 @@ const EnderecForm = () => {
       case 'Vermelho':
         return 'Red';
       case 'Verde':
-        return 'green';
+        return '#238E23';
       default:
         return 'transparent';
     }
   };
 
   return (
-    <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
+    <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038', minWidth: '160px', maxWidth: '1420px', height: '500px' }}>
       <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Manutenção dos Territórios Ativos</h2>
 
+      {/* Box separado para os cards */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 1,
+          justifyContent: 'space-between',
+          marginBottom: '2px', // Espaçamento entre os cards e a tabela
+          '@media (max-width: 600px)': {
+            flexDirection: 'column',
+            alignItems: 'left',
+          },
+        }}
+      >
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Total de Endereços
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalEnderecos}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#00009C', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Mapas de Estudantes
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalEstudantes}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#D9D919', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Mapas de Revisitas
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalRevisitas}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#FF2400', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Morador "Não Quer"
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalNaoQuer}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#8C1717', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Morador Enfermo
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalDoentes}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#238E23', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Endereço de Casal
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalCasal}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
       {/* Box separado para a tabela */}
-      <Box sx={{ marginBottom: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+      <Box sx={{ marginBottom: '20px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
         <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', borderRadius: '16px' }}>
-          {/* Botão Dashboard Mapas */}
-          <button
-            type="button"
-            style={{
-              ...buttonStyle,
-              backgroundColor: '#202038',
-              color: '#f1f1f1',
-              transition: 'background-color 0.2s ease', // Transição suave
-              align: 'right',
-              borderRadius: '4px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
-              e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#202038'; // Cor original
-              e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
-            }}
-            onClick={handleRetornaDash}
-          >
-            <FaChartPie />  DashBoard Territórios
-          </button>
 
           <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }} padding="checkbox">
+                  <TableCell align="center" sx={TableCellTHStyle} padding="checkbox">
                     <Checkbox
                       indeterminate={selected.length > 0 && selected.length < data.length}
                       checked={isAllSelected}
@@ -325,23 +434,57 @@ const EnderecForm = () => {
                       inputProps={{ 'aria-label': 'select all items' }}
                     />
                   </TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Código Mapa</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Morador</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Endereço</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Bairro</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Link Maps</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Coordenadas</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cor do Mapa</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Dt. Última Visita</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Pub. Última Visita</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Detalhes e Referências</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Código Mapa</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Morador</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Endereço</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Bairro</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Link Maps</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Coordenadas</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Cor do Mapa
+                    <FaChevronDown onClick={(event) => handleClick(event, 'terr_cor')} />
+                  </TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Status
+                    <FaChevronDown onClick={(event) => handleClick(event, 'terr_status')} />
+                  </TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Dt. Última Visita</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Pub. Última Visita</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Detalhes e Referências</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Ações</TableCell>
 
                 </TableRow>
+                {/* Menu suspenso para filtros */}
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                >
+                  {filterColumn === 'terr_status' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('0')}>Ativo</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Revisita</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Estudante</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('3')}>Doente</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('4')}>Mudou</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('5')}>Faleceu</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('6')}>Não Quer</MenuItem>
+                    </>
+                  )}
+
+                  {filterColumn === 'terr_cor' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('0')}>Azul</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Vermelho</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Verde</MenuItem>
+                    </>
+                  )}
+                </Menu>
               </TableHead>
               <TableBody>
-                {currentData.map((row) => {
+
+                {paginatedData.map((row) => {
+
                   const isEditing = row.id === editRowId;
 
                   const statusmpcor = getStatusMapCor(row.terr_cor);
@@ -349,21 +492,21 @@ const EnderecForm = () => {
 
                   return (
                     <TableRow key={row.id}>
-                      <TableCell TableCell align="center">
+                      <TableCell TableCell align="center" sx={TableCellBDStyle}>
                         <Checkbox
                           checked={isSelected(row.id)}
                           onChange={() => handleSelect(row.id)}
                         />
                       </TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="terr_nome" value={editedRowData.terr_nome || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.terr_nome}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="terr_morador" value={editedRowData.terr_morador || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.terr_morador}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="terr_enderec" value={editedRowData.terr_enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.terr_enderec}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="terr_regiao" value={editedRowData.terr_regiao || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.terr_regiao}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="terr_link" value={editedRowData.terr_link || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.terr_link}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="terr_coord" value={editedRowData.terr_coord || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.terr_coord}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_nome" value={editedRowData.terr_nome || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_nome}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_morador" value={editedRowData.terr_morador || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_morador}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_enderec" value={editedRowData.terr_enderec || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_enderec}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_regiao" value={editedRowData.terr_regiao || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_regiao}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_link" value={editedRowData.terr_link || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_link}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_coord" value={editedRowData.terr_coord || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_coord}</TableCell>
 
                       {/* Campo editável de status cor do mapa */}
-                      <TableCell align="center">
+                      <TableCell align="center" sx={TableCellBDStyle}>
                         {isEditing ? (
                           <FormControl fullWidth>
                             <Select
@@ -392,7 +535,7 @@ const EnderecForm = () => {
                         )}
                       </TableCell>
                       {/* Campo editável de status situacao */}
-                      <TableCell align="center">
+                      <TableCell align="center" sx={TableCellBDStyle}>
                         {isEditing ? (
                           <FormControl fullWidth>
                             <Select
@@ -425,18 +568,18 @@ const EnderecForm = () => {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="dt_ultvisit" value={editedRowData.dt_ultvisit || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : formatDateGrid(row.dt_ultvisit)}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="pub_ultvisi" value={editedRowData.pub_ultvisi || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_ultvisi}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="dt_ultvisit" value={editedRowData.dt_ultvisit || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : formatDateGrid(row.dt_ultvisit)}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="pub_ultvisi" value={editedRowData.pub_ultvisi || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.pub_ultvisi}</TableCell>
 
-                      <TableCell align="center">{isEditing ? <TextField name="terr_obs" value={editedRowData.terr_obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.terr_obs}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_obs" value={editedRowData.terr_obs || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_obs}</TableCell>
 
                       <TableCell align="center">
                         {isEditing ? (
-                          <Button variant="contained" color="primary" size="small" onClick={handleSave} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Salvar</Button>
+                          <Button variant="contained" color="primary" size="small" onClick={handleSave} sx={{ fontSize: '0.55rem', padding: '2px 5px' }}>Salvar</Button>
                         ) : (
                           <Box sx={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                            <Button variant="contained" color="primary" size="small" onClick={() => handleEdit(row)} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Editar</Button>
-                            <Button variant="contained" color="error" size="small" onClick={() => handleDelete(row.id)} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Excluir</Button>
+                            <Button variant="contained" color="primary" size="small" onClick={() => handleEdit(row)} sx={{ fontSize: '0.55rem', padding: '2px 5px' }}>Editar</Button>
+                            <Button variant="contained" color="error" size="small" onClick={() => handleDelete(row.id)} sx={{ fontSize: '0.55rem', padding: '2px 5px' }}>Excluir</Button>
                           </Box>
                         )}
                       </TableCell>
@@ -448,18 +591,21 @@ const EnderecForm = () => {
           </TableContainer>
 
           <TablePagination
-            rowsPerPageOptions={[]}
+            rowsPerPageOptions={[5, 10, 25]} // Caso queira outras opções
             component="div"
-            count={data.length}
+            count={filteredData.length} // Número total de linhas após filtragem
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage} // Função para mudar o número de linhas por página
+            labelRowsPerPage="Linhas por página:" // Texto personalizado
             sx={{
-              '& .MuiTablePagination-toolbar': { fontSize: '0.65rem' },
-              '& .MuiTablePagination-selectRoot': { fontSize: '0.65rem' },
-              '& .MuiTablePagination-displayedRows': { fontSize: '0.65rem' },
+              '& .MuiTablePagination-toolbar': { fontSize: '0.80rem' },
+              '& .MuiTablePagination-selectRoot': { fontSize: '0.80rem' },
+              '& .MuiTablePagination-displayedRows': { fontSize: '0.80rem' },
             }}
           />
+
 
           {/* Botão para abrir o formulário */}
           <button
