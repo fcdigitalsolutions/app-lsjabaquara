@@ -20,8 +20,10 @@ const EnderecForm = () => {
   const totalCasal = data.filter(item => item.terr_cor === '2').length;
   const totalEnderecos = new Set(data.map(item => item.id)).size;
 
-
-  const Data_Atual = new Date();
+  //Somar todos os valores de 'num_pessoas'
+  const totalSurdos = data.reduce((accumulator, item) => {
+    return accumulator + (item.num_pessoas || 0);
+  }, 0);
 
   const formatDateGrid = (date) => {
     const parsedDate = new Date(date);
@@ -77,6 +79,7 @@ const EnderecForm = () => {
     setPage(0); // Reseta a página para a primeira sempre que mudar o número de linhas por página
   };
 
+  const Data_Atual = new Date();
   const [newIndication, setNewIndication] = useState({
     data_inclu: formatDateTime(Data_Atual),
     dt_ultvisit: formatDateTime(Data_Atual),
@@ -91,6 +94,8 @@ const EnderecForm = () => {
     terr_coord: '',
     terr_cor: '',
     terr_status: '',
+    num_pessoas: 0,
+    melhor_dia_hora: '',
     terr_obs: ''
   });
 
@@ -141,11 +146,14 @@ const EnderecForm = () => {
   // Função para salvar as alterações
   const handleSave = async () => {
     try {
+      // Fazer a requisição PUT enviando somente os campos necessários
       await api_service.put(`/territ/${editedRowData.id}`, editedRowData); // Atualiza os dados no backend
-      setData(data.map(row => (row.id === editedRowData.id ? editedRowData : row))); // Atualiza os dados no frontend
+      setData(data.map(row => (row.id === editedRowData.id ? { ...row, ...editedRowData } : row))); // Atualiza os dados no frontend
       setEditRowId(null); // Sai do modo de edição
+      setMessage('Registro atualizado com sucesso!');
     } catch (error) {
       console.error("Erro ao salvar os dados: ", error);
+      setMessage('Erro ao salvar os dados.');
     }
   };
 
@@ -364,10 +372,21 @@ const EnderecForm = () => {
         </Box>
 
         <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Total de Surdos
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalSurdos}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
           <Card sx={{ width: '100%', backgroundColor: '#00009C', color: 'white' }}>
             <CardContent>
               <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                Mapas de Estudantes
+                Total de Estudantes
               </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalEstudantes}</Typography>
             </CardContent>
@@ -378,7 +397,7 @@ const EnderecForm = () => {
           <Card sx={{ width: '100%', backgroundColor: '#D9D919', color: 'white' }}>
             <CardContent>
               <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                Mapas de Revisitas
+                Total de Revisitas
               </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalRevisitas}</Typography>
             </CardContent>
@@ -411,7 +430,7 @@ const EnderecForm = () => {
           <Card sx={{ width: '100%', backgroundColor: '#238E23', color: 'white' }}>
             <CardContent>
               <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                Endereço de Casal
+                Casal/Família
               </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalCasal}</Typography>
             </CardContent>
@@ -436,10 +455,13 @@ const EnderecForm = () => {
                   </TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Código Mapa</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Morador</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Num. Pessoas</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Endereço</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Bairro</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Link Maps</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Coordenadas</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Melhor Dia/H</TableCell>
+
                   <TableCell align="center" sx={TableCellTHStyle}>Cor do Mapa
                     <FaChevronDown onClick={(event) => handleClick(event, 'terr_cor')} />
                   </TableCell>
@@ -500,10 +522,12 @@ const EnderecForm = () => {
                       </TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_nome" value={editedRowData.terr_nome || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_nome}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_morador" value={editedRowData.terr_morador || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_morador}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="num_pessoas" value={editedRowData.num_pessoas || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.num_pessoas}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_enderec" value={editedRowData.terr_enderec || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_enderec}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_regiao" value={editedRowData.terr_regiao || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_regiao}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_link" value={editedRowData.terr_link || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_link}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_coord" value={editedRowData.terr_coord || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_coord}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="melhor_dia_hora" value={editedRowData.melhor_dia_hora || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.melhor_dia_hora}</TableCell>
 
                       {/* Campo editável de status cor do mapa */}
                       <TableCell align="center" sx={TableCellBDStyle}>
@@ -568,7 +592,7 @@ const EnderecForm = () => {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="dt_ultvisit" value={editedRowData.dt_ultvisit || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : formatDateGrid(row.dt_ultvisit)}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="dt_ultvisit" value={formatDateGrid(editedRowData.dt_ultvisit) || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : formatDateGrid(row.dt_ultvisit)}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="pub_ultvisi" value={editedRowData.pub_ultvisi || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.pub_ultvisi}</TableCell>
 
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_obs" value={editedRowData.terr_obs || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_obs}</TableCell>

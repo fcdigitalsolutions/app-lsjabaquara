@@ -20,11 +20,12 @@ const RegistroNC = () => {
     obs: '',
   });
 
-  const formatDateTime = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
-    const day = String(date.getDate()).padStart(2, '0');
 
+  const formatDateGrid = (date) => {
+    const parsedDate = new Date(date);
+    const year = String(parsedDate.getFullYear()); // Apenas os últimos 2 dígitos do ano
+    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(parsedDate.getDate()).padStart(2, '0');
     return `${day}/${month}/${year}`;
   };
 
@@ -78,21 +79,13 @@ const RegistroNC = () => {
     setEditedRowData({ ...editedRowData, [name]: value }); // Atualiza os dados editados
   };
 
+  
+  // Função para salvar as alterações
   const handleSave = async () => {
     try {
-      // Criar um objeto com apenas os campos que a API espera
-
-      const updatedRowData = {
-        cod_regiao: editedRowData.cod_regiao,
-        enderec: editedRowData.enderec,
-        obs: editedRowData.obs,
-        dt_ult_visit: formatDateTime(editedRowData.dt_ult_visit),
-        num_visitas: editedRowData.num_visitas,
-      };
-  
       // Fazer a requisição PUT enviando somente os campos necessários
-      await api_service.put(`/registnc/${editedRowData.id}`, updatedRowData); // Atualiza os dados no backend
-      setData(data.map(row => (row.id === editedRowData.id ? { ...row, ...updatedRowData } : row))); // Atualiza os dados no frontend
+      await api_service.put(`/registnc/${editedRowData.id}`, editedRowData); // Atualiza os dados no backend
+      setData(data.map(row => (row.id === editedRowData.id ? { ...row, ...editedRowData } : row))); // Atualiza os dados no frontend
       setEditRowId(null); // Sai do modo de edição
       setMessage('Registro atualizado com sucesso!');
     } catch (error) {
@@ -264,8 +257,8 @@ const RegistroNC = () => {
                       </TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="obs" value={editedRowData.obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.obs}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="dt_ult_visit" value={editedRowData.dt_ult_visit || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dt_ult_visit}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : formatDateGrid(row.data_inclu)}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="dt_ult_visit" value={editedRowData.dt_ult_visit || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : formatDateGrid(row.dt_ult_visit)}</TableCell>
                       <TableCell align="center">
                         {isEditing ? (
                           <Button variant="contained" color="primary" size="small" onClick={handleSave} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Salvar</Button>

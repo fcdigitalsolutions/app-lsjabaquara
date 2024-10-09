@@ -11,20 +11,21 @@ const RelCampForm = () => {
   // Estados para armazenar os valores dos campos do formulário
   const [message, setMessage] = useState('');
   const Data_Atual = new Date();
-  const [mesano, setMesAno] = useState('');
-  const [publica, setPublica] = useState('');
-  const [designa, setDesigna] = useState('');
-  const [horas, setHoras] = useState('');
-  const [estudos, setEstudos] = useState('');
-  const [observa, setObserva] = useState('');
+  const [mesano, setMesAno] = useState(''); // Valor inicial ''
+  const [publica, setPublica] = useState(''); // Valor inicial ''
+  const [designa, setDesigna] = useState(''); // Valor inicial ''
+  const [horas, setHoras] = useState(''); // Valor inicial ''
+  const [estudos, setEstudos] = useState(''); // Valor inicial ''
+  const [observa, setObserva] = useState(''); // Valor inicial ''
+
   const [publicadores, setPublicadores] = useState([]); // Estado para armazenar as opções de publicadores
 
   // Função para buscar os publicadores da API
   useEffect(() => {
     const fetchPublicadores = async () => {
       try {
-        const response = await api_service.get('/rota-da-sua-api-para-publicadores'); // Insira a rota da sua API
-        setPublicadores(response.data); // Supondo que a API retorna um array de publicadores
+        const response = await api_service.get('/pubcall'); // rota da API
+        setPublicadores(response.data); // API retorna um array de publicadores
       } catch (error) {
         console.error('Erro ao carregar os publicadores:', error);
       }
@@ -110,7 +111,7 @@ const RelCampForm = () => {
               <Select
                 labelId="mesdoano-label"
                 id="mesdoano"
-                value={mesano}
+                value={mesano || ''} // Fallback para garantir que nunca seja undefined
                 label="Mês do Ano *"
                 onChange={(e) => setMesAno(e.target.value)}
               >
@@ -141,7 +142,7 @@ const RelCampForm = () => {
               <Select
                 labelId="publica-label"
                 id="publica"
-                value={publica}
+                value={publica || ''} // Fallback para garantir que nunca seja undefined
                 label="Seu Nome? *"
                 onChange={(e) => setPublica(e.target.value)}
               >
@@ -165,7 +166,7 @@ const RelCampForm = () => {
               <Select
                 labelId="designa-label"
                 id="designa"
-                value={designa}
+                value={designa || ''} // Fallback para garantir que nunca seja undefined
                 label="Você? *"
                 onChange={(e) => setDesigna(e.target.value)}
               >
@@ -188,7 +189,7 @@ const RelCampForm = () => {
               variant="outlined"
               size="small"
               fullWidth
-              value={horas}
+              value={horas || ''} // Fallback para garantir que nunca seja undefined
               onChange={(e) => setHoras(e.target.value)}
             />
           </Box>
@@ -205,7 +206,7 @@ const RelCampForm = () => {
               variant="outlined"
               size="small"
               fullWidth
-              value={estudos}
+              value={estudos || ''} // Fallback para garantir que nunca seja undefined
               onChange={(e) => setEstudos(e.target.value)}
             />
           </Box>
@@ -219,7 +220,7 @@ const RelCampForm = () => {
               variant="outlined"
               size="small"
               fullWidth
-              value={observa}
+              value={observa || ''} // Fallback para garantir que nunca seja undefined
               onChange={(e) => setObserva(e.target.value)}
             />
           </Box>

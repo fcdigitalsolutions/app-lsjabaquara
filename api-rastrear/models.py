@@ -86,7 +86,7 @@ class Designacoes:
         self.pub_obs      = pub_obs
        	
 class Territorios:
-    def __init__(self,data_inclu,dt_ultvisit,pub_ultvisi,dt_visit02,pub_tvis02,dt_visit03,pub_tvis03,dt_visit04,pub_tvis04,terr_nome,terr_morador,terr_enderec,terr_regiao,terr_link,terr_coord,terr_cor,terr_status,terr_obs  ):
+    def __init__(self,data_inclu,dt_ultvisit,pub_ultvisi,dt_visit02,pub_tvis02,dt_visit03,pub_tvis03,dt_visit04,pub_tvis04,terr_nome,terr_morador,terr_enderec,terr_regiao,terr_link,terr_coord,terr_cor,terr_status,num_pessoas,melhor_dia_hora,terr_obs  ):
         self.data_inclu	 = data_inclu	  
         self.dt_ultvisit  = dt_ultvisit   
         self.pub_ultvisi  = pub_ultvisi   
@@ -104,5 +104,7 @@ class Territorios:
         self.terr_coord   = terr_coord    
         self.terr_cor     = terr_cor    
         self.terr_status  = terr_status   
+        self.num_pessoas  = num_pessoas 
+        self.melhor_dia_hora  = melhor_dia_hora 
         self.terr_obs     = terr_obs          
 

@@ -154,6 +154,8 @@ def init_db():
                 terr_coord    VARCHAR(255) NULL,  
                 terr_cor      VARCHAR(255) NULL,      
                 terr_status   VARCHAR(255) NULL,
+                num_pessoas   int NULL,
+                melhor_dia_hora   VARCHAR(255) NULL,
                 terr_obs      TEXT                
             )
         ''')        

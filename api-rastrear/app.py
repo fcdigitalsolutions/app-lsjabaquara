@@ -27,11 +27,15 @@ def format_date(date_obj):
         return date_obj.strftime('%d/%m/%Y')
     return date_obj
 
+from datetime import datetime
+
 def parse_date(date_str):
-    """Parse date string dd/MM/yyyy to datetime object."""
+    if date_str is None or date_str == '':
+        return None  # Ou use uma data padrão, se necessário
     try:
         return datetime.strptime(date_str, '%d/%m/%Y').strftime('%Y-%m-%d')
     except ValueError:
+        # Caso a data não esteja no formato esperado, retorna None ou lança um erro apropriado
         return None
 
 @app.route('/auth/login', methods=['POST'])
@@ -411,6 +415,8 @@ def add_territ():
                         terr_coord=data.get('terr_coord'),
                         terr_cor=data.get('terr_cor'),
                         terr_status=data.get('terr_status'),
+                        num_pessoas=data.get('num_pessoas'),
+                        melhor_dia_hora=data.get('melhor_dia_hora'),
                         terr_obs=data.get('terr_obs')
                         )     
     territ_id = territ_service.add_territ(territ)
@@ -419,7 +425,8 @@ def add_territ():
 @app.route('/territ/<int:territ_id>', methods=['PUT'])
 def update_territ(territ_id):
     data = request.json
-    territ = Territorios(dt_ultvisit=parse_date(data.get('dt_ultvisit')),
+    territ = Territorios(data_inclu=parse_date(data.get('data_inclu')),
+                        dt_ultvisit=parse_date(data.get('dt_ultvisit')),
                         pub_ultvisi=data.get('pub_ultvisi'),
                         dt_visit02=parse_date(data.get('dt_visit02')),
                         pub_tvis02=data.get('pub_tvis02'),
@@ -435,6 +442,8 @@ def update_territ(territ_id):
                         terr_coord=data.get('terr_coord'),
                         terr_cor=data.get('terr_cor'),
                         terr_status=data.get('terr_status'),
+                        num_pessoas=data.get('num_pessoas'),
+                        melhor_dia_hora=data.get('melhor_dia_hora'),
                         terr_obs=data.get('terr_obs')
                         )
     updated_territ_id = territ_service.update_territ(territ_id, territ)

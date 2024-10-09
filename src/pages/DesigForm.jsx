@@ -27,7 +27,7 @@ const DesigForm = () => {
   });
 
   useEffect(() => {
-    api_service.get('/indicaall')
+    api_service.get('/desigaall')
       .then((response) => {
         setData(response.data);
       })
@@ -78,7 +78,7 @@ const DesigForm = () => {
   // Função para salvar as alterações
   const handleSave = async () => {
     try {
-      await api_service.put(`/indica/${editedRowData.id}`, editedRowData); // Atualiza os dados no backend
+      await api_service.put(`/desig/${editedRowData.id}`, editedRowData); // Atualiza os dados no backend
       setData(data.map(row => (row.id === editedRowData.id ? editedRowData : row))); // Atualiza os dados no frontend
       setEditRowId(null); // Sai do modo de edição
     } catch (error) {
@@ -91,7 +91,7 @@ const DesigForm = () => {
     const confirmDelete = window.confirm("Você realmente deseja excluir este registro?");
     if (confirmDelete) {
       try {
-        await api_service.delete(`/indica/${id}`); // Envia a solicitação de exclusão para a API
+        await api_service.delete(`/desig/${id}`); // Envia a solicitação de exclusão para a API
         setData(data.filter(row => row.id !== id)); // Remove o registro excluído do estado local
       } catch (error) {
         console.error("Erro ao excluir os dados: ", error);
@@ -117,7 +117,7 @@ const DesigForm = () => {
     }
 
     try {
-      const response = await api_service.post('/indica', newIndication);
+      const response = await api_service.post('/desig', newIndication);
       setData([...data, response.data]); // Adiciona novo mapa aos dados
       setNewIndication({ nome_publica: '', end_confirm: '', num_contato: '', cod_congreg: '', cod_regiao: '', enderec: '', origem: '', obs: '' }); // Limpa o formulário
       setMessage('Mapa incluído com sucesso!');

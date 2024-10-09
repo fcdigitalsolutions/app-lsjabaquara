@@ -356,8 +356,39 @@ class TerritService:
     def add_territ(self,territ):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO cad_territorios (data_inclu,dt_ultvisit,pub_ultvisi,dt_visit02,pub_tvis02,dt_visit03,pub_tvis03,dt_visit04,pub_tvis04,terr_nome,terr_morador,terr_enderec,terr_regiao,terr_link,terr_coord,terr_cor,terr_status,terr_obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-            (territ.data_inclu,territ.dt_ultvisit,territ.pub_ultvisi,territ.dt_visit02,territ.pub_tvis02,territ.dt_visit03,territ.pub_tvis03,territ.dt_visit04,territ.pub_tvis04,territ.terr_nome,territ.terr_morador,territ.terr_enderec,territ.terr_regiao,territ.terr_link,territ.terr_coord,territ.terr_cor,territ.terr_status,territ.terr_obs ))
+        cursor.execute(
+            """                 
+            INSERT INTO cad_territorios (
+                data_inclu,dt_ultvisit,pub_ultvisi,
+                dt_visit02,pub_tvis02,dt_visit03,
+                pub_tvis03,dt_visit04,pub_tvis04,
+                terr_nome,terr_morador,terr_enderec,
+                terr_regiao,terr_link,terr_coord,
+                terr_cor,terr_status,
+                num_pessoas,melhor_dia_hora,
+                terr_obs) 
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+            (territ.data_inclu,
+             territ.dt_ultvisit,
+             territ.pub_ultvisi,
+             territ.dt_visit02,
+             territ.pub_tvis02,
+             territ.dt_visit03,
+             territ.pub_tvis03,
+             territ.dt_visit04,
+             territ.pub_tvis04,
+             territ.terr_nome,
+             territ.terr_morador,
+             territ.terr_enderec,
+             territ.terr_regiao,
+             territ.terr_link,
+             territ.terr_coord,
+             territ.terr_cor,
+             territ.terr_status,
+             territ.num_pessoas,
+             territ.melhor_dia_hora,
+             territ.terr_obs ))
         conn.commit()
         territ_id = cursor.lastrowid
         conn.close()
@@ -366,8 +397,38 @@ class TerritService:
     def update_territ(self, territ_id, territ):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE cad_territorios SET dt_ultvisit= %s,pub_ultvisi= %s,dt_visit02= %s,pub_tvis02= %s,dt_visit03= %s,pub_tvis03= %s,dt_visit04= %s,pub_tvis04= %s,terr_nome= %s,terr_morador= %s,terr_enderec= %s,terr_regiao= %s,terr_link= %s,terr_coord= %s,terr_cor= %s,terr_status= %s,terr_obs= %s WHERE id = %s',
-            (territ.dt_ultvisit,territ.pub_ultvisi,territ.dt_visit02,territ.pub_tvis02,territ.dt_visit03,territ.pub_tvis03,territ.dt_visit04,territ.pub_tvis04,territ.terr_nome,territ.terr_morador,territ.terr_enderec,territ.terr_regiao,territ.terr_link,territ.terr_coord,territ.terr_cor,territ.terr_status,territ.terr_obs ))
+        cursor.execute(
+            """
+            UPDATE cad_territorios SET 
+            dt_ultvisit= %s,pub_ultvisi= %s,dt_visit02= %s,pub_tvis02= %s,
+            dt_visit03= %s,pub_tvis03= %s,dt_visit04= %s,pub_tvis04= %s,
+            terr_nome= %s,terr_morador= %s,terr_enderec= %s,terr_regiao= %s,
+            terr_link= %s,terr_coord= %s,terr_cor= %s, terr_status= %s,
+            num_pessoas= %s, melhor_dia_hora= %s,
+            terr_obs= %s WHERE id = %s
+            """,    
+          (  territ.dt_ultvisit,
+             territ.pub_ultvisi,
+             territ.dt_visit02,
+             territ.pub_tvis02,
+             territ.dt_visit03,
+             territ.pub_tvis03,
+             territ.dt_visit04,
+             territ.pub_tvis04,
+             territ.terr_nome,
+             territ.terr_morador,
+             territ.terr_enderec,
+             territ.terr_regiao,
+             territ.terr_link,
+             territ.terr_coord,
+             territ.terr_cor,
+             territ.terr_status,
+             territ.num_pessoas,
+             territ.melhor_dia_hora,
+             territ.terr_obs,
+             territ_id
+            ))
+        
         conn.commit()
         conn.close()
         return territ_id

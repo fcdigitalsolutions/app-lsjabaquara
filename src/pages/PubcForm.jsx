@@ -36,13 +36,14 @@ const PubcForm = () => {
     resp_obs: '',
   });
 
-  const formatDateTime = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
-    const day = String(date.getDate()).padStart(2, '0');
-
+  const formatDateGrid = (date) => {
+    const parsedDate = new Date(date);
+    const year = String(parsedDate.getFullYear()); // Apenas os últimos 2 dígitos do ano
+    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(parsedDate.getDate()).padStart(2, '0');
     return `${day}/${month}/${year}`;
   };
+
 
   useEffect(() => {
     api_service.get('/pubcall')
@@ -278,8 +279,8 @@ const PubcForm = () => {
                       <TableCell align="center">{isEditing ? <TextField name="pub_endereco" value={editedRowData.pub_endereco || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_endereco}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="pub_regiao" value={editedRowData.pub_regiao || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_regiao}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="pub_uf" value={editedRowData.pub_uf || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_uf}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="pub_dtbatism" value={editedRowData.pub_dtbatism || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_dtbatism}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="pub_dtnasc" value={editedRowData.pub_dtnasc || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_dtnasc}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="pub_dtbatism" value={formatDateGrid(editedRowData.pub_dtbatism) || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : formatDateGrid(row.pub_dtbatism)}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="pub_dtnasc" value={formatDateGrid(editedRowData.pub_dtnasc) || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : formatDateGrid(row.pub_dtnasc)}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="desig_servic" value={editedRowData.desig_servic || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.desig_servic}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="desig_campo" value={editedRowData.desig_campo || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.desig_campo}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="resp_obs" value={editedRowData.resp_obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.resp_obs}</TableCell>
