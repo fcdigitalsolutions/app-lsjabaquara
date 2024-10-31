@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
-import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import InputMask from 'react-input-mask';
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, Checkbox } from '@mui/material';
-import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
+import { Box, Menu, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, Checkbox } from '@mui/material';
+import { FaChevronDown, FaFileExport, FaUserPlus, FaShareSquare } from 'react-icons/fa';
+import * as XLSX from 'xlsx'; // Importe a biblioteca XLSX
 
 const IndicaForm = () => {
   const [data, setData] = useState([]);
-  const navigate = useNavigate(); // Use o useNavigate
   const [page, setPage] = useState(0);
-  const [rowsPerPage] = useState(5); // Limite de linhas por página
   const [editRowId, setEditRowId] = useState(null); // ID da linha sendo editada
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
   const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [selected, setSelected] = useState([]);
+  const totalPendentes = data.filter(item => item.num_visitas <= 1).length;
+  const totalConcluidos = data.filter(item => item.num_visitas >= 2).length;
+  const totalRegioes = new Set(data.map(item => item.cod_regiao)).size;
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Limite de linhas por página
+
 
   const [newIndication, setNewIndication] = useState({
     nome_publica: '',
@@ -25,6 +28,30 @@ const IndicaForm = () => {
     origem: '',
     obs: ''
   });
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [filterColumn, setFilterColumn] = useState(''); // Guarda a coluna sendo filtrada
+  const [filters, setFilters] = useState({
+    num_visitas: '',
+    enderec: ''
+  });
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleClick = (event, column) => {
+    setAnchorEl(event.currentTarget);
+    setFilterColumn(column);
+  };
+
+  const handleFilterSelect = (value) => {
+    setFilters({
+      ...filters,
+      [filterColumn]: value
+    });
+    handleClose(); // Fecha o menu
+  };
 
   useEffect(() => {
     api_service.get('/indicaall')
@@ -57,11 +84,6 @@ const IndicaForm = () => {
 
   // Verifica se todas as linhas estão selecionadas
   const isAllSelected = selected.length === data.length;
-
-  // Função para redirecionar ao dashboard
-  const handleRetornaDash = () => {
-    navigate('/home/dash-indicac'); // Navegue para a rota definida
-  };
 
   // Função para iniciar a edição de uma linha
   const handleEdit = (row) => {
@@ -144,7 +166,6 @@ const IndicaForm = () => {
   // Cálculo do índice inicial e final das linhas a serem exibidas
   const startIndex = page * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const currentData = data.slice(startIndex, endIndex);
 
   // Estilo para inputs menores
   const inputStyle = {
@@ -164,13 +185,31 @@ const IndicaForm = () => {
     }
   };
 
-  // Função para determinar o status com base no número de visitas
+  // Função para determinar o status com base na confirmação do endereço
   const getStatus = (end_confirm) => {
     if (end_confirm === '2') {
       return 'Confirmado';
-    } else {
+    } else if (end_confirm ?? '2') {
       return 'Pendente';
     }
+    return 'Desconhecido'; // Fallback para casos inesperados
+  };
+
+
+  // Dados filtrados com base nos filtros das colunas
+  const filteredData = data.filter((row) => {
+    return (
+      (!filters.end_confirm || row.end_confirm === filters.end_confirm) &&
+      (!filters.nome_publica || row.nome_publica === filters.nome_publica) &&
+      (!filters.cod_congreg || row.cod_congreg === filters.cod_congreg)
+    );
+  });
+
+  // Aplicar a paginação aos dados filtrados
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10)); // Atualiza o número de linhas por página
+    setPage(0); // Reseta a página para a primeira sempre que mudar o número de linhas por página
   };
 
   // Função para determinar a cor de fundo da célula com base no status
@@ -185,36 +224,101 @@ const IndicaForm = () => {
     }
   };
 
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniquePublicad = () => {
+    const PublicadUnicos = [...new Set(data.map(row => row.nome_publica))];
+    return PublicadUnicos;
+  };
+
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniqueCongreg = () => {
+    const CongregUnicos = [...new Set(data.map(row => row.cod_congreg))];
+    return CongregUnicos;
+  };
+
+  // Função para exportar os dados filtrados para planilha
+  const handleExport = () => {
+    const exportData = filteredData.map(row => ({
+      'Endereço': row.enderec,
+      'Detalhes': row.obs,
+      'Status': row.end_confirm === '2' ? 'Confirmado' : 'Pendente',
+      'Data': row.data_inclu,
+      'Publicador': row.nome_publica,
+      'Contato': row.num_contato,
+      'Congregação': row.cod_congreg
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData); // Converte os dados para uma planilha
+    const workbook = XLSX.utils.book_new(); // Cria um novo workbook (arquivo Excel)
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Indicações Surdo"); // Adiciona a planilha
+
+    // Exporta o arquivo Excel
+    XLSX.writeFile(workbook, 'Indicações_Surdo.xlsx');
+  };
+
+
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
-      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Manutenção das Indicações de Surdos</h2>
+      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Indicações de Surdos</h2>
 
-      {/* Box separado para a tabela */}
       <Box sx={{ marginBottom: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
         <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', borderRadius: '16px' }}>
-          {/* Botão Dashboard indicações */}
-          <button
-            type="button"
-            style={{
-              ...buttonStyle,
-              backgroundColor: '#202038',
-              color: '#f1f1f1',
-              transition: 'background-color 0.2s ease', // Transição suave
-              align: 'right',
-              borderRadius: '4px',
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1, // Reduzido o espaçamento
+              justifyContent: 'space-between',
+              '@media (max-width: 600px)': {
+                flexDirection: 'column',
+                alignItems: 'left'
+              }
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
-              e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#202038'; // Cor original
-              e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
-            }}
-            onClick={handleRetornaDash}
           >
-            <FaChartPie />  DashBoard indicações
-          </button>
+            <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+              <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                    Total de Registros
+                  </Typography>
+                  <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{data.length}</Typography>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+              <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                    Congregações
+                  </Typography>
+                  <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalRegioes}</Typography>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+              <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                    Indicações Confirmadas
+                  </Typography>
+                  <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalConcluidos}</Typography>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+              <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                    Indicações Pendentes
+                  </Typography>
+                  <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalPendentes}</Typography>
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
 
           <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
             <Table>
@@ -230,16 +334,59 @@ const IndicaForm = () => {
                   </TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Endereço</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Detalhes</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Confirmado?</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Confirmado?
+                    <FaChevronDown onClick={(event) => handleClick(event, 'end_confirm')} />
+                  </TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Data</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Publicador</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Publicador
+                    <FaChevronDown onClick={(event) => handleClick(event, 'nome_publica')} />
+                  </TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Contato</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Congregação</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Congregação
+                    <FaChevronDown onClick={(event) => handleClick(event, 'cod_congreg')} />
+                  </TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
                 </TableRow>
+                {/* Menu suspenso para filtros */}
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                >
+                  {filterColumn === 'end_confirm' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Confirmado</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect()}>Pendente</MenuItem>
+                    </>
+                  )}
+
+                  {filterColumn === 'nome_publica' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      {/* Gerar dinamicamente os nome de publicador únicos */}
+                      {getUniquePublicad().map((nome_publica) => (
+                        <MenuItem key={nome_publica} onClick={() => handleFilterSelect(nome_publica)}>
+                          {nome_publica}
+                        </MenuItem>
+                      ))}
+                    </>
+                  )}
+                  {filterColumn === 'cod_congreg' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      {/* Gerar dinamicamente as congregações únicos */}
+                      {getUniqueCongreg().map((cod_congreg) => (
+                        <MenuItem key={cod_congreg} onClick={() => handleFilterSelect(cod_congreg)}>
+                          {cod_congreg}
+                        </MenuItem>
+                      ))}
+                    </>
+                  )}
+                </Menu>
               </TableHead>
               <TableBody>
-                {currentData.map((row) => {
+                {paginatedData.map((row) => {
                   const isEditing = row.id === editRowId;
                   const status = getStatus(row.end_confirm);
                   return (
@@ -280,7 +427,6 @@ const IndicaForm = () => {
                           </div>
                         )}
                       </TableCell>
-
                       <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="nome_publica" value={editedRowData.nome_publica || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.nome_publica}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="num_contato" value={editedRowData.num_contato || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.num_contato}</TableCell>
@@ -303,18 +449,34 @@ const IndicaForm = () => {
           </TableContainer>
 
           <TablePagination
-            rowsPerPageOptions={[]}
+            rowsPerPageOptions={[5, 10, 25]} // Caso queira outras opções
             component="div"
-            count={data.length}
+            count={filteredData.length} // Número total de linhas após filtragem
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage} // Função para mudar o número de linhas por página
+            labelRowsPerPage="Linhas por página:" // Texto personalizado
             sx={{
-              '& .MuiTablePagination-toolbar': { fontSize: '0.65rem' },
-              '& .MuiTablePagination-selectRoot': { fontSize: '0.65rem' },
-              '& .MuiTablePagination-displayedRows': { fontSize: '0.65rem' },
+              '& .MuiTablePagination-toolbar': { fontSize: '0.80rem' },
+              '& .MuiTablePagination-selectRoot': { fontSize: '0.80rem' },
+              '& .MuiTablePagination-displayedRows': { fontSize: '0.80rem' },
             }}
           />
+          <p>
+            {/* Botão de exportação */}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleExport}
+              style={{
+                ...buttonStyle,
+                fontSize: '0.60rem',
+              }}
+            >
+              <FaFileExport style={{ marginRight: '8px' }} /> Exportar Planilha
+            </Button>
+          </p><br></br>
 
           {/* Botão para abrir o formulário */}
           <button
@@ -341,8 +503,8 @@ const IndicaForm = () => {
             <FaUserPlus /> Nova Indicação
           </button>
         </Box>
-
       </Box>
+
       {/* Formulário de nova indicação */}
       <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
         <form onSubmit={handleNewIndicationSubmit}>
@@ -392,9 +554,9 @@ const IndicaForm = () => {
           </Box>
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
-      </Box>
+      </Box >
 
-    </Box>
+    </Box >
   );
 };
 

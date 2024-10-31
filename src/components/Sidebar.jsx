@@ -5,9 +5,9 @@ import { FaPeopleGroup, FaPersonCirclePlus, FaFileInvoice } from 'react-icons/fa
 import { AnimatePresence, motion } from 'framer-motion';
 
 const routes = [
-  { path: "/home/dash-rastrea", name: "Rastreamento", icon: <FaFileInvoice /> },
-  { path: "/home/dash-indicac", name: "Indicações", icon: <FaPersonCirclePlus /> },
-  { path: "/home/dash-registnc", name: "Registros NC", icon: <FaHouseUser /> },
+  { path: "/home/form-rastrea", name: "Rastreamento", icon: <FaFileInvoice /> },
+  { path: "/home/form-indicac", name: "Indicações", icon: <FaPersonCirclePlus /> },
+  { path: "/home/form-registnc", name: "Registros NC", icon: <FaHouseUser /> },
   { path: "/home/dash-congreg", name: "Congregações", icon: <FaPeopleGroup /> },
   { path: "/home/form-enderec", name: "Territórios", icon: <FaMapMarkedAlt /> },
   { path: "/home/form-pubc", name: "Publicadores", icon: <FaUserTie /> },

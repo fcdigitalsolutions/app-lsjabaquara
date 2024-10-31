@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
-import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, Checkbox } from '@mui/material';
-import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
+import { Box, Menu, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, Checkbox } from '@mui/material';
+import { FaFileExport, FaUserPlus, FaShareSquare, FaChevronDown } from 'react-icons/fa';
+import * as XLSX from 'xlsx'; // Importe a biblioteca XLSX
 
 const RegistroNC = () => {
   const [data, setData] = useState([]);
-  const navigate = useNavigate(); // Use o useNavigate
   const [page, setPage] = useState(0);
-  const [rowsPerPage] = useState(5); // Limite de linhas por página
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Limite de linhas por página
+  const Data_Atual = new Date();
+
   const [editRowId, setEditRowId] = useState(null); // ID da linha sendo editada
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
   const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
@@ -16,18 +17,77 @@ const RegistroNC = () => {
   const [selected, setSelected] = useState([]);
   const [newIndication, setNewIndication] = useState({
     cod_regiao: '',
-    enderec: '',
+    //  enderec: '',
     obs: '',
   });
 
 
-  const formatDateGrid = (date) => {
-    const parsedDate = new Date(date);
-    const year = String(parsedDate.getFullYear()); // Apenas os últimos 2 dígitos do ano
-    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-    const day = String(parsedDate.getDate()).padStart(2, '0');
+  // Função para enviar a nova indicação
+  const handleNewIndicationSubmit = async (e) => {
+    e.preventDefault();
+
+    // Verifica se todos os campos obrigatórios estão preenchidos
+    const { cod_regiao, enderec, obs } = newIndication;
+    if (!cod_regiao || !enderec || !obs) {
+      setMessage('Por favor, preencha todos os campos obrigatórios.');
+      return; // Impede o envio para a API
+    }
+
+    try {
+      const defaultNumVisitas = 1;
+      const defaultDtUltVisit = formatDateTime(Data_Atual); // Formato 'YYYY-MM-DD'
+      const defaultDtInclu = formatDateTime(Data_Atual);
+
+      // Faz uma requisição POST para a API
+      const response = await api_service.post('/registnc', {
+        data_inclu: defaultDtInclu,
+        nome_publica: '', // Caso necessário, você pode preencher esse campo
+        telefone: '', // Caso necessário
+        cod_congreg: '', // Caso necessário
+        num_visitas: defaultNumVisitas,
+        dt_ult_visit: defaultDtUltVisit,
+        cod_regiao: newIndication.cod_regiao,
+        enderec: newIndication.enderec, // Envia o campo enderec corretamente
+        obs: newIndication.obs, // Envia o campo obs corretamente
+      });
+
+      setData([...data, response.data]); // Adiciona a nova indicação aos dados
+      setNewIndication({ cod_regiao: '', enderec: '', obs: '' }); // Limpa o formulário
+
+      setMessage('Registro incluído com sucesso!');
+    } catch (error) {
+      console.error("Erro ao enviar as informações: ", error);
+      setMessage('Erro ao incluir o registro.');
+    }
+  };
+
+
+  const formatDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
+    const day = String(date.getDate()).padStart(2, '0');
     return `${day}/${month}/${year}`;
   };
+
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniqueEnderec = () => {
+    const enderecosUnicos = [...new Set(data.map(row => row.enderec))];
+    return enderecosUnicos;
+  };
+
+    // Função para obter a lista única de logradouros (enderec)
+    const getUniqueRegiao = () => {
+      const RegiaoUnicos = [...new Set(data.map(row => row.cod_regiao))];
+      return RegiaoUnicos;
+    };
+
+    
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [filterColumn, setFilterColumn] = useState(''); // Guarda a coluna sendo filtrada
+  const [filters, setFilters] = useState({
+    num_visitas: '',
+    enderec: ''
+  });
 
   useEffect(() => {
     api_service.get('/registncall')
@@ -46,6 +106,7 @@ const RegistroNC = () => {
         : [...prevSelected, id] // Marca se não estiver
     );
   };
+
   const isSelected = (id) => selected.includes(id);
 
   // Função para controlar a seleção de todas as linhas
@@ -58,14 +119,28 @@ const RegistroNC = () => {
     }
   };
 
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleClick = (event, column) => {
+    setAnchorEl(event.currentTarget);
+    setFilterColumn(column);
+  };
+
+  const handleFilterSelect = (value) => {
+    setFilters({
+      ...filters,
+      [filterColumn]: value
+    });
+    handleClose(); // Fecha o menu
+  };
+
   // Verifica se todas as linhas estão selecionadas
   const isAllSelected = selected.length === data.length;
-
-
-  // Função para redirecionar ao dashboard
-  const handleRetornaDash = () => {
-    navigate('/home/dash-registnc'); // Navegue para a rota definida
-  };
+  const totalPendentes = data.filter(item => item.num_visitas <= 1).length;
+  const totalConcluidos = data.filter(item => item.num_visitas >= 2).length;
+  const totalRegioes = new Set(data.map(item => item.cod_regiao)).size;
 
   // Função para iniciar a edição de uma linha
   const handleEdit = (row) => {
@@ -79,7 +154,6 @@ const RegistroNC = () => {
     setEditedRowData({ ...editedRowData, [name]: value }); // Atualiza os dados editados
   };
 
-  
   // Função para salvar as alterações
   const handleSave = async () => {
     try {
@@ -112,27 +186,6 @@ const RegistroNC = () => {
     setShowNewIndicationForm(!showNewIndicationForm); // Alterna entre mostrar ou esconder o formulário
   };
 
-  // Função para enviar a nova indicação
-  const handleNewIndicationSubmit = async (e) => {
-    e.preventDefault();
-    const { cod_regiao, enderec, obs } = newIndication;
-
-    if (!cod_regiao || !enderec || !obs) {
-      setMessage('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    try {
-      const response = await api_service.post('/registnc', newIndication);
-      setData([...data, response.data]); // Adiciona a nova indicação aos dados
-      setNewIndication({ cod_regiao: '', enderec: '', obs: '' }); // Limpa o formulário
-      setMessage('Registro incluído com sucesso!');
-    } catch (error) {
-      console.error("Erro ao enviar as informações: ", error);
-      setMessage('Erro ao incluir o registro.');
-    }
-  };
-
   const buttonStyle = {
     padding: '4px 12px',
     fontSize: '0.80rem',
@@ -148,9 +201,9 @@ const RegistroNC = () => {
   };
 
   const getStatus = (num_visitas) => {
-    if (num_visitas <= 1) {
+    if (num_visitas === 1) {
       return 'Pendente';
-    } else if (num_visitas >= 2) {
+    } else if (num_visitas === 2) {
       return 'Concluído';
     }
     return 'Desconhecido'; // Fallback para casos inesperados
@@ -169,36 +222,103 @@ const RegistroNC = () => {
 
   const startIndex = page * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const currentData = data.slice(startIndex, endIndex);
+
+  // Dados filtrados com base nos filtros das colunas
+  const filteredData = data.filter((row) => {
+    return (
+      (!filters.cod_regiao || row.cod_regiao === filters.cod_regiao)  &&
+      (!filters.num_visitas || row.num_visitas === filters.num_visitas) &&
+      (!filters.enderec || row.enderec === filters.enderec)
+    );
+  });
+
+  // Aplicar a paginação aos dados filtrados
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10)); // Atualiza o número de linhas por página
+    setPage(0); // Reseta a página para a primeira sempre que mudar o número de linhas por página
+  };
+
+  // Função para exportar os dados filtrados para planilha
+  const handleExport = () => {
+    const exportData = filteredData.map(row => ({
+      'Região/Bairro': row.cod_regiao,
+      'Status': row.num_visitas === 2 ? 'Concluído' : 'Pendente',
+      'Logradouro': row.enderec,
+      'Números': row.obs,
+      'Primeira Visita': row.data_inclu,
+      'Última Visita': row.dt_ult_visit
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData); // Converte os dados para uma planilha
+    const workbook = XLSX.utils.book_new(); // Cria um novo workbook (arquivo Excel)
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registros NC"); // Adiciona a planilha
+
+    // Exporta o arquivo Excel
+    XLSX.writeFile(workbook, 'Registros_NC.xlsx');
+  };
 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
       <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Registro NC</h2>
 
-      {/* Botão Dashboard */}
       <Box sx={{ marginBottom: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
         <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', borderRadius: '16px' }}>
-          <button
-            type="button"
-            style={{
-              ...buttonStyle,
-              backgroundColor: '#202038',
-              color: '#f1f1f1',
-              transition: 'background-color 0.2s ease',
-              align: 'right',
-              borderRadius: '4px',
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1, // Reduzido o espaçamento
+              justifyContent: 'space-between',
+              '@media (max-width: 600px)': {
+                flexDirection: 'column',
+                alignItems: 'left'
+              }
             }}
-            onClick={handleRetornaDash}
           >
-            <FaChartPie />  DashBoard Registro NC
-          </button>
+            <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+              <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Total de Registros</Typography> {/* Fonte ajustada */}
+                  <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{data.length}</Typography>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+              <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Regiões Distintas</Typography> {/* Fonte ajustada */}
+                  <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalRegioes}</Typography>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+              <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Registros Finalizados</Typography> {/* Fonte ajustada */}
+                  <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalConcluidos}</Typography>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+              <Card sx={{ width: '100%', backgroundColor: '#202038', color: 'white' }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Registros Pendentes</Typography> {/* Fonte ajustada */}
+                  <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalPendentes}</Typography>
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
 
           {/* Tabela de registros */}
           <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
             <Table>
               <TableHead>
                 <TableRow>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }} padding="checkbox">
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }} padding="checkbox">
                     <Checkbox
                       indeterminate={selected.length > 0 && selected.length < data.length}
                       checked={isAllSelected}
@@ -206,22 +326,67 @@ const RegistroNC = () => {
                       inputProps={{ 'aria-label': 'select all items' }}
                     />
                   </TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Região/Bairro</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Logradouro</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Região/Bairro
+                    <FaChevronDown onClick={(event) => handleClick(event, 'cod_regiao')} />
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status
+                    <FaChevronDown onClick={(event) => handleClick(event, 'num_visitas')} />
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Logradouro
+                    <FaChevronDown onClick={(event) => handleClick(event, 'enderec')} />
+                  </TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Números</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Primeira Visita</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Última Visita</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
                 </TableRow>
+                {/* Menu suspenso para filtros */}
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                >
+
+                  {filterColumn === 'cod_regiao' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      {/* Gerar dinamicamente os logradouros únicos */}
+                      {getUniqueRegiao().map((cod_regiao) => (
+                        <MenuItem key={cod_regiao} onClick={() => handleFilterSelect(cod_regiao)}>
+                          {cod_regiao}
+                        </MenuItem>
+                      ))}
+                    </>
+                  )}
+
+                  {filterColumn === 'num_visitas' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect(2)}>Concluído</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect(1)}>Pendente</MenuItem>
+                    </>
+                  )}
+
+                  {filterColumn === 'enderec' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      {/* Gerar dinamicamente os logradouros únicos */}
+                      {getUniqueEnderec().map((enderec) => (
+                        <MenuItem key={enderec} onClick={() => handleFilterSelect(enderec)}>
+                          {enderec}
+                        </MenuItem>
+                      ))}
+                    </>
+                  )}
+                </Menu>
               </TableHead>
               <TableBody>
-                {currentData.map((row) => {
+                {paginatedData.map((row) => {
                   const isEditing = row.id === editRowId;
                   const status = getStatus(row.num_visitas);
                   return (
                     <TableRow key={row.id}>
-                       <TableCell TableCell align="center">
+                      <TableCell TableCell align="center">
                         <Checkbox
                           checked={isSelected(row.id)}
                           onChange={() => handleSelect(row.id)}
@@ -233,7 +398,7 @@ const RegistroNC = () => {
                           <FormControl fullWidth>
                             <Select
                               name="num_visitas"
-                              value={editedRowData.num_visitas || '1'}
+                              value={editedRowData.num_visitas || ' '}
                               onChange={handleInputChange}
                             >
                               <MenuItem value="1">Pendente</MenuItem>
@@ -257,8 +422,8 @@ const RegistroNC = () => {
                       </TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="obs" value={editedRowData.obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.obs}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : formatDateGrid(row.data_inclu)}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="dt_ult_visit" value={editedRowData.dt_ult_visit || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : formatDateGrid(row.dt_ult_visit)}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="dt_ult_visit" value={editedRowData.dt_ult_visit || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dt_ult_visit}</TableCell>
                       <TableCell align="center">
                         {isEditing ? (
                           <Button variant="contained" color="primary" size="small" onClick={handleSave} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Salvar</Button>
@@ -277,13 +442,34 @@ const RegistroNC = () => {
           </TableContainer>
 
           <TablePagination
-            rowsPerPageOptions={[]}
+            rowsPerPageOptions={[5, 10, 25]} // Caso queira outras opções
             component="div"
-            count={data.length}
+            count={filteredData.length} // Número total de linhas após filtragem
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage} // Função para mudar o número de linhas por página
+            labelRowsPerPage="Linhas por página:" // Texto personalizado
+            sx={{
+              '& .MuiTablePagination-toolbar': { fontSize: '0.80rem' },
+              '& .MuiTablePagination-selectRoot': { fontSize: '0.80rem' },
+              '& .MuiTablePagination-displayedRows': { fontSize: '0.80rem' },
+            }}
           />
+          <p>
+            {/* Botão de exportação */}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleExport}
+              style={{
+                ...buttonStyle,
+                fontSize: '0.60rem',
+              }}
+            >
+              <FaFileExport style={{ marginRight: '8px' }} /> Exportar Planilha
+            </Button>
+          </p><br></br>
 
           {/* Botão para abrir o formulário */}
           <button
@@ -305,33 +491,46 @@ const RegistroNC = () => {
         <form onSubmit={handleNewIndicationSubmit}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between' }}>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Região/Bairro *" variant="outlined" size="small" fullWidth value={newIndication.cod_regiao} onChange={(e) => setNewIndication({ ...newIndication, cod_regiao: e.target.value })} />
+              <TextField
+                label="Região/Bairro *"
+                variant="outlined"
+                size="small"
+                fullWidth
+                value={newIndication.cod_regiao}
+                onChange={(e) => setNewIndication({ ...newIndication, cod_regiao: e.target.value })} // Atualiza o campo cod_regiao
+              />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Informe a Rua/Av/Trav/ *" variant="outlined" size="small" fullWidth value={newIndication.enderec} onChange={(e) => setNewIndication({ ...newIndication, enderec: e.target.value })} />
+              <TextField
+                label="Informe a Rua/Av/Trav/ *"
+                variant="outlined"
+                size="small"
+                fullWidth
+                value={newIndication.enderec}
+                onChange={(e) => setNewIndication({ ...newIndication, enderec: e.target.value })} // Atualiza o campo enderec
+              />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Numeros exemp: 1234 / 34553 / 34344 *" variant="outlined" size="small" fullWidth value={newIndication.obs} onChange={(e) => setNewIndication({ ...newIndication, obs: e.target.value })} />
+              <TextField
+                label="Numeros exemp: 1234 / 34553 / 34344 *"
+                variant="outlined"
+                size="small"
+                fullWidth
+                value={newIndication.obs}
+                onChange={(e) => setNewIndication({ ...newIndication, obs: e.target.value })} // Atualiza o campo obs
+              />
             </Box>
           </Box>
           <Box sx={{ marginTop: '20px' }}>
             <button
-              type="submmit"
+              type="submit"
               style={{
-                ...buttonStyle,
+                padding: '4px 12px',
+                fontSize: '0.80rem',
                 backgroundColor: '#202038',
                 color: '#f1f1f1',
-                transition: 'background-color 0.2s ease',
-                align: 'right',
                 borderRadius: '4px',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
-                e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#202038'; // Cor original
-                e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
+                transition: 'background-color 0.2s ease',
               }}
             >
               <FaShareSquare /> Enviar Registro NC
@@ -345,3 +544,4 @@ const RegistroNC = () => {
 };
 
 export default RegistroNC;
+
