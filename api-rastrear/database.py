@@ -27,30 +27,33 @@ def init_db():
 	            id int auto_increment primary key,
                 user_login	       varchar(255) NULL, 
                 user_name     	   varchar(255) NULL,
-                user_pswd          varchar(255) NULL
+                user_pswd          varchar(255) NULL, 
+                user_gestor        varchar(255) NULL,
+                user_id_publica    varchar(255) NULL,
+                user_receb_msg     varchar(255) NULL
             )
         ''')        
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS regioes (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                nome VARCHAR(255) NOT NULL,
-                descricao TEXT
+                nome varchar(255) NOT NULL,
+                descricao text
             )
           ''')
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS cad_congregacoes (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                nome           VARCHAR(255) NOT NULL,
-                regiao 		   VARCHAR(255) NOT NULL,
-                endereco 	   VARCHAR(255) NOT NULL,
-                cca_nome 	   VARCHAR(255) NULL,
-                cca_contato    VARCHAR(255) NULL,
-                ss_nome 	   VARCHAR(255) NULL,
-                ss_contato 	   VARCHAR(255) NULL,
-                srv_terr_nome  VARCHAR(255) NULL,
-                srv_terr_contat VARCHAR(255) NULL,
-                obs			  TEXT
+                nome           varchar(255) NOT NULL,
+                regiao 		   varchar(255) NOT NULL,
+                endereco 	   varchar(255) NOT NULL,
+                cca_nome 	   varchar(255) NULL,
+                cca_contato    varchar(255) NULL,
+                ss_nome 	   varchar(255) NULL,
+                ss_contato 	   varchar(255) NULL,
+                srv_terr_nome  varchar(255) NULL,
+                srv_terr_contat varchar(255) NULL,
+                obs			  text
             )
         ''')
 
@@ -70,15 +73,18 @@ def init_db():
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS cad_indicacoes (
 	            id INT AUTO_INCREMENT PRIMARY KEY,
-	            data_inclu	   datetime NULL,
-	            nome_publica  VARCHAR(255) NULL,	
-                num_contato   VARCHAR(255) NULL,
-                cod_congreg	  VARCHAR(255) NULL, 
-                cod_regiao	  VARCHAR(255) NULL,  
-	            enderec		  VARCHAR(255) NULL,
-                end_confirm   VARCHAR(255) NULL,
-	            origem	      VARCHAR(255) NULL,
-	            obs			  TEXT
+	            data_inclu	    datetime NULL,
+	            nome_publica    varchar(255) NULL,	
+                num_contato     varchar(255) NULL,
+                cod_congreg	    varchar(255) NULL, 
+                cod_regiao	    varchar(255) NULL,  
+	            enderec		    varchar(255) NULL,
+                end_confirm     varchar(255) NULL,
+	            origem	        varchar(255) NULL,
+                indic_url_map   varchar(255) NULL,
+                indic_tp_local  varchar(255) NULL,
+                indic_desig     varchar(255) NULL,
+                obs			    text
             )
         ''')        
 
@@ -86,14 +92,14 @@ def init_db():
             CREATE TABLE IF NOT EXISTS cad_registro_nc (
 	            id INT AUTO_INCREMENT PRIMARY KEY,
 	            data_inclu	  datetime NULL,
-	            nome_publica  VARCHAR(255) NULL,	
-                num_contato   VARCHAR(255) NULL,
-                cod_congreg	  VARCHAR(255) NULL, 
-                cod_regiao	  VARCHAR(255) NULL, 
-	            enderec		  VARCHAR(255) NULL,
+	            nome_publica  varchar(255) NULL,	
+                num_contato   varchar(255) NULL,
+                cod_congreg	  varchar(255) NULL, 
+                cod_regiao	  varchar(255) NULL, 
+	            enderec		  varchar(255) NULL,
                 num_visitas   int NULL,
                 dt_ult_visit  datetime NULL,
-	            obs			  TEXT
+	            obs			  text
             )
         ''')   
     
@@ -101,19 +107,20 @@ def init_db():
             CREATE TABLE IF NOT EXISTS cad_publicador (
 	            id INT AUTO_INCREMENT PRIMARY KEY,
                 data_inclu	  datetime NULL,
-                pub_nome      VARCHAR(255) NULL,
-                pub_contat    VARCHAR(255) NULL,
-                pub_login     VARCHAR(255) NULL,
-                pub_email     VARCHAR(255) NULL,
-                pub_endereco  VARCHAR(255) NULL,
-                pub_regiao    VARCHAR(255) NULL,
-                pub_uf        VARCHAR(255) NULL,
+                pub_nome      varchar(255) NULL,
+                pub_contat    varchar(255) NULL,
+                pub_login     varchar(255) NULL,
+                pub_email     varchar(255) NULL,
+                pub_endereco  varchar(255) NULL,
+                pub_regiao    varchar(255) NULL,
+                pub_uf        varchar(255) NULL,
                 pub_dtbatism  datetime NULL,
                 pub_dtnasc	  datetime NULL,
-                desig_servic  VARCHAR(255) NULL, 
-                desig_campo   VARCHAR(255) NULL,
-                pub_status    VARCHAR(255) NULL,
-	            resp_obs	  TEXT
+                desig_servic  varchar(255) NULL, 
+                desig_campo   varchar(255) NULL,
+                pub_status    varchar(255) NULL,
+                pub_id_publica varchar(255) NULL,
+	            resp_obs	  text
             )
         ''')            
 
@@ -122,15 +129,15 @@ def init_db():
 	            id INT AUTO_INCREMENT PRIMARY KEY,
 	            data_inclu	  datetime NULL,
                 dsg_data	  datetime NULL,
-	            pub_nome      VARCHAR(255) NULL,	
-                dsg_tipo      VARCHAR(255) NULL,
-                dsg_detalhes  VARCHAR(255) NULL, 
-                dsg_conselh   VARCHAR(255) NULL, 
-                dsg_mapa_cod  VARCHAR(255) NULL, 
-                dsg_mapa_end  VARCHAR(255) NULL,
-                dsg_status    VARCHAR(255) NULL,                 
-	            dsg_obs		  TEXT,
-                pub_obs		  TEXT
+	            pub_nome      varchar(255) NULL,	
+                dsg_tipo      varchar(255) NULL,
+                dsg_detalhes  varchar(255) NULL, 
+                dsg_conselh   varchar(255) NULL, 
+                dsg_mapa_cod  varchar(255) NULL, 
+                dsg_mapa_end  varchar(255) NULL,
+                dsg_status    varchar(255) NULL,                 
+	            dsg_obs		  text,
+                pub_obs		  text
             )
         ''')        
 
@@ -139,24 +146,28 @@ def init_db():
 	            id INT AUTO_INCREMENT PRIMARY KEY,
 	            data_inclu	  datetime NULL,
                 dt_ultvisit   datetime NULL,
-                pub_ultvisi   VARCHAR(255) NULL,
+                pub_ultvisi   varchar(255) NULL,
                 dt_visit02    datetime NULL,
-                pub_tvis02    VARCHAR(255) NULL,
+                pub_tvis02    varchar(255) NULL,
                 dt_visit03    datetime NULL,
-                pub_tvis03    VARCHAR(255) NULL,
+                pub_tvis03    varchar(255) NULL,
                 dt_visit04    datetime NULL,
-                pub_tvis04    VARCHAR(255) NULL,
-	            terr_nome     VARCHAR(255) NULL,	
-                terr_morador  VARCHAR(255) NULL, 
-                terr_enderec  VARCHAR(255) NULL, 
-                terr_regiao   VARCHAR(255) NULL, 
-                terr_link     VARCHAR(255) NULL,  
-                terr_coord    VARCHAR(255) NULL,  
-                terr_cor      VARCHAR(255) NULL,      
-                terr_status   VARCHAR(255) NULL,
+                pub_tvis04    varchar(255) NULL,
+	            terr_nome     varchar(255) NULL,	
+                terr_morador  varchar(255) NULL, 
+                terr_enderec  varchar(255) NULL, 
+                terr_regiao   varchar(255) NULL, 
+                terr_link     varchar(255) NULL,  
+                terr_coord    varchar(255) NULL,  
+                terr_cor      varchar(255) NULL,      
+                terr_status   varchar(255) NULL,
                 num_pessoas   int NULL,
-                melhor_dia_hora   VARCHAR(255) NULL,
-                terr_obs      TEXT                
+                melhor_dia_hora   varchar(255) NULL,
+                terr_tp_local varchar(255) NULL,
+                terr_classif  varchar(255) NULL,
+                terr_desig    varchar(255) NULL,
+                melhor_hora   varchar(255) NULL,      
+                terr_obs      text             
             )
         ''')        
 

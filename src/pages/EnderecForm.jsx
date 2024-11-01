@@ -9,7 +9,7 @@ const EnderecForm = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5); // Limite de linhas por página
   const [editRowId, setEditRowId] = useState(null); // ID da linha sendo editada
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
-  const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
+  const [showNewTerritorForm, setShowNewTerritorForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [selected, setSelected] = useState([]);
 
@@ -70,6 +70,9 @@ const EnderecForm = () => {
   const filteredData = data.filter((row) => {
     return (
       (!filters.terr_status || row.terr_status === filters.terr_status) &&
+      (!filters.terr_desig || row.terr_desig === filters.terr_desig) &&
+      (!filters.terr_tp_local || row.terr_tp_local === filters.terr_tp_local) &&
+      (!filters.terr_classif || row.terr_classif === filters.terr_classif) &&
       (!filters.terr_cor || row.terr_cor === filters.terr_cor)
     );
   });
@@ -80,7 +83,7 @@ const EnderecForm = () => {
   };
 
   const Data_Atual = new Date();
-  const [newIndication, setNewIndication] = useState({
+  const [newTerritor, setNewTerritor] = useState({
     data_inclu: formatDateTime(Data_Atual),
     dt_ultvisit: formatDateTime(Data_Atual),
     dt_visit02: formatDateTime(Data_Atual),
@@ -137,6 +140,11 @@ const EnderecForm = () => {
     setEditedRowData({ ...row }); // Copia os dados atuais da linha para o estado editável
   };
 
+  // Função para iniciar a edição de uma linha
+  const handleAbreMapa = (row) => {
+    window.open(row, '_blank'); // Abre o link em uma nova aba
+  };
+
   // Função para lidar com alterações nos campos de entrada
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -172,15 +180,15 @@ const EnderecForm = () => {
 
   // Função para mostrar/esconder o formulário de novo mapa
   const handleNovoBotao = () => {
-    setShowNewIndicationForm(!showNewIndicationForm); // Alterna entre mostrar ou esconder o formulário
+    setShowNewTerritorForm(!showNewTerritorForm); // Alterna entre mostrar ou esconder o formulário
   };
 
 
   // Função para enviar ao novo mapa
-  const handleNewIndicationSubmit = async (e) => {
+  const handleNewTerritorSubmit = async (e) => {
     e.preventDefault();
 
-    const { terr_nome, terr_enderec, terr_link } = newIndication;
+    const { terr_nome, terr_enderec, terr_link } = newTerritor;
 
     if (!terr_nome || !terr_enderec || !terr_link) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
@@ -195,9 +203,9 @@ const EnderecForm = () => {
       const defaultDvisit03 = formatDateTime(Data_Atual);
       const defaultDvisit04 = formatDateTime(Data_Atual);
       //
-      const response = await api_service.post('/territ', newIndication);
+      const response = await api_service.post('/territ', newTerritor);
       setData([...data, response.data]); // Adiciona novo mapa aos dados
-      setNewIndication({
+      setNewTerritor({
         data_inclu: defaultDtInclu,
         dt_ultvisit: defaultUltvisit,
         dt_visit02: defaultDvisit02,
@@ -342,6 +350,94 @@ const EnderecForm = () => {
     }
   };
 
+
+  // Função para determinar o status com base na confirmação do endereço
+  const getStatusTpLocal = (terr_tp_local) => {
+    switch (terr_tp_local) {
+      case '1':
+        return 'Residência';
+      case '2':
+        return 'Comércio';
+        case '3':
+          return 'Condomínio';
+      default:
+        return 'Outros';
+    }
+  };
+
+
+  // Função para determinar a cor de fundo da célula com base no status
+  const getStatusColorTpLocal = (status) => {
+    switch (status) {
+      case 'Residência':
+        return '#007FFF';
+      case 'Comércio':
+        return '#8B4513';
+        case 'Condomínio':
+          return '#42426F';
+      default:
+        return 'transparent';
+    }
+  };
+
+
+  // Função para determinar o status com base na confirmação do endereço
+  const getStatusDesig = (terr_desig) => {
+    switch (terr_desig) {
+      case '1':
+        return 'Não';
+      case '2':
+        return 'Sim';
+      default:
+        return 'Outros';
+    }
+  };
+
+  // Função para determinar a cor de fundo da célula com base no status
+  const getStatusColorDesig = (status) => {
+    switch (status) {
+      case 'Não':
+        return '#EBC79E';
+      case 'Sim':
+        return '#5C3317';
+      default:
+        return '#581845';
+    }
+  };
+
+  // Função para determinar o status com base na confirmação do endereço
+  const getStatusClassif = (terr_classif) => {
+    switch (terr_classif) {
+      case '0':
+        return 'Surdo';
+      case '1':
+        return 'D/A';
+      case '2':
+        return 'Tradutor';
+      case '3':
+        return 'Ouvinte';
+      default:
+        return 'Outros';
+    }
+  };
+
+  // Função para determinar a cor de fundo da célula com base no status
+  const getStatusColorClassif = (status) => {
+    switch (status) {
+      case 'Surdo':
+        return '#99CC32';
+      case 'D/A':
+        return '#5C3317'; 
+      case 'Tradutor':
+        return '#330033';
+      case 'Ouvinte':
+        return '#545454';
+      default:
+        return '#581845';
+    }
+  };
+
+  // -- // 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038', minWidth: '160px', maxWidth: '1420px', height: '500px' }}>
       <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Manutenção dos Territórios Ativos</h2>
@@ -458,10 +554,18 @@ const EnderecForm = () => {
                   <TableCell align="center" sx={TableCellTHStyle}>Num. Pessoas</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Endereço</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Bairro</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Mapa Designado?
+                    <FaChevronDown onClick={(event) => handleClick(event, 'terr_desig')} />
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tipo de Local
+                    <FaChevronDown onClick={(event) => handleClick(event, 'terr_tp_local')} />
+                  </TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Link Maps</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Coordenadas</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Melhor Dia/H</TableCell>
-
+                  <TableCell align="center" sx={TableCellTHStyle}>Classif.
+                    <FaChevronDown onClick={(event) => handleClick(event, 'terr_classif')} />
+                  </TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Cor do Mapa
                     <FaChevronDown onClick={(event) => handleClick(event, 'terr_cor')} />
                   </TableCell>
@@ -492,7 +596,15 @@ const EnderecForm = () => {
                       <MenuItem onClick={() => handleFilterSelect('6')}>Não Quer</MenuItem>
                     </>
                   )}
-
+                  {filterColumn === 'terr_classif' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('0')}>Surdo</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>D/A</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Tradutor</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('3')}>Ouvinte</MenuItem>
+                    </>
+                  )}
                   {filterColumn === 'terr_cor' && (
                     <>
                       <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
@@ -501,6 +613,23 @@ const EnderecForm = () => {
                       <MenuItem onClick={() => handleFilterSelect('2')}>Verde</MenuItem>
                     </>
                   )}
+                  {filterColumn === 'terr_desig' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Não</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Sim</MenuItem>
+                    </>
+                  )}
+
+                  {filterColumn === 'terr_tp_local' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Residência</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Comércio</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('3')}>Condomínio</MenuItem>
+                    </>
+                  )}
+
                 </Menu>
               </TableHead>
               <TableBody>
@@ -511,6 +640,9 @@ const EnderecForm = () => {
 
                   const statusmpcor = getStatusMapCor(row.terr_cor);
                   const statusSit = getStatusSit(row.terr_status);
+                  const statusDsg = getStatusDesig(row.terr_desig);
+                  const statusTploc = getStatusTpLocal(row.terr_tp_local);
+                  const statusClassif = getStatusClassif(row.terr_classif);
 
                   return (
                     <TableRow key={row.id}>
@@ -525,9 +657,102 @@ const EnderecForm = () => {
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="num_pessoas" value={editedRowData.num_pessoas || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.num_pessoas}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_enderec" value={editedRowData.terr_enderec || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_enderec}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_regiao" value={editedRowData.terr_regiao || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_regiao}</TableCell>
-                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_link" value={editedRowData.terr_link || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_link}</TableCell>
+
+                      {/* Campo editável de Terr. Designado */}
+                      <TableCell align="center">
+                        {isEditing ? (
+                          <FormControl fullWidth>
+                            <Select
+                              name="terr_desig"
+                              value={editedRowData.terr_desig || '1'}
+                              onChange={handleInputChange}
+                            >
+                              <MenuItem value="1">Não</MenuItem>
+                              <MenuItem value="2">Sim</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <div
+                            style={{
+                              backgroundColor: getStatusColorDesig(statusDsg),
+                              color: 'white',
+                              padding: '2px',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              fontSize: '0.65rem',
+                            }}
+                          >
+                            {statusDsg}
+                          </div>
+                        )}
+                      </TableCell>
+                      {/* Campo editável Tipo do território */}
+                      <TableCell align="center">
+                        {isEditing ? (
+                          <FormControl fullWidth>
+                            <Select
+                              name="terr_tp_local"
+                              value={editedRowData.terr_tp_local || '1'}
+                              onChange={handleInputChange}
+                            >
+                              <MenuItem value="1">Residência</MenuItem>
+                              <MenuItem value="2">Comércio</MenuItem>
+                              <MenuItem value="3">Condomínio</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <div
+                            style={{
+                              backgroundColor: getStatusColorTpLocal(statusTploc),
+                              color: 'white',
+                              padding: '2px',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              fontSize: '0.65rem',
+                            }}
+                          >
+                            {statusTploc}
+                          </div>
+                        )}
+                      </TableCell>
+
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_link" value={editedRowData.terr_link || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_link}
+                        <Button variant="contained" color="primary" size="small" onClick={() => handleAbreMapa(row.terr_link)} sx={{ fontSize: '0.55rem', padding: '2px 5px' }}>Abrir Mapa</Button>
+                      </TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_coord" value={editedRowData.terr_coord || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_coord}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="melhor_dia_hora" value={editedRowData.melhor_dia_hora || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.melhor_dia_hora}</TableCell>
+
+                      {/* Campo editável de status cor do mapa */}
+                      <TableCell align="center" sx={TableCellBDStyle}>
+                        {isEditing ? (
+                          <FormControl fullWidth>
+                            <Select
+                              name="terr_classif"
+                              value={editedRowData.terr_classif || ' '}
+                              onChange={handleInputChange}
+                            >
+                              <MenuItem value="0">Surdo</MenuItem>
+                              <MenuItem value="1">D/A</MenuItem>
+                              <MenuItem value="2">Tradutor</MenuItem>
+                              <MenuItem value="3">Ouvinte</MenuItem>
+                              <MenuItem value="4">Outros</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <div
+                            style={{
+                              backgroundColor: getStatusColorClassif(statusClassif),
+                              color: 'white',
+                              padding: '2px',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              fontSize: '0.65rem',
+                            }}
+                          >
+                            {statusClassif}
+                          </div>
+                        )}
+                      </TableCell>
 
                       {/* Campo editável de status cor do mapa */}
                       <TableCell align="center" sx={TableCellBDStyle}>
@@ -636,17 +861,17 @@ const EnderecForm = () => {
             type="button"
             style={{
               ...buttonStyle,
-              backgroundColor: showNewIndicationForm ? '#67e7eb' : '#202038',
-              color: showNewIndicationForm ? '#202038' : '#f1f1f1',
+              backgroundColor: showNewTerritorForm ? '#67e7eb' : '#202038',
+              color: showNewTerritorForm ? '#202038' : '#f1f1f1',
             }}
             onMouseEnter={(e) => {
-              if (!showNewIndicationForm) {
+              if (!showNewTerritorForm) {
                 e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
                 e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
               }
             }}
             onMouseLeave={(e) => {
-              if (!showNewIndicationForm) {
+              if (!showNewTerritorForm) {
                 e.currentTarget.style.backgroundColor = '#202038'; // Cor original
                 e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
               }
@@ -659,26 +884,26 @@ const EnderecForm = () => {
 
       </Box>
       {/* Formulário de nova indicação */}
-      <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
-        <form onSubmit={handleNewIndicationSubmit}>
+      <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewTerritorForm ? 'block' : 'none' }}>
+        <form onSubmit={handleNewTerritorSubmit}>
           <Box sx={formBoxStyle}>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Código Mapa *" variant="outlined" size="small" fullWidth value={newIndication.terr_nome} onChange={(e) => setNewIndication({ ...newIndication, terr_nome: e.target.value })} sx={inputStyle} />
+              <TextField label="Código Mapa *" variant="outlined" size="small" fullWidth value={newTerritor.terr_nome} onChange={(e) => setNewTerritor({ ...newTerritor, terr_nome: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Morador *" variant="outlined" size="small" fullWidth value={newIndication.terr_morador} onChange={(e) => setNewIndication({ ...newIndication, terr_morador: e.target.value })} sx={inputStyle} />
+              <TextField label="Morador *" variant="outlined" size="small" fullWidth value={newTerritor.terr_morador} onChange={(e) => setNewTerritor({ ...newTerritor, terr_morador: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Endereço do Surdo *" variant="outlined" size="small" fullWidth value={newIndication.terr_enderec} onChange={(e) => setNewIndication({ ...newIndication, terr_enderec: e.target.value })} sx={inputStyle} />
+              <TextField label="Endereço do Surdo *" variant="outlined" size="small" fullWidth value={newTerritor.terr_enderec} onChange={(e) => setNewTerritor({ ...newTerritor, terr_enderec: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Bairro do Surdo*" variant="outlined" size="small" fullWidth value={newIndication.terr_regiao} onChange={(e) => setNewIndication({ ...newIndication, terr_regiao: e.target.value })} sx={inputStyle} />
+              <TextField label="Bairro do Surdo*" variant="outlined" size="small" fullWidth value={newTerritor.terr_regiao} onChange={(e) => setNewTerritor({ ...newTerritor, terr_regiao: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Link Maps *" variant="outlined" size="small" fullWidth value={newIndication.terr_link} onChange={(e) => setNewIndication({ ...newIndication, terr_link: e.target.value })} sx={inputStyle} />
+              <TextField label="Link Maps *" variant="outlined" size="small" fullWidth value={newTerritor.terr_link} onChange={(e) => setNewTerritor({ ...newTerritor, terr_link: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Coordenadas *" variant="outlined" size="small" fullWidth value={newIndication.terr_coord} onChange={(e) => setNewIndication({ ...newIndication, terr_coord: e.target.value })} sx={inputStyle} />
+              <TextField label="Coordenadas *" variant="outlined" size="small" fullWidth value={newTerritor.terr_coord} onChange={(e) => setNewTerritor({ ...newTerritor, terr_coord: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <FormControl fullWidth sx={inputStyle}>
@@ -686,9 +911,9 @@ const EnderecForm = () => {
                 <Select
                   labelId="cormapa-label"
                   id="cormapa"
-                  value={newIndication.terr_cor}
+                  value={newTerritor.terr_cor}
                   label="Cor do Mapa *"
-                  onChange={(e) => setNewIndication({ ...newIndication, terr_cor: e.target.value })}
+                  onChange={(e) => setNewTerritor({ ...newTerritor, terr_cor: e.target.value })}
                 >
                   <MenuItem value="0">Azul</MenuItem>
                   <MenuItem value="1">Vermelho</MenuItem>
@@ -703,9 +928,9 @@ const EnderecForm = () => {
                   <Select
                     labelId="vsituacao-label"
                     id="vsituacao"
-                    value={newIndication.terr_status}
+                    value={newTerritor.terr_status}
                     label="Situação *"
-                    onChange={(e) => setNewIndication({ ...newIndication, terr_status: e.target.value })}
+                    onChange={(e) => setNewTerritor({ ...newTerritor, terr_status: e.target.value })}
                   >
                     <MenuItem value="0">Ativo</MenuItem>
                     <MenuItem value="1">Revisita</MenuItem>
@@ -721,7 +946,7 @@ const EnderecForm = () => {
             </Box>
 
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Detalhes e Referências " variant="outlined" size="small" fullWidth value={newIndication.terr_obs} onChange={(e) => setNewIndication({ ...newIndication, terr_obs: e.target.value })} sx={inputStyle} />
+              <TextField label="Detalhes e Referências " variant="outlined" size="small" fullWidth value={newTerritor.terr_obs} onChange={(e) => setNewTerritor({ ...newTerritor, terr_obs: e.target.value })} sx={inputStyle} />
             </Box>
           </Box>
           <Box sx={{ marginTop: '20px' }}>

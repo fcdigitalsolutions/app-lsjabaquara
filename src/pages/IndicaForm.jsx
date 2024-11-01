@@ -18,7 +18,6 @@ const IndicaForm = () => {
   const totalRegioes = new Set(data.map(item => item.cod_regiao)).size;
   const [rowsPerPage, setRowsPerPage] = useState(10); // Limite de linhas por página
 
-
   const [newIndication, setNewIndication] = useState({
     nome_publica: '',
     num_contato: '',
@@ -185,6 +184,29 @@ const IndicaForm = () => {
     }
   };
 
+
+ // Função para determinar a cor de fundo da célula com base no status
+ const getStatusMPExist = (map_exist) => {
+  switch (map_exist) {
+    case '0':
+      return 'Pendente';
+    case '1':
+      return 'Mapa Já Existe';
+    default:
+      return 'Outros';
+  }
+};
+    // Função para determinar a cor de fundo da célula com base no status
+    const getStatusColorMPExist = (status) => {
+      switch (status) {
+        case 'Pendente':
+          return 'transparent';
+        case 'Mapa Já Existe':
+          return '#00009C';
+        default:
+          return 'transparent';
+      }
+    };
   // Função para determinar o status com base na confirmação do endereço
   const getStatus = (end_confirm) => {
     if (end_confirm === '2') {
@@ -193,23 +215,6 @@ const IndicaForm = () => {
       return 'Pendente';
     }
     return 'Desconhecido'; // Fallback para casos inesperados
-  };
-
-
-  // Dados filtrados com base nos filtros das colunas
-  const filteredData = data.filter((row) => {
-    return (
-      (!filters.end_confirm || row.end_confirm === filters.end_confirm) &&
-      (!filters.nome_publica || row.nome_publica === filters.nome_publica) &&
-      (!filters.cod_congreg || row.cod_congreg === filters.cod_congreg)
-    );
-  });
-
-  // Aplicar a paginação aos dados filtrados
-  const paginatedData = filteredData.slice(startIndex, endIndex);
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10)); // Atualiza o número de linhas por página
-    setPage(0); // Reseta a página para a primeira sempre que mudar o número de linhas por página
   };
 
   // Função para determinar a cor de fundo da célula com base no status
@@ -222,6 +227,77 @@ const IndicaForm = () => {
       default:
         return 'transparent';
     }
+  };
+
+  // Função para determinar o status com base na confirmação do endereço
+  const getStatusTpLocal = (indic_tp_local) => {
+    if (indic_tp_local === '1') {
+      return 'Residência';
+    } else if (indic_tp_local === '2') {
+      return 'Comércio';
+    }else if (indic_tp_local === '3') {
+      return 'Condomínio';
+    }
+    return 'Desconhecido'; // Fallback para casos inesperados
+  };
+
+  // Função para determinar a cor de fundo da célula com base no status
+  const getStatusColorTpLocal = (status) => {
+    switch (status) {
+      case 'Residência':
+        return '#007FFF';
+      case 'Comércio':
+        return '#8B4513';
+        case 'Condomínio':
+          return '#42426F';
+      default:
+        return 'transparent';
+    }
+  };
+
+  // Função para determinar o status com base na confirmação do endereço
+  const getStatusDesig = (indic_desig) => {
+    if (indic_desig === '1') {
+      return 'Não';
+    } else if (indic_desig === '2') {
+      return 'Sim';
+    }
+    return 'Desconhecido'; // Fallback para casos inesperados
+  };
+
+  // Função para determinar a cor de fundo da célula com base no status
+  const getStatusColorDesig = (status) => {
+    switch (status) {
+      case 'Não':
+        return '#EBC79E';
+      case 'Sim':
+        return '#5C3317';
+      default:
+        return 'transparent';
+    }
+  };
+
+  // Função para iniciar a edição de uma linha
+  const handleAbreMapa = (row) => {
+    window.open(row, '_blank'); // Abre o link em uma nova aba
+  };
+
+  // Dados filtrados com base nos filtros das colunas
+  const filteredData = data.filter((row) => {
+    return (
+      (!filters.end_confirm || row.end_confirm === filters.end_confirm) &&
+      (!filters.indic_desig || row.indic_desig === filters.indic_desig) &&
+      (!filters.indic_tp_local || row.indic_tp_local === filters.indic_tp_local) &&
+      (!filters.nome_publica || row.nome_publica === filters.nome_publica) &&
+      (!filters.cod_congreg || row.cod_congreg === filters.cod_congreg)
+    );
+  });
+
+  // Aplicar a paginação aos dados filtrados
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10)); // Atualiza o número de linhas por página
+    setPage(0); // Reseta a página para a primeira sempre que mudar o número de linhas por página
   };
 
   // Função para obter a lista única de logradouros (enderec)
@@ -241,7 +317,10 @@ const IndicaForm = () => {
     const exportData = filteredData.map(row => ({
       'Endereço': row.enderec,
       'Detalhes': row.obs,
+      'Link Mapa': row.indic_url_map,
       'Status': row.end_confirm === '2' ? 'Confirmado' : 'Pendente',
+      'Designado?': row.indic_desig === '2' ? 'Sim' : 'Não',
+      'Tipo de Local': row.indic_tp_local === '2' ? 'Comércio' : 'Residência',
       'Data': row.data_inclu,
       'Publicador': row.nome_publica,
       'Contato': row.num_contato,
@@ -334,8 +413,15 @@ const IndicaForm = () => {
                   </TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Endereço</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Detalhes</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Link Map</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Confirmado?
                     <FaChevronDown onClick={(event) => handleClick(event, 'end_confirm')} />
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Mapa Designado?
+                    <FaChevronDown onClick={(event) => handleClick(event, 'indic_desig')} />
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tipo de Local
+                    <FaChevronDown onClick={(event) => handleClick(event, 'indic_tp_local')} />
                   </TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Data</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Publicador
@@ -358,6 +444,22 @@ const IndicaForm = () => {
                       <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
                       <MenuItem onClick={() => handleFilterSelect('2')}>Confirmado</MenuItem>
                       <MenuItem onClick={() => handleFilterSelect()}>Pendente</MenuItem>
+                    </>
+                  )}
+                  {filterColumn === 'indic_desig' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Não</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Sim</MenuItem>
+                    </>
+                  )}
+
+                  {filterColumn === 'indic_tp_local' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Residência</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Comércio</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('3')}>Condomínio</MenuItem>
                     </>
                   )}
 
@@ -389,6 +491,11 @@ const IndicaForm = () => {
                 {paginatedData.map((row) => {
                   const isEditing = row.id === editRowId;
                   const status = getStatus(row.end_confirm);
+                  const statusDsg = getStatusDesig(row.indic_desig);
+                  const statusTploc = getStatusTpLocal(row.indic_tp_local);
+                  const statusMapExist = getStatusMPExist(row.map_exist);
+                  
+
                   return (
                     <TableRow key={row.id}>
                       <TableCell TableCell align="center">
@@ -397,9 +504,27 @@ const IndicaForm = () => {
                           onChange={() => handleSelect(row.id)}
                         />
                       </TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
+
+                      <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}
+                      <div
+                            style={{
+                              backgroundColor: getStatusColorMPExist(statusMapExist),
+                              color: 'white',
+                              padding: '2px',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              fontSize: '0.65rem',
+                            }}
+                          >
+                            {statusMapExist}
+                          </div>
+                      </TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="obs" value={editedRowData.obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.obs}</TableCell>
-                      {/* Campo editável de status */}
+                      <TableCell align="center">{isEditing ? <TextField name="indic_url_map" value={editedRowData.indic_url_map || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.indic_url_map}
+                        <Button variant="contained" color="primary" size="small" onClick={() => handleAbreMapa(row.indic_url_map)} sx={{ fontSize: '0.55rem', padding: '2px 5px' }}>Abrir Mapa</Button>
+                      </TableCell>
+
+                      {/* Campo editável de end. confirmado */}
                       <TableCell align="center">
                         {isEditing ? (
                           <FormControl fullWidth>
@@ -424,6 +549,64 @@ const IndicaForm = () => {
                             }}
                           >
                             {status}
+                          </div>
+                        )}
+                      </TableCell>
+
+                      {/* Campo editável de Terr. Designado */}
+                      <TableCell align="center">
+                        {isEditing ? (
+                          <FormControl fullWidth>
+                            <Select
+                              name="indic_desig"
+                              value={editedRowData.indic_desig || '1'}
+                              onChange={handleInputChange}
+                            >
+                              <MenuItem value="1">Não</MenuItem>
+                              <MenuItem value="2">Sim</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <div
+                            style={{
+                              backgroundColor: getStatusColorDesig(statusDsg),
+                              color: 'white',
+                              padding: '2px',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              fontSize: '0.65rem',
+                            }}
+                          >
+                            {statusDsg}
+                          </div>
+                        )}
+                      </TableCell>
+                      {/* Campo editável Tipo do território */}
+                      <TableCell align="center">
+                        {isEditing ? (
+                          <FormControl fullWidth>
+                            <Select
+                              name="indic_tp_local"
+                              value={editedRowData.indic_tp_local || '1'}
+                              onChange={handleInputChange}
+                            >
+                              <MenuItem value="1">Residência</MenuItem>
+                              <MenuItem value="2">Comércio</MenuItem>
+                              <MenuItem value="3">Condomínio</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <div
+                            style={{
+                              backgroundColor: getStatusColorTpLocal(statusTploc),
+                              color: 'white',
+                              padding: '2px',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              fontSize: '0.65rem',
+                            }}
+                          >
+                            {statusTploc}
                           </div>
                         )}
                       </TableCell>
@@ -555,7 +738,6 @@ const IndicaForm = () => {
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
       </Box >
-
     </Box >
   );
 };

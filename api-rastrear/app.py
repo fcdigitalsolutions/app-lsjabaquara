@@ -58,8 +58,11 @@ def authenticate_user():
 def add_auth_login():
     data = request.json
     authlogin = AuthLogin(user_login=data['user_login'],
-                            user_name=data.get('user_name'),
-                            user_pswd=data.get('user_pswd'))
+                        user_name=data.get('user_name'),
+                        user_pswd=data.get('user_pswd'),
+                        user_gestor=data.get('user_gestor'),
+                        user_id_publica=data.get('user_id_publica'),
+                        user_receb_msg=data.get('user_receb_msg'))
     authlogin_id = auth_service.add_auth_login(authlogin)
     return jsonify({"id": authlogin_id, "message": "Usuário add com sucesso!"}), 201
 
@@ -107,6 +110,9 @@ def add_indica():
                         enderec=data.get('enderec'),
                         end_confirm=data.get('end_confirm'),
                         origem=data.get('origem'),
+                        indic_url_map=data.get('indic_url_map'),
+                        indic_tp_local=data.get('indic_tp_local'),
+                        indic_desig=data.get('indic_desig'),
                         obs=data.get('obs'))
     indica_id = indica_service.add_indica(indica)
     return jsonify({"id": indica_id, "message": "Indicação add com sucesso!"}), 201
@@ -122,6 +128,9 @@ def update_indica(indica_id):
                         enderec=data.get('enderec'),
                         end_confirm=data.get('end_confirm'),
                         origem=data.get('origem'),
+                        indic_url_map=data.get('indic_url_map'),
+                        indic_tp_local=data.get('indic_tp_local'),
+                        indic_desig=data.get('indic_desig'),
                         obs=data.get('obs'))
     updated_indica_id = indica_service.update_indica(indica_id, indica)
     return jsonify({"message": "Indicação atualizada com sucesso!", "indica_id": updated_indica_id}), 200
@@ -293,6 +302,7 @@ def add_pubc():
                         desig_servic=data.get('desig_servic'),
                         desig_campo=data.get('desig_campo'),
                         pub_status=data.get('pub_status'),
+                        pub_id_publica=data.get('pub_id_publica'),
                         resp_obs=data.get('resp_obs')
                         )
     pubc_id = pubc_service.add_pubc(pubc)
@@ -314,6 +324,7 @@ def update_pubc(pubc_id):
                         desig_servic=data.get('desig_servic'),
                         desig_campo=data.get('desig_campo'),
                         pub_status=data.get('pub_status'),
+                        pub_id_publica=data.get('pub_id_publica'),
                         resp_obs=data.get('resp_obs')
                         )
     updated_pubc_id = pubc_service.update_pubc(pubc_id, pubc)
@@ -416,7 +427,11 @@ def add_territ():
                         terr_cor=data.get('terr_cor'),
                         terr_status=data.get('terr_status'),
                         num_pessoas=data.get('num_pessoas'),
-                        melhor_dia_hora=data.get('melhor_dia_hora'),
+                        melhor_dia_hora=data.get('melhor_dia_hora'),                        
+                        terr_tp_local=data.get('terr_tp_local'),
+                        terr_classif=data.get('terr_classif'),
+                        terr_desig=data.get('terr_desig'),
+                        melhor_hora=data.get('melhor_hora'),                       
                         terr_obs=data.get('terr_obs')
                         )     
     territ_id = territ_service.add_territ(territ)
@@ -444,6 +459,10 @@ def update_territ(territ_id):
                         terr_status=data.get('terr_status'),
                         num_pessoas=data.get('num_pessoas'),
                         melhor_dia_hora=data.get('melhor_dia_hora'),
+                        terr_tp_local=data.get('terr_tp_local'),
+                        terr_classif=data.get('terr_classif'),
+                        terr_desig=data.get('terr_desig'),
+                        melhor_hora=data.get('melhor_hora'),             
                         terr_obs=data.get('terr_obs')
                         )
     updated_territ_id = territ_service.update_territ(territ_id, territ)

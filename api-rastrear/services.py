@@ -105,15 +105,14 @@ class RegionService:
         conn.close()
         return result
 
-
 ##
 ## Serviços para o Cadastro de Indicações
 class IndicaService:
     def add_indica(self,indica):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO cad_indicacoes (data_inclu,nome_publica,num_contato,cod_congreg,cod_regiao,enderec,end_confirm,origem,obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-            (indica.data_inclu,indica.nome_publica,indica.num_contato,indica.cod_congreg,indica.cod_regiao,indica.enderec,indica.end_confirm,indica.origem,indica.obs ))
+        cursor.execute('INSERT INTO cad_indicacoes (data_inclu,nome_publica,num_contato,cod_congreg,cod_regiao,enderec,end_confirm,origem,indic_url_map,indic_tp_local,indic_desig,obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (indica.data_inclu,indica.nome_publica,indica.num_contato,indica.cod_congreg,indica.cod_regiao,indica.enderec,indica.end_confirm,indica.origem,indica.indic_url_map,indica.indic_tp_local,indica.indic_desig,indica.obs ))
         conn.commit()
         indica_id = cursor.lastrowid
         conn.close()
@@ -122,16 +121,33 @@ class IndicaService:
     def update_indica(self, indica_id, indica):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE cad_indicacoes SET nome_publica= %s, num_contato= %s, cod_congreg= %s, cod_regiao= %s, enderec= %s, end_confirm= %s, origem= %s, obs= %s WHERE id = %s',
-            (indica.nome_publica,indica.num_contato,indica.cod_congreg,indica.cod_regiao,indica.enderec,indica.end_confirm,indica.origem,indica.obs,indica_id ))
+        cursor.execute('UPDATE cad_indicacoes SET nome_publica= %s, num_contato= %s, cod_congreg= %s, cod_regiao= %s, enderec= %s, end_confirm= %s, origem= %s, indic_url_map= %s,indic_tp_local= %s,indic_desig= %s,obs= %s WHERE id = %s',
+            (indica.nome_publica,indica.num_contato,indica.cod_congreg,indica.cod_regiao,indica.enderec,indica.end_confirm,indica.origem,indica.indic_url_map,indica.indic_tp_local,indica.indic_desig,indica.obs,indica_id ))
         conn.commit()
         conn.close()
         return indica_id
-
+    
     def get_all_indica(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM cad_indicacoes')
+    #    cursor.execute('SELECT * FROM cad_indicacoes')
+        cursor.execute( 
+            """    
+                select 
+	                indc.id, indc.data_inclu, indc.nome_publica, indc.num_contato,indc.cod_congreg
+	                ,indc.cod_regiao, indc.enderec, indc.end_confirm, indc.origem, indc.obs
+                    ,indc.indic_url_map, indc.indic_tp_local,indc.indic_desig
+                    ,ter.terr_enderec
+                    ,CASE 
+                        when isnull(terr_enderec) then '0'
+                        else '1'
+                    END as 'map_exist'
+                from cad_indicacoes as indc
+                left join cad_territorios ter
+	                on indc.enderec = ter.terr_enderec
+                order by indc.data_inclu asc
+            """  
+        )
         indica = cursor.fetchall()
         result = rows_to_dict(cursor, indica)
         conn.close()
@@ -366,8 +382,9 @@ class TerritService:
                 terr_regiao,terr_link,terr_coord,
                 terr_cor,terr_status,
                 num_pessoas,melhor_dia_hora,
+                terr_tp_local,terr_classif,terr_desig,melhor_hora,
                 terr_obs) 
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """,
             (territ.data_inclu,
              territ.dt_ultvisit,
@@ -388,6 +405,10 @@ class TerritService:
              territ.terr_status,
              territ.num_pessoas,
              territ.melhor_dia_hora,
+             territ.terr_tp_local,
+             territ.terr_classif,
+             territ.terr_desig,
+             territ.melhor_hora,
              territ.terr_obs ))
         conn.commit()
         territ_id = cursor.lastrowid
@@ -405,6 +426,7 @@ class TerritService:
             terr_nome= %s,terr_morador= %s,terr_enderec= %s,terr_regiao= %s,
             terr_link= %s,terr_coord= %s,terr_cor= %s, terr_status= %s,
             num_pessoas= %s, melhor_dia_hora= %s,
+            terr_tp_local= %s,terr_classif= %s,terr_desig= %s,melhor_hora= %s,
             terr_obs= %s WHERE id = %s
             """,    
           (  territ.dt_ultvisit,
@@ -425,6 +447,10 @@ class TerritService:
              territ.terr_status,
              territ.num_pessoas,
              territ.melhor_dia_hora,
+             territ.terr_tp_local,
+             territ.terr_classif,
+             territ.terr_desig,
+             territ.melhor_hora,
              territ.terr_obs,
              territ_id
             ))

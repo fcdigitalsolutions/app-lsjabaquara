@@ -6,7 +6,7 @@ class Region:
         self.descricao = descricao
         
 class Indicacoes:
-    def __init__(self, data_inclu, nome_publica,num_contato, cod_congreg, cod_regiao, enderec, end_confirm, origem, obs=None ):
+    def __init__(self, data_inclu, nome_publica,num_contato, cod_congreg, cod_regiao, enderec, end_confirm, origem,indic_url_map,indic_tp_local,indic_desig, obs=None ):
         self.data_inclu = data_inclu
         self.nome_publica = nome_publica
         self.num_contato = num_contato
@@ -15,6 +15,9 @@ class Indicacoes:
         self.enderec = enderec
         self.end_confirm = end_confirm       
         self.origem = origem
+        self.indic_url_map = indic_url_map
+        self.indic_tp_local = indic_tp_local
+        self.indic_desig = indic_desig
         self.obs = obs
 
 class RegistroNC:
@@ -49,13 +52,16 @@ class Congregation:
         self.srv_terr_contat = srv_terr_contat
 
 class AuthLogin:
-    def __init__(self, user_login, user_name, user_pswd ):
+    def __init__(self, user_login, user_name, user_pswd, user_gestor, user_id_publica, user_receb_msg ):
         self.user_login = user_login
         self.user_name = user_name
         self.user_pswd = user_pswd
-     
+        self.user_gestor = user_gestor
+        self.user_id_publica = user_id_publica
+        self.user_receb_msg = user_receb_msg
+             
 class Publicadores: 
-    def __init__(self, data_inclu, pub_nome,pub_contat, pub_login, pub_email, pub_endereco, pub_regiao, pub_uf, pub_dtbatism, pub_dtnasc, desig_servic, desig_campo, pub_status, resp_obs ):
+    def __init__(self, data_inclu, pub_nome,pub_contat, pub_login, pub_email, pub_endereco, pub_regiao, pub_uf, pub_dtbatism, pub_dtnasc, desig_servic, desig_campo, pub_status,pub_id_publica, resp_obs ):
         self.data_inclu	  = data_inclu
         self.pub_nome     = pub_nome
         self.pub_contat    = pub_contat
@@ -69,6 +75,7 @@ class Publicadores:
         self.desig_servic = desig_servic
         self.desig_campo  = desig_campo
         self.pub_status   = pub_status
+        self.pub_id_publica   = pub_id_publica       
         self.resp_obs	  = resp_obs			   
     
 class Designacoes: 
@@ -86,7 +93,9 @@ class Designacoes:
         self.pub_obs      = pub_obs
        	
 class Territorios:
-    def __init__(self,data_inclu,dt_ultvisit,pub_ultvisi,dt_visit02,pub_tvis02,dt_visit03,pub_tvis03,dt_visit04,pub_tvis04,terr_nome,terr_morador,terr_enderec,terr_regiao,terr_link,terr_coord,terr_cor,terr_status,num_pessoas,melhor_dia_hora,terr_obs  ):
+    def __init__(self,data_inclu,dt_ultvisit,pub_ultvisi,dt_visit02,pub_tvis02,dt_visit03,pub_tvis03,dt_visit04,pub_tvis04,
+                 terr_nome,terr_morador,terr_enderec,terr_regiao,terr_link,terr_coord,terr_cor,terr_status,num_pessoas,
+                 melhor_dia_hora,terr_tp_local,terr_classif,terr_desig,melhor_hora,terr_obs ):
         self.data_inclu	 = data_inclu	  
         self.dt_ultvisit  = dt_ultvisit   
         self.pub_ultvisi  = pub_ultvisi   
@@ -105,6 +114,9 @@ class Territorios:
         self.terr_cor     = terr_cor    
         self.terr_status  = terr_status   
         self.num_pessoas  = num_pessoas 
-        self.melhor_dia_hora  = melhor_dia_hora 
-        self.terr_obs     = terr_obs          
-
+        self.melhor_dia_hora  = melhor_dia_hora     
+        self.terr_tp_local = terr_tp_local  
+        self.terr_classif  = terr_classif  
+        self.terr_desig    = terr_desig  
+        self.melhor_hora   = melhor_hora   
+        self.terr_obs      = terr_obs         
