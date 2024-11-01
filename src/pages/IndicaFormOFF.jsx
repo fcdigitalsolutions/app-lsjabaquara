@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 import InputMask from 'react-input-mask';
-import { Box, Button, TextField, Typography, Select, MenuItem, InputLabel, FormControl} from '@mui/material';
+import { Box, Button, TextField, Typography, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { FaArrowCircleLeft } from 'react-icons/fa';
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
+
+import encontrarImg from '../img/encontrar.png'; // Importando a imagem
+import casaImg from '../img/casa.png'; // Importando a imagem
 
 
 const IndicaFormOff = () => {
@@ -15,17 +20,17 @@ const IndicaFormOff = () => {
   const [enderec, setEnderec] = useState('');
   const [obs, setObs] = useState('');
   const [message, setMessage] = useState('');
+  const [end_confirm, setEndConfirm] = useState('1');
   const [congregacoes, setCongregacoes] = useState([]); // Estado para armazenar as opções de Congregaçoes
 
   const Data_Atual = new Date();
 
-
   // Função para limpar o formulário
   const clearForm = () => {
-  //  setNomePub('');
-  //  setTelefone('');
-  //  setCodCongreg('');
-  //  setCodRegiao('');
+    //  setNomePub('');
+    //  setTelefone('');
+    //  setCodCongreg('');
+    setEndConfirm('1');
     setEnderec('');
     setObs('');
     setMessage('');
@@ -52,7 +57,7 @@ const IndicaFormOff = () => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
     const day = String(date.getDate()).padStart(2, '0');
-  
+
     return `${day}/${month}/${year}`;
   };
 
@@ -65,35 +70,33 @@ const IndicaFormOff = () => {
     }
   };
 
-    // Função para buscar as congregações da API
-    useEffect(() => {
-      const fetchCongregacoes = async () => {
-        try {
-          const response = await api_service.get('/congregsall'); // rota da sua API
-          setCongregacoes(response.data); // a API retorna um array de Congregações
-        } catch (error) {
-          console.error('Erro ao carregar as Congregações:', error);
-        }
-      };
-  
-      fetchCongregacoes(); // Chama a função para carregar as Congregações
-    }, []);
+  // Função para buscar as congregações da API
+  useEffect(() => {
+    const fetchCongregacoes = async () => {
+      try {
+        const response = await api_service.get('/congregsall'); // rota da sua API
+        setCongregacoes(response.data); // a API retorna um array de Congregações
+      } catch (error) {
+        console.error('Erro ao carregar as Congregações:', error);
+      }
+    };
+
+    fetchCongregacoes(); // Chama a função para carregar as Congregações
+  }, []);
 
   // Função para enviar os dados do formulário para a API
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Verifica se todos os campos obrigatórios estão preenchidos
-    if (!nome_publica || !num_contato || !cod_congreg ||!enderec ) {
+    if (!nome_publica || !num_contato || !cod_congreg || !enderec) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return; // Impede o envio para a API
     }
 
     try {
-
       const defaultDtInclu = formatDateTime(Data_Atual);
       const defaultOrigem = '';
-
       // Faz uma requisição POST para a API
       await api_service.post('/indica', {
         data_inclu: defaultDtInclu,
@@ -103,6 +106,7 @@ const IndicaFormOff = () => {
         cod_regiao,
         enderec,
         origem: defaultOrigem,
+        end_confirm,
         obs
       });
 
@@ -120,13 +124,30 @@ const IndicaFormOff = () => {
       <Typography variant="h4" sx={{ color: '#202038', marginBottom: '20px' }}>
         Indicação de Surdo
       </Typography>
+      <table>
+        <tr>
+          <td><img
+            src={casaImg}
+            alt="Casa"
+            style={{ width: '100%', maxWidth: '75px', marginBottom: '20px', display: 'block', margin: 'auto' }}
+          /></td><td></td><td></td>
+          <td>
+            <img
+              src={encontrarImg}
+              alt="Encontrar"
+              style={{ width: '100%', maxWidth: '60px', marginBottom: '20px', display: 'block', margin: 'auto' }}
+            />
+          </td>
+        </tr>
+      </table>
       <Typography variant="h5" sx={{ color: 'blue', marginBottom: '20px' }}>
-        "Encontrei o surdo, o que eu faço?"
+        "Encontrei o surdo ou sei a casa, o que eu faço?"
       </Typography>
-      
+
       {/* Formulário de cadastro/edição */}
       <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+
           <Box sx={{ flex: 1, minWidth: '200px' }}>
             <TextField
               label="Seu Nome *"
@@ -155,7 +176,7 @@ const IndicaFormOff = () => {
             </InputMask>
           </Box>
           <Box sx={{ flex: 1, minWidth: '200px' }}>
-          <FormControl fullWidth>
+            <FormControl fullWidth>
               <InputLabel id="congrega-label">Sua Congregação? </InputLabel>
               <Select
                 labelId="congrega-label"
@@ -203,7 +224,19 @@ const IndicaFormOff = () => {
             />
           </Box>
         </Box>
-
+        <Box sx={{ flex: 1, minWidth: '100px' }}>
+          {/* Exibe uma chave de escolha se o endereço é confirmado ou não */}
+          <FormControlLabel
+            control={
+              <Switch
+                color="primary"
+                checked={end_confirm === '2'}
+                onChange={(e) => setEndConfirm(e.target.checked ? '2' : '1')}
+              />
+            }
+            label="Endereço Confirmado?"
+          />
+        </Box>
         {/* Exibe mensagem no corpo do formulário */}
         {message && (
           <Typography

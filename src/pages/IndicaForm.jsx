@@ -4,6 +4,8 @@ import InputMask from 'react-input-mask';
 import { Box, Menu, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, Checkbox } from '@mui/material';
 import { FaChevronDown, FaFileExport, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 import * as XLSX from 'xlsx'; // Importe a biblioteca XLSX
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 const IndicaForm = () => {
   const [data, setData] = useState([]);
@@ -17,8 +19,20 @@ const IndicaForm = () => {
   const totalConcluidos = data.filter(item => item.num_visitas >= 2).length;
   const totalRegioes = new Set(data.map(item => item.cod_regiao)).size;
   const [rowsPerPage, setRowsPerPage] = useState(10); // Limite de linhas por página
+  const Data_Atual = new Date();
+
+  const formatDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
+    const day = String(date.getDate()).padStart(2, '0');
+  
+    return `${day}/${month}/${year}`;
+  };
+
+  const defaultDtInclu = formatDateTime(Data_Atual);
 
   const [newIndication, setNewIndication] = useState({
+    end_confirm: '1',
     nome_publica: '',
     num_contato: '',
     cod_congreg: '',
@@ -138,7 +152,13 @@ const IndicaForm = () => {
     }
 
     try {
-      const response = await api_service.post('/indica', newIndication);
+
+      const newIndicationData = {
+        ...newIndication,
+        data_inclu: defaultDtInclu,
+      };
+
+      const response = await api_service.post('/indica', newIndicationData);
       setData([...data, response.data]); // Adiciona a nova indicação aos dados
       setNewIndication({ nome_publica: '', end_confirm: '', num_contato: '', cod_congreg: '', cod_regiao: '', enderec: '', origem: '', obs: '' }); // Limpa o formulário
       setMessage('Indicação incluída com sucesso!');
@@ -185,36 +205,40 @@ const IndicaForm = () => {
   };
 
 
- // Função para determinar a cor de fundo da célula com base no status
- const getStatusMPExist = (map_exist) => {
-  switch (map_exist) {
-    case '0':
-      return 'Pendente';
-    case '1':
-      return 'Mapa Já Existe';
-    default:
-      return 'Outros';
-  }
-};
-    // Função para determinar a cor de fundo da célula com base no status
-    const getStatusColorMPExist = (status) => {
-      switch (status) {
-        case 'Pendente':
-          return 'transparent';
-        case 'Mapa Já Existe':
-          return '#00009C';
-        default:
-          return 'transparent';
-      }
-    };
+  // Função para determinar a cor de fundo da célula com base no status
+  const getStatusMPExist = (map_exist) => {
+    switch (map_exist) {
+      case '0':
+        return 'Novo';
+      case '1':
+        return 'Mapa Já Existe';
+      default:
+        return 'Outros';
+    }
+  };
+  // Função para determinar a cor de fundo da célula com base no status
+  const getStatusColorMPExist = (status) => {
+    switch (status) {
+      case 'Novo':
+        return 'transparent';
+      case 'Mapa Já Existe':
+        return '#00009C';
+      default:
+        return 'transparent';
+    }
+  };
   // Função para determinar o status com base na confirmação do endereço
   const getStatus = (end_confirm) => {
-    if (end_confirm === '2') {
-      return 'Confirmado';
-    } else if (end_confirm ?? '2') {
+      switch (end_confirm) {
+        case '1':
       return 'Pendente';
-    }
-    return 'Desconhecido'; // Fallback para casos inesperados
+      case '2':
+        return 'Confirmado';
+        case '3':
+          return 'NA';
+        default:
+          return 'Outros';
+    } 
   };
 
   // Função para determinar a cor de fundo da célula com base no status
@@ -224,6 +248,8 @@ const IndicaForm = () => {
         return 'green';
       case 'Confirmado':
         return '#202038';
+        case 'NA':
+          return '#708090';
       default:
         return 'transparent';
     }
@@ -235,7 +261,7 @@ const IndicaForm = () => {
       return 'Residência';
     } else if (indic_tp_local === '2') {
       return 'Comércio';
-    }else if (indic_tp_local === '3') {
+    } else if (indic_tp_local === '3') {
       return 'Condomínio';
     }
     return 'Desconhecido'; // Fallback para casos inesperados
@@ -248,8 +274,8 @@ const IndicaForm = () => {
         return '#007FFF';
       case 'Comércio':
         return '#8B4513';
-        case 'Condomínio':
-          return '#42426F';
+      case 'Condomínio':
+        return '#42426F';
       default:
         return 'transparent';
     }
@@ -442,8 +468,9 @@ const IndicaForm = () => {
                   {filterColumn === 'end_confirm' && (
                     <>
                       <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Pendente</MenuItem>
                       <MenuItem onClick={() => handleFilterSelect('2')}>Confirmado</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect()}>Pendente</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('3')}>Não se Aplica</MenuItem>
                     </>
                   )}
                   {filterColumn === 'indic_desig' && (
@@ -494,7 +521,7 @@ const IndicaForm = () => {
                   const statusDsg = getStatusDesig(row.indic_desig);
                   const statusTploc = getStatusTpLocal(row.indic_tp_local);
                   const statusMapExist = getStatusMPExist(row.map_exist);
-                  
+
 
                   return (
                     <TableRow key={row.id}>
@@ -506,18 +533,18 @@ const IndicaForm = () => {
                       </TableCell>
 
                       <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}
-                      <div
-                            style={{
-                              backgroundColor: getStatusColorMPExist(statusMapExist),
-                              color: 'white',
-                              padding: '2px',
-                              borderRadius: '4px',
-                              textAlign: 'center',
-                              fontSize: '0.65rem',
-                            }}
-                          >
-                            {statusMapExist}
-                          </div>
+                        <div
+                          style={{
+                            backgroundColor: getStatusColorMPExist(statusMapExist),
+                            color: 'white',
+                            padding: '2px',
+                            borderRadius: '4px',
+                            textAlign: 'center',
+                            fontSize: '0.65rem',
+                          }}
+                        >
+                          {statusMapExist}
+                        </div>
                       </TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="obs" value={editedRowData.obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.obs}</TableCell>
                       <TableCell align="center">{isEditing ? <TextField name="indic_url_map" value={editedRowData.indic_url_map || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.indic_url_map}
@@ -530,11 +557,12 @@ const IndicaForm = () => {
                           <FormControl fullWidth>
                             <Select
                               name="end_confirm"
-                              value={editedRowData.end_confirm || '1'}
+                              value={editedRowData.end_confirm}
                               onChange={handleInputChange}
                             >
                               <MenuItem value="1">Pendente</MenuItem>
                               <MenuItem value="2">Confirmado</MenuItem>
+                              <MenuItem value="3">Não se Aplica</MenuItem>
                             </Select>
                           </FormControl>
                         ) : (
@@ -559,7 +587,7 @@ const IndicaForm = () => {
                           <FormControl fullWidth>
                             <Select
                               name="indic_desig"
-                              value={editedRowData.indic_desig || '1'}
+                              value={editedRowData.indic_desig}
                               onChange={handleInputChange}
                             >
                               <MenuItem value="1">Não</MenuItem>
@@ -587,7 +615,7 @@ const IndicaForm = () => {
                           <FormControl fullWidth>
                             <Select
                               name="indic_tp_local"
-                              value={editedRowData.indic_tp_local || '1'}
+                              value={editedRowData.indic_tp_local}
                               onChange={handleInputChange}
                             >
                               <MenuItem value="1">Residência</MenuItem>
@@ -691,6 +719,22 @@ const IndicaForm = () => {
       {/* Formulário de nova indicação */}
       <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
         <form onSubmit={handleNewIndicationSubmit}>
+          <Box sx={{ flex: 1, minWidth: '100px' }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={newIndication.end_confirm === '2'}
+                  onChange={(e) => setNewIndication({
+                    ...newIndication,
+                    end_confirm: e.target.checked ? '2' : '1'
+                  })}
+                  color="primary"
+                />
+              }
+              label="Endereço Confirmado?"
+            />
+          </Box>
+
           <Box sx={formBoxStyle}>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <TextField label="Seu Nome *" variant="outlined" size="small" fullWidth value={newIndication.nome_publica} onChange={(e) => setNewIndication({ ...newIndication, nome_publica: e.target.value })} sx={inputStyle} />
@@ -712,10 +756,11 @@ const IndicaForm = () => {
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <TextField label="Detalhes e Referências " variant="outlined" size="small" fullWidth value={newIndication.obs} onChange={(e) => setNewIndication({ ...newIndication, obs: e.target.value })} sx={inputStyle} />
             </Box>
+
           </Box>
           <Box sx={{ marginTop: '20px' }}>
             <button
-              type="button"
+              type="submmit"
               style={{
                 ...buttonStyle,
                 backgroundColor: '#202038',
