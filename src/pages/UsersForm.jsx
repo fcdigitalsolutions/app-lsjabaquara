@@ -11,12 +11,15 @@ const UsersForm = () => {
     const [page, setPage] = useState(0);
     const [editRowId, setEditRowId] = useState(null); // ID da linha sendo editada
     const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
-    const [showNewUserLoginForm, setShowNewUserLoginForm] = useState(false); // Controla a exibição do formulário de novo Usuário
     const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
     const [selected, setSelected] = useState([]);
     const totalGestores = data.filter(item => item.user_gestor === '2').length;
     const totalRecbMsg = data.filter(item => item.user_receb_msg === '2').length;
     const [rowsPerPage, setRowsPerPage] = useState(10); // Limite de linhas por página
+    const [showNewUserLoginForm, setShowNewUserLoginForm] = useState(false); // Controla a exibição do formulário de novo Usuário
+    const [maskedPassword, setMaskedPassword] = useState(''); // Para mascarar a senha
+    const [visiblePassword, setVisiblePassword] = useState(''); // Para exibir temporariamente o último caractere
+
     const Data_Atual = new Date();
 
     const formatDateTime = (date) => {
@@ -39,7 +42,8 @@ const UsersForm = () => {
         user_gestor_mecan: '1',
         user_id_publica: '',
         user_receb_msg: '1',
-        user_dt_inclu: defaultDtInclu
+        user_dt_inclu: defaultDtInclu,
+        user_pswd: '' // senha adicionada aqui
     });
 
     const [anchorEl, setAnchorEl] = useState(null);
@@ -106,6 +110,21 @@ const UsersForm = () => {
     const handleEdit = (row) => {
         setEditRowId(row.id); // Define a linha como editável
         setEditedRowData({ ...row }); // Copia os dados atuais da linha para o estado editável
+        setMaskedPassword(row.user_pswd || '');
+    };
+
+     // Função para lidar com a edição de senha com máscara
+     const handlePasswordChange = (e) => {
+        const newPassword = e.target.value;
+        setVisiblePassword(newPassword); // Temporariamente exibe o novo caractere
+        setMaskedPassword((prev) => prev + newPassword.slice(-1));
+
+        setTimeout(() => {
+            setMaskedPassword((prev) => prev.slice(0, -1) + '*');
+            setVisiblePassword(maskedPassword);
+        }, 2500); // Tempo de exibição do caractere
+
+        setEditedRowData({ ...editedRowData, user_pswd: newPassword });
     };
 
     // Função para lidar com alterações nos campos de entrada
@@ -399,7 +418,7 @@ const UsersForm = () => {
         XLSX.writeFile(workbook, 'Controle_Usuários.xlsx');
     };
 
-
+    
     return (
         <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
             <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Controle de Usuários</h2>
@@ -464,6 +483,7 @@ const UsersForm = () => {
                                     </TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Nome</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Usuário</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Senha de Acesso</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Adm. Master (SS)?
                                         <FaChevronDown onClick={(event) => handleClick(event, 'user_gestor')} />
                                     </TableCell>
@@ -559,7 +579,20 @@ const UsersForm = () => {
 
                                             <TableCell align="center">{isEditing ? <TextField name="user_name" value={editedRowData.user_name || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.user_name}</TableCell>
                                             <TableCell align="center">{isEditing ? <TextField name="user_login" value={editedRowData.user_login || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.user_login}</TableCell>
-
+                                            <TableCell align="center">
+                                                {isEditing ? (
+                                                    <TextField
+                                                        name="user_pswd"
+                                                        type="password" // Define o tipo como senha para ocultar os caracteres
+                                                        value={visiblePassword}
+                                                        onChange={handlePasswordChange}
+                                                        size="small"
+                                                        sx={{ width: '100%' }}
+                                                    />
+                                                ) : (
+                                                    '●●●●●●●' // Exibe uma máscara de pontos (ou deixe vazio) quando não está em modo de edição
+                                                )}
+                                            </TableCell>
                                             {/* Campo editável de end. confirmado */}
                                             <TableCell align="center">
                                                 {isEditing ? (
