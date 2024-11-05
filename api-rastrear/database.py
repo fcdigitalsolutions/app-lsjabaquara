@@ -1,14 +1,15 @@
 # databse.py
 import mysql.connector
 from mysql.connector import Error
+import config_env  # Importa as configurações
 
 def get_db_connection():
     try:
         conn = mysql.connector.connect(
-            host='localhost',       # Substitua pelo endereço do seu servidor MySQL
-            user='lsmaster',     # Substitua pelo seu usuário MySQL
-            password='LSJabaquara@#2025',   # Substitua pela sua senha MySQL
-            database='lsjabaquara'    # Substitua pelo nome do seu banco de dados
+            host=config_env.DB_HOST,
+            user=config_env.DB_USER,
+            password=config_env.DB_PASSWORD,
+            database=config_env.DB_NAME
         )
         if conn.is_connected():
             print("Conexão ao MySQL foi bem-sucedida")
@@ -22,17 +23,23 @@ def init_db():
     if conn is not None:
         cursor = conn.cursor()
 
-        cursor.execute('''
-         create table if not exists master_login (
+        cursor.execute(
+            """
+            create table if not exists master_login (
 	            id int auto_increment primary key,
                 user_login	       varchar(255) NULL, 
                 user_name     	   varchar(255) NULL,
                 user_pswd          varchar(255) NULL, 
                 user_gestor        varchar(255) NULL,
+                user_gestor_terr   varchar(255) NULL,
+                user_gestor_rmwb   varchar(255) NULL,
+                user_gestor_rfds   varchar(255) NULL,
+                user_gestor_mecan  varchar(255) NULL,
                 user_id_publica    varchar(255) NULL,
-                user_receb_msg     varchar(255) NULL
+                user_receb_msg     varchar(255) NULL,
+                user_dt_inclu      datetime  NULL
             )
-        ''')        
+        """)        
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS regioes (

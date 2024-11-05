@@ -21,6 +21,12 @@ const RegistroNC = () => {
     obs: '',
   });
 
+  const formatDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${day}/${month}/${year}`;
+  };
 
   // Função para enviar a nova indicação
   const handleNewIndicationSubmit = async (e) => {
@@ -61,27 +67,19 @@ const RegistroNC = () => {
     }
   };
 
-
-  const formatDateTime = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${day}/${month}/${year}`;
-  };
-
   // Função para obter a lista única de logradouros (enderec)
   const getUniqueEnderec = () => {
     const enderecosUnicos = [...new Set(data.map(row => row.enderec))];
     return enderecosUnicos;
   };
 
-    // Função para obter a lista única de logradouros (enderec)
-    const getUniqueRegiao = () => {
-      const RegiaoUnicos = [...new Set(data.map(row => row.cod_regiao))];
-      return RegiaoUnicos;
-    };
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniqueRegiao = () => {
+    const RegiaoUnicos = [...new Set(data.map(row => row.cod_regiao))];
+    return RegiaoUnicos;
+  };
 
-    
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [filterColumn, setFilterColumn] = useState(''); // Guarda a coluna sendo filtrada
   const [filters, setFilters] = useState({
@@ -226,7 +224,7 @@ const RegistroNC = () => {
   // Dados filtrados com base nos filtros das colunas
   const filteredData = data.filter((row) => {
     return (
-      (!filters.cod_regiao || row.cod_regiao === filters.cod_regiao)  &&
+      (!filters.cod_regiao || row.cod_regiao === filters.cod_regiao) &&
       (!filters.num_visitas || row.num_visitas === filters.num_visitas) &&
       (!filters.enderec || row.enderec === filters.enderec)
     );

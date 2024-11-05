@@ -4,6 +4,7 @@ from models import Region,Congregation,Indicacoes,Rastreamento,AuthLogin,Registr
 from services import RegionService,CongregacaoService,IndicaService,RastrearService,AuthService,RegistroNCService,PublicaService,DesignService,TerritService
 from database import init_db
 from datetime import datetime
+import config_env
 
 app = Flask(__name__)
 CORS(app)  # Permite CORS para todos os domínios e endpoints
@@ -38,6 +39,15 @@ def parse_date(date_str):
         # Caso a data não esteja no formato esperado, retorna None ou lança um erro apropriado
         return None
 
+
+@app.route('/authxall', methods=['GET'])
+def get_authxall():
+    authlogin = auth_service.get_all_logins()
+    return jsonify([{
+        **dict(authlogin),
+         'user_dt_inclu': format_date(authlogin.get('user_dt_inclu'))
+    } for authlogin in authlogin])
+
 @app.route('/auth/login', methods=['POST'])
 def authenticate_user():
     data = request.json
@@ -61,11 +71,49 @@ def add_auth_login():
                         user_name=data.get('user_name'),
                         user_pswd=data.get('user_pswd'),
                         user_gestor=data.get('user_gestor'),
+                        user_gestor_terr=data.get('user_gestor_terr'),
+                        user_gestor_rmwb=data.get('user_gestor_rmwb'),
+                        user_gestor_rfds=data.get('user_gestor_rfds'),
+                        user_gestor_mecan=data.get('user_gestor_mecan'),
                         user_id_publica=data.get('user_id_publica'),
-                        user_receb_msg=data.get('user_receb_msg'))
+                        user_receb_msg=data.get('user_receb_msg'),
+                        user_dt_inclu=parse_date(data.get('user_dt_inclu'))
+                        )
+    
     authlogin_id = auth_service.add_auth_login(authlogin)
     return jsonify({"id": authlogin_id, "message": "Usuário add com sucesso!"}), 201
 
+@app.route('/authxadd1/<int:authlogin_id>', methods=['PUT'])
+def update_authlogin(authlogin_id):
+    data = request.json
+    authlogin = AuthLogin(user_login=data['user_login'],
+                        user_pswd=data.get('user_pswd'),
+                        user_name=data.get('user_name'),
+                        user_gestor=data.get('user_gestor'),
+                        user_gestor_terr=data.get('user_gestor_terr'),
+                        user_gestor_rmwb=data.get('user_gestor_rmwb'),
+                        user_gestor_rfds=data.get('user_gestor_rfds'),
+                        user_gestor_mecan=data.get('user_gestor_mecan'),
+                        user_id_publica=data.get('user_id_publica'),
+                        user_receb_msg=data.get('user_receb_msg'),
+                        user_dt_inclu=parse_date(data.get('user_dt_inclu'))
+                        )
+    updated_authlogin_id = auth_service.update_authlogin(authlogin_id, authlogin)
+    return jsonify({"message": "Usuário atualizado com sucesso!", "id": updated_authlogin_id}), 200
+
+
+# Rota DELETE para excluir um Usuário existente
+@app.route('/authxadd1/<int:authlogin_id>', methods=['DELETE'])
+def delete_authlogin(authlogin_id):
+    try:
+        auth_service.delete_authlogin(authlogin_id)  # Chama o serviço para deletar a Usuário
+        return jsonify({"message": "Usuário excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Usuário não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Usuário", "error": str(e)}), 500
+
+## 
 @app.route('/regionsall', methods=['GET'])
 def get_regionsall():
     regions = region_service.get_all_regions()
@@ -81,14 +129,14 @@ def add_region():
     data = request.json
     region = Region(nome=data['nome'], descricao=data.get('descricao'))
     region_id = region_service.add_region(region)
-    return jsonify({"message": "Região add com sucesso!", "region_id": region_id}), 201
+    return jsonify({"message": "Região add com sucesso!", "id": region_id}), 201
 
 @app.route('/regions/<int:region_id>', methods=['PUT'])
 def update_region(region_id):
     data = request.json
     region = Region(nome=data.get('nome'), descricao=data.get('descricao'))
     updated_region_id = region_service.update_region(region_id, region)
-    return jsonify({"message": "Região atualizada com sucesso!", "region_id": updated_region_id}), 200
+    return jsonify({"message": "Região atualizada com sucesso!", "id": updated_region_id}), 200
 
 ## Rotas da API para o cadastro de indicações 
 @app.route('/indicaall', methods=['GET'])
@@ -133,7 +181,7 @@ def update_indica(indica_id):
                         indic_desig=data.get('indic_desig'),
                         obs=data.get('obs'))
     updated_indica_id = indica_service.update_indica(indica_id, indica)
-    return jsonify({"message": "Indicação atualizada com sucesso!", "indica_id": updated_indica_id}), 200
+    return jsonify({"message": "Indicação atualizada com sucesso!", "id": updated_indica_id}), 200
 
 # Rota DELETE para excluir uma indicação existente
 @app.route('/indica/<int:indica_id>', methods=['DELETE'])
@@ -179,7 +227,7 @@ def update_registnc(registnc_id):
                         dt_ult_visit=parse_date(data.get('dt_ult_visit')),
                         num_visitas=data.get('num_visitas'))
     updated_registnc_id = registnc_service.update_registnc(registnc_id, registnc)
-    return jsonify({"message": "Registro NC atualizado com sucesso!", "registnc_id": updated_registnc_id}), 200
+    return jsonify({"message": "Registro NC atualizado com sucesso!", "id": updated_registnc_id}), 200
 
 # Rota DELETE para excluir um Registro NC
 @app.route('/registnc/<int:registnc_id>', methods=['DELETE'])
@@ -225,7 +273,7 @@ def update_rastrear(rastrear_id):
                             data_fim=parse_date(data.get('data_fim')),
                             cod_status=data.get('cod_status'))
     updated_rastrear_id = rastrear_service.update_rastrear(rastrear_id, rastrear)
-    return jsonify({"message": "Rastreamento atualizado com sucesso!", "rastrear_id": updated_rastrear_id}), 200
+    return jsonify({"message": "Rastreamento atualizado com sucesso!", "id": updated_rastrear_id}), 200
 
 # Rota DELETE para excluir Rastreamentos
 @app.route('/rastrear/<int:rastrear_id>', methods=['DELETE'])
@@ -247,7 +295,7 @@ def update_congregation(congregation_id):
                                 ss_nome=data.get('ss_nome'), ss_contato=data.get('ss_contato'),
                                 srv_terr_nome=data.get('srv_terr_nome'), srv_terr_contat=data.get('srv_terr_contat'))
     update_congregation_id = congregation_service.update_congregation(congregation_id, congregation)
-    return jsonify({"message": "Congregação add com sucesso!", "congregation_id": update_congregation_id}), 200
+    return jsonify({"message": "Congregação add com sucesso!", "id": update_congregation_id}), 200
 
 @app.route('/congregs', methods=['POST'])
 def add_congregation():
@@ -257,7 +305,7 @@ def add_congregation():
                                 ss_nome=data.get('ss_nome'), ss_contato=data.get('ss_contato'),
                                 srv_terr_nome=data.get('srv_terr_nome'), srv_terr_contat=data.get('srv_terr_contat'))
     congregation_id = congregation_service.add_congregation(congregation)
-    return jsonify({"message": "Congregação add com sucesso!", "congregation_id": congregation_id}), 201
+    return jsonify({"message": "Congregação add com sucesso!", "id": congregation_id}), 201
 
 @app.route('/congregsall', methods=['GET'])
 def get_congregations():
@@ -283,6 +331,8 @@ def get_pubcall():
     pubc = pubc_service.get_all_pubc()
     return jsonify([{
         **dict(pubc),
+        'pub_dtbatism': format_date(pubc.get('pub_dtbatism')),
+        'pub_dtnasc': format_date(pubc.get('pub_dtnasc')),
         'data_inclu': format_date(pubc.get('data_inclu'))
     } for pubc in pubc])
 
@@ -328,7 +378,7 @@ def update_pubc(pubc_id):
                         resp_obs=data.get('resp_obs')
                         )
     updated_pubc_id = pubc_service.update_pubc(pubc_id, pubc)
-    return jsonify({"message": "Publicador atualizado com sucesso!", "pubc_id": updated_pubc_id}), 200
+    return jsonify({"message": "Publicador atualizado com sucesso!", "id": updated_pubc_id}), 200
 
 # Rota DELETE para excluir Publicador
 @app.route('/pubc/<int:pubc_id>', methods=['DELETE'])
@@ -383,7 +433,7 @@ def update_desig(desig_id):
                         dsg_obs=data.get('dsg_obs')
                         )
     updated_desig_id = desig_service.update_desig(desig_id, desig)
-    return jsonify({"message": "Designação atualizada com sucesso!", "desig_id": updated_desig_id}), 200
+    return jsonify({"message": "Designação atualizada com sucesso!", "id": updated_desig_id}), 200
 	   
 # Rota DELETE para excluir Designação
 @app.route('/desig/<int:desig_id>', methods=['DELETE'])
@@ -466,7 +516,7 @@ def update_territ(territ_id):
                         terr_obs=data.get('terr_obs')
                         )
     updated_territ_id = territ_service.update_territ(territ_id, territ)
-    return jsonify({"message": "Território atualizado com sucesso!", "desig_id": updated_territ_id}), 200
+    return jsonify({"message": "Território atualizado com sucesso!", "id": updated_territ_id}), 200
 	   
 # Rota DELETE para excluir Território
 @app.route('/territ/<int:territ_id>', methods=['DELETE'])
@@ -479,8 +529,7 @@ def delete_territ(territ_id):
     except Exception as e:
         return jsonify({"message": "Erro ao excluir a Território", "error": str(e)}), 500
 
-
 if __name__ == '__main__':
   ## habilite essa linha modo desenvolvedor
   #  app.run(debug=True)
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host=config_env.FLASK_HOST, port=config_env.FLASK_PORT)

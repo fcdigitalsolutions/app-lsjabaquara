@@ -52,14 +52,22 @@ class Congregation:
         self.srv_terr_contat = srv_terr_contat
 
 class AuthLogin:
-    def __init__(self, user_login, user_name, user_pswd, user_gestor, user_id_publica, user_receb_msg ):
+    def __init__(
+            self, user_login, user_name, user_pswd, user_gestor,
+            user_gestor_terr,user_gestor_rmwb,user_gestor_rfds,user_gestor_mecan,
+            user_id_publica, user_receb_msg,user_dt_inclu ):
         self.user_login = user_login
         self.user_name = user_name
         self.user_pswd = user_pswd
         self.user_gestor = user_gestor
+        self.user_gestor_terr = user_gestor_terr
+        self.user_gestor_rmwb = user_gestor_rmwb
+        self.user_gestor_rfds = user_gestor_rfds
+        self.user_gestor_mecan = user_gestor_mecan
         self.user_id_publica = user_id_publica
         self.user_receb_msg = user_receb_msg
-             
+        self.user_dt_inclu = user_dt_inclu
+        
 class Publicadores: 
     def __init__(self, data_inclu, pub_nome,pub_contat, pub_login, pub_email, pub_endereco, pub_regiao, pub_uf, pub_dtbatism, pub_dtnasc, desig_servic, desig_campo, pub_status,pub_id_publica, resp_obs ):
         self.data_inclu	  = data_inclu

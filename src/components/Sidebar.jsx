@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { FaMapMarkedAlt, FaMapPin, FaSignOutAlt, FaBars, FaHouseUser, FaChalkboardTeacher, FaUserTie } from 'react-icons/fa';
-import { FaPeopleGroup, FaPersonCirclePlus, FaFileInvoice } from 'react-icons/fa6';
+import { FaPeopleGroup, FaPersonCirclePlus, FaFileInvoice, FaUserGear } from 'react-icons/fa6';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const routes = [
@@ -13,6 +13,7 @@ const routes = [
   { path: "/home/form-pubc", name: "Publicadores", icon: <FaUserTie /> },
   { path: "/home/form-desig", name: "Designações", icon: <FaChalkboardTeacher /> },
   { path: "/home/form-region", name: "Regiões", icon: <FaMapPin /> },         // Caminhos atualizados
+  { path: "/home/form-users", name: "Usuários", icon: <FaUserGear /> },         // Caminhos atualizados
   { path: "/", name: "Sair", icon: <FaSignOutAlt /> },
 ];
 

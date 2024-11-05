@@ -21,6 +21,7 @@ import PubcDash from './pages/PubcDash';
 import PubcForm from './pages/PubcForm';
 import DesigDash from './pages/DesigDash';
 import DesigForm from './pages/DesigForm';
+import UsersForm from './pages/UsersForm';
 
 import './styles/App.css'; // Certifique-se de que o caminho está correto
 
@@ -56,6 +57,7 @@ const App = () => {
                   <Route path="form-pubc"    element={<PubcForm />} />
                   <Route path="dash-desig"   element={<DesigDash />} />
                   <Route path="form-desig"   element={<DesigForm />} />
+                  <Route path="form-users"   element={<UsersForm />} />
                 </Routes>
               </Sidebar>
             )} />

@@ -18,17 +18,70 @@ class AuthService:
         if authlogin:
             return dict(zip([desc[0] for desc in cursor.description], authlogin))
         return None
-    
+   
     def add_auth_login(self, authlogin):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO master_login (user_login, user_name, user_pswd) VALUES (%s, %s, %s)',
-                       (authlogin.user_login, authlogin.user_name, authlogin.user_pswd))
+        cursor.execute(
+            """ INSERT INTO master_login (
+                            user_login,user_name,user_id_publica,
+                            user_receb_msg,user_gestor,user_gestor_terr,user_gestor_rmwb,
+                            user_gestor_rfds,user_gestor_mecan,user_dt_inclu,user_pswd) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """ , (authlogin.user_login,authlogin.user_name,
+                   authlogin.user_id_publica,authlogin.user_receb_msg,
+                   authlogin.user_gestor,authlogin.user_gestor_terr,
+                   authlogin.user_gestor_rmwb,authlogin.user_gestor_rfds,
+                   authlogin.user_gestor_mecan,authlogin.user_dt_inclu,
+                   authlogin.user_pswd))
         conn.commit()
         authlogin_id = cursor.lastrowid
         conn.close()
         return authlogin_id
+    
+    def get_all_logins(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """ 
+             select 
+                id,user_login,user_name,user_id_publica,user_receb_msg,
+                user_gestor,user_gestor_terr,user_gestor_rmwb,user_gestor_rfds,
+                user_gestor_mecan, user_dt_inclu
+             from master_login where 1=1
+            """ )
+        authlogin = cursor.fetchall()
+        result = rows_to_dict(cursor, authlogin)
+        conn.close()
+        return result
 
+    def update_authlogin(self, authlogin_id, authlogin):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE master_login SET user_pswd= %s, user_name= %s,user_receb_msg= %s, user_gestor= %s, user_gestor_terr= %s, user_gestor_rmwb= %s, user_gestor_rfds= %s, user_gestor_mecan= %s WHERE id= %s',
+                    (authlogin.user_pswd,authlogin.user_name,authlogin.user_receb_msg,authlogin.user_gestor,authlogin.user_gestor_terr,authlogin.user_gestor_rmwb,authlogin.user_gestor_rfds,authlogin.user_gestor_mecan, authlogin_id ))
+        conn.commit()
+        conn.close()
+        return authlogin_id
+
+    def delete_authlogin(self, authlogin_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o login existe antes de tentar deletar
+        cursor.execute('SELECT * FROM master_login WHERE id = %s', (authlogin_id,))
+        authlogin = cursor.fetchone()
+
+        if not authlogin:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se a indicação existe, faz a exclusão
+        cursor.execute('DELETE FROM master_login WHERE id = %s', (authlogin_id,))
+        conn.commit()
+        conn.close()
+        return authlogin_id
+    
 class CongregacaoService:
     def add_congregation(self, congregacao):
         conn = get_db_connection()

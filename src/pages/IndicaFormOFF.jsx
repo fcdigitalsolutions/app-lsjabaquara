@@ -97,6 +97,7 @@ const IndicaFormOff = () => {
     try {
       const defaultDtInclu = formatDateTime(Data_Atual);
       const defaultOrigem = '';
+      const defaultEndconfirm = '1';
       // Faz uma requisição POST para a API
       await api_service.post('/indica', {
         data_inclu: defaultDtInclu,
@@ -106,7 +107,7 @@ const IndicaFormOff = () => {
         cod_regiao,
         enderec,
         origem: defaultOrigem,
-        end_confirm,
+        end_confirm: defaultEndconfirm,
         obs
       });
 
