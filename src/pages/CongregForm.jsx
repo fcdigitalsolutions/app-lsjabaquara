@@ -26,6 +26,7 @@ const CongregaForm = () => {
     srv_terr_contat: ''
   });
 
+
   useEffect(() => {
     api_service.get('/congregsall')
       .then((response) => {

@@ -87,14 +87,16 @@ class Publicadores:
         self.resp_obs	  = resp_obs			   
     
 class Designacoes: 
-    def __init__(self, data_inclu, dsg_data, pub_nome, dsg_tipo, dsg_detalhes, dsg_conselh, dsg_mapa_cod, dsg_mapa_end, dsg_status, dsg_obs, pub_obs ):
+    def __init__(self, data_inclu, dsg_data,pub_login,pub_nome,dsg_tipo,dsg_detalhes,dsg_conselh,dsg_mapa_cod,dsg_mapa_url,dsg_mapa_end,dsg_status,dsg_obs,pub_obs ):
         self.data_inclu	  = data_inclu
         self.dsg_data     = dsg_data
+        self.pub_login     = pub_login
         self.pub_nome     = pub_nome
         self.dsg_tipo     = dsg_tipo
         self.dsg_detalhes = dsg_detalhes
         self.dsg_conselh  = dsg_conselh
         self.dsg_mapa_cod = dsg_mapa_cod
+        self.dsg_mapa_url = dsg_mapa_url
         self.dsg_mapa_end = dsg_mapa_end
         self.dsg_status	  = dsg_status
         self.dsg_obs      = dsg_obs
@@ -128,3 +130,18 @@ class Territorios:
         self.terr_desig    = terr_desig  
         self.melhor_hora   = melhor_hora   
         self.terr_obs      = terr_obs         
+
+class RelVisita: 
+    def __init__(self, data_inclu, visit_data,pub_login,pub_nome,visit_cod,visit_url,visit_ender,visit_status,num_pessoas,melhor_dia,melhor_hora,terr_obs ):
+        self.data_inclu	    = data_inclu
+        self.visit_data     = visit_data
+        self.pub_login      = pub_login
+        self.pub_nome       = pub_nome
+        self.visit_cod      = visit_cod
+        self.visit_url      = visit_url
+        self.visit_ender    = visit_ender
+        self.visit_status   = visit_status
+        self.num_pessoas    = num_pessoas
+        self.melhor_dia     = melhor_dia
+        self.melhor_hora	= melhor_hora
+        self.terr_obs       = terr_obs

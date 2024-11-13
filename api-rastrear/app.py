@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import Region,Congregation,Indicacoes,Rastreamento,AuthLogin,RegistroNC,Publicadores,Designacoes,Territorios
-from services import RegionService,CongregacaoService,IndicaService,RastrearService,AuthService,RegistroNCService,PublicaService,DesignService,TerritService
+from models import Region,Congregation,Indicacoes,Rastreamento,AuthLogin,RegistroNC,Publicadores,Designacoes,Territorios,RelVisita
+from services import RegionService,CongregacaoService,IndicaService,RastrearService,AuthService,RegistroNCService,PublicaService,DesignService,TerritService,VisitaService
 from database import init_db
 from datetime import datetime
 import config_env
@@ -17,7 +17,7 @@ auth_service = AuthService()
 pubc_service = PublicaService()
 desig_service = DesignService()
 territ_service = TerritService()
-
+rvisita_service = VisitaService()
 
 # Inicializa o banco de dados
 init_db()
@@ -60,7 +60,21 @@ def authenticate_user():
     user = auth_service.get_auth_login(user_login, user_pswd)
     
     if user:
-        return jsonify({"message": "Autenticação bem-sucedida!"}), 200
+    #    return jsonify({"message": "Autenticação bem-sucedida!"}), 200
+    
+        return jsonify({
+            'message': "Autenticação bem-sucedida!", 
+            'iduser': user.get('user_login'),
+            'nome': user.get('user_name'),
+		    'idpublicador': user.get('user_id_publica'),
+		    'receb_msg': user.get('user_receb_msg'),
+		    'gestor': user.get('user_gestor'),
+		    'gestor_terr': user.get('user_gestor_terr'),
+		    'gestor_rmwb': user.get('user_gestor_rmwb'),
+		    'gestor_rfds': user.get('user_gestor_rfds'),
+		    'gestor_mecan': user.get('user_gestor_mecan'),
+		    'dtinclusao': format_date(user.get('user_dt_inclu'))
+		    }), 200
     else:
         return jsonify({"message": "Credenciais inválidas!"}), 401
 
@@ -82,6 +96,7 @@ def add_auth_login():
     
     authlogin_id = auth_service.add_auth_login(authlogin)
     return jsonify({"id": authlogin_id, "message": "Usuário add com sucesso!"}), 201
+
 
 @app.route('/authxadd1/<int:authlogin_id>', methods=['PUT'])
 def update_authlogin(authlogin_id):
@@ -397,20 +412,34 @@ def delete_publi(pubc_id):
 def get_desigall():
     desig = desig_service.get_all_desig()
     return jsonify([{
-        **dict(desig),
+        **dict(desig),        
+        'dsg_data': format_date(desig.get('dsg_data')),
         'data_inclu': format_date(desig.get('data_inclu'))
     } for desig in desig])
+
+## Rotas da API para o cadastro de Designações 
+@app.route('/desig/<string:desig_user>', methods=['GET'])
+def get_desiguser(desig_user):
+    desig = desig_service.get_desig_user(desig_user)
+    return jsonify([{
+        **dict(desig_item),
+        'dsg_data': format_date(desig_item.get('dsg_data')),
+        'data_inclu': format_date(desig_item.get('data_inclu'))
+    } for desig_item in desig])
 
 @app.route('/desig', methods=['POST'])
 def add_desig():
     data = request.json
     desig = Designacoes(data_inclu=parse_date(data.get('data_inclu')),
                         dsg_data=parse_date(data.get('dsg_data')),
+                        pub_login=data.get('pub_login'),
                         pub_nome=data.get('pub_nome'),
+                        pub_obs=data.get('pub_obs'),
                         dsg_tipo=data.get('dsg_tipo'),
                         dsg_detalhes=data.get('dsg_detalhes'),
                         dsg_conselh=data.get('dsg_conselh'),
                         dsg_mapa_cod=data.get('dsg_mapa_cod'),
+                        dsg_mapa_url=data.get('dsg_mapa_url'),
                         dsg_mapa_end=data.get('dsg_mapa_end'),
                         dsg_status=data.get('dsg_status'),
                         dsg_obs=data.get('dsg_obs')
@@ -423,11 +452,14 @@ def update_desig(desig_id):
     data = request.json
     desig = Designacoes(data_inclu=parse_date(data.get('data_inclu')),
                         dsg_data=parse_date(data.get('dsg_data')),
+                        pub_login=data.get('pub_login'),
                         pub_nome=data.get('pub_nome'),
+                        pub_obs=data.get('pub_obs'),
                         dsg_tipo=data.get('dsg_tipo'),
                         dsg_detalhes=data.get('dsg_detalhes'),
                         dsg_conselh=data.get('dsg_conselh'),
                         dsg_mapa_cod=data.get('dsg_mapa_cod'),
+                        dsg_mapa_url=data.get('dsg_mapa_url'),
                         dsg_mapa_end=data.get('dsg_mapa_end'),
                         dsg_status=data.get('dsg_status'),
                         dsg_obs=data.get('dsg_obs')
@@ -528,8 +560,72 @@ def delete_territ(territ_id):
         return jsonify({"message": "Território não encontrada!"}), 404
     except Exception as e:
         return jsonify({"message": "Erro ao excluir a Território", "error": str(e)}), 500
+    
+
+## ## ## ## ##  ##  ##  ##  ## 
+## Rotas da API para relatorio de visitas   
+@app.route('/rvisitall', methods=['GET'])
+def get_rvisitall():
+    rvisitas = rvisita_service.get_all_visit()
+    return jsonify([{
+        **dict(rvisitas),        
+        'visit_data': format_date(rvisitas.get('visit_data')),
+        'data_inclu': format_date(rvisitas.get('data_inclu'))
+    } for rvisitas in rvisitas])
+
+@app.route('/rvisitas', methods=['POST'])
+def add_rvisitas():
+    data = request.json
+    rvisitas = RelVisita(data_inclu=parse_date(data.get('data_inclu')),
+                        visit_data=parse_date(data.get('visit_data')),
+                        pub_login=data.get('pub_login'),
+                        pub_nome=data.get('pub_nome'),
+                        visit_cod=data.get('visit_cod'),
+                        visit_url=data.get('visit_url'),
+                        visit_ender=data.get('visit_ender'),
+                        visit_status=data.get('visit_status'),
+                        num_pessoas=data.get('num_pessoas'),
+                        melhor_dia=data.get('melhor_dia'),                        
+                        melhor_hora=data.get('melhor_hora'),
+                        terr_obs=data.get('terr_obs')                      
+                        )     
+    rvisitas_id = rvisita_service.add_visit(rvisitas)
+    return jsonify({"id": rvisitas_id, "message": "Registro add com sucesso!"}), 201
+
+@app.route('/rvisitas/<int:rvisitas_id>', methods=['PUT'])
+def update_rvisitas(rvisitas_id):
+    data = request.json
+    rvisitas = RelVisita(data_inclu=parse_date(data.get('data_inclu')),
+                        visit_data=parse_date(data.get('visit_data')),
+                        pub_login=data.get('pub_login'),
+                        pub_nome=data.get('pub_nome'),
+                        visit_cod=data.get('visit_cod'),
+                        visit_url=data.get('visit_url'),
+                        visit_ender=data.get('visit_ender'),
+                        visit_status=data.get('visit_status'),
+                        num_pessoas=data.get('num_pessoas'),
+                        melhor_dia=data.get('melhor_dia'),                        
+                        melhor_hora=data.get('melhor_hora'),
+                        terr_obs=data.get('terr_obs')                      
+                        )     
+    updated_rvisitas_id = rvisita_service.update_visit(rvisitas_id, rvisitas)
+    return jsonify({"message": "Registro atualizado com sucesso!", "id": updated_rvisitas_id}), 200
+	   
+
+# Rota DELETE para relatorio de visitas
+@app.route('/rvisitas/<int:rvisitas_id>', methods=['DELETE'])
+def delete_rvisitas(rvisitas_id):
+    try:
+        rvisita_service.delete_visit(rvisitas_id)  # Chama o serviço para deletar Publicador
+        return jsonify({"message": "Registro excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Registro não encontrada!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
+    
 
 if __name__ == '__main__':
   ## habilite essa linha modo desenvolvedor
   #  app.run(debug=True)
     app.run(host=config_env.FLASK_HOST, port=config_env.FLASK_PORT)
+

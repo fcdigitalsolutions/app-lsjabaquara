@@ -10,6 +10,12 @@
   display: flex;
 }
 
+.content {
+  overflow-y: auto;
+  max-height: calc(100vh - 100px); /* Ajuste conforme necessário */
+}
+
+
 .sidebar {
   background: #202038;
   color: rgb(241, 241, 241);
@@ -52,6 +58,79 @@
 .sidebar ul li a .link_text {
   white-space: nowrap;
   font-size: 10px; /* Tamanho da fonte reduzido */
+}
+
+/* Geral para o container principal */
+.main-containerusers {
+  display: flex;
+  flex-direction: column;
+}
+
+/* SidebarUser: Layout e estilo horizontal */
+.sidebaruser {
+  width: 100%;
+  background-color: #202038; /* Cor de fundo */
+  color: white;
+  padding: 2px 16px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Sombra para destacar o topo */
+  display: flex;
+  justify-content: center; /* Centraliza o menu */
+}
+
+.sidebaruser h2 {
+  text-align: center;
+  font-size: 8px;
+}
+
+.sidebaruser ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.sidebaruser ul li {
+  padding: 2px 2px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebaruser ul li a {
+  color: rgb(241, 241, 241);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.sidebaruser ul li a .icon {
+  margin-right: 2px; /* Diminuído o espaçamento à direita do ícone */
+}
+
+.sidebaruser ul li a .link_text {
+  white-space: nowrap;
+  font-size: 6px; /* Tamanho da fonte reduzido */
+}
+
+/* Estilo horizontal para os itens de menu */
+.routesusers {
+  display: flex;
+  gap: 2px; /* Espaçamento entre os itens */
+}
+
+.linkusers {
+  display: flex;
+  color: rgb(241, 241, 241);
+  gap: 2px;
+  padding: 8px 6px;
+  border-right: 4px solid transparent;
+  transition: 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+  align-items: center;
+}
+
+.linkusers:hover {
+  border-right: 4px solid rgb(45, 51, 89);
+  transition: 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+  background: rgb(45, 51, 89);
 }
 
 .top_section {
@@ -97,3 +176,83 @@
   border-right: 4px solid rgb(241, 241, 241);
   background: rgb(45, 51, 89);
 }
+
+/* Alinhamento e Estilo para Container Geral do Usuário */
+.main-container-user {
+  position: relative;
+  max-width: 100vw;
+  min-height: 200vw;
+  background-color: #202038;
+  padding: 10px;
+  color: #67e7eb;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.card-container-user {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* Estilo dos Cards de Designação */
+.card-box-user {
+  flex: 1 1 200px;
+  max-width: 250px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+}
+
+.card-user {
+  padding: 8px; /* Reduzido para diminuir a altura */
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-badge-user {
+  padding: 4px;
+  border-radius: 8px;
+  font-size: 0.6rem;
+  color: #ffffff;
+  text-align: center;
+  width: 130px;
+  margin: 0 auto;
+  background-color: #CC0000; /* Ajuste conforme o status */
+  position: relative; /* Necessário para centralizar */
+  top: -15px; /* Ajuste fino para centralizar verticalmente */
+}
+
+/* Ajustes para o Botão "Abrir Mapa" */
+.open-map-button-user {
+  font-size: 0.6rem;
+  padding: 4px 10px;
+  background-color: #67e7eb;
+  color: #202038;
+  transition: background-color 0.3s ease;
+  text-align: center;
+  margin-top: 4px;
+  align-self: center;
+  margin-bottom: 6px; /* Ajuste de margem para alinhar com a badge */
+}
+
+.open-map-button-user:hover {
+  background-color: #ffffff;
+  color: #2c2c4e;
+}
+
+.div-map-user {
+  padding: 4px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  color: #ffffff;
+  text-align: center;
+  width: 130px;
+  margin: 0 auto;
+  position: relative; /* Necessário para centralizar */
+}
+

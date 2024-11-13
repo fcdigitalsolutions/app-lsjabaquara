@@ -136,11 +136,13 @@ def init_db():
 	            id INT AUTO_INCREMENT PRIMARY KEY,
 	            data_inclu	  datetime NULL,
                 dsg_data	  datetime NULL,
+                pub_login     varchar(255) NULL,
 	            pub_nome      varchar(255) NULL,	
                 dsg_tipo      varchar(255) NULL,
                 dsg_detalhes  varchar(255) NULL, 
                 dsg_conselh   varchar(255) NULL, 
                 dsg_mapa_cod  varchar(255) NULL, 
+                dsg_mapa_url  varchar(255) NULL, 
                 dsg_mapa_end  varchar(255) NULL,
                 dsg_status    varchar(255) NULL,                 
 	            dsg_obs		  text,
@@ -177,7 +179,24 @@ def init_db():
                 terr_obs      text             
             )
         ''')        
-
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS mov_relat_visitas (
+	            id INT AUTO_INCREMENT PRIMARY KEY,
+	            data_inclu	   datetime NULL,
+                visit_data     datetime NULL,
+                pub_login      varchar(255) NULL,        
+				pub_nome       varchar(255) NULL,
+	            visit_cod      varchar(255) NULL,	
+                visit_url      varchar(255) NULL, 
+                visit_ender    varchar(255) NULL,     
+                visit_status   varchar(255) NULL,
+                num_pessoas    int NULL,
+                melhor_dia     varchar(255) NULL,
+                melhor_hora    varchar(255) NULL,      
+                terr_obs       text             
+            )
+        ''')    
+            
         conn.commit()
         cursor.close()
         conn.close()

@@ -2,65 +2,88 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import PrivateRoute from './components/PrivateRoute'; // O componente que verifica a autenticação
+import SidebarUser from './components/SidebarUser';
+import PrivateRoute from './components/PrivateRoute';
+import SelectTpUser from './components/SelectTpUser';
 import LoginForm from './pages/LoginForm';
+import FormUserView from './pages/FormUserView';
 import RegionForm from './pages/RegionForm';
 import CongregForm from './pages/CongregForm';
-import CongregDash from './pages/CongregDash';
 import IndicaForm from './pages/IndicaForm';
-import IndicaDash from './pages/IndicaDash';
 import IndicaFormOFF from './pages/IndicaFormOFF';
-import RegNCDash from './pages/RegistroNCDash';
 import RegistroNC from './pages/RegistroNC';
 import RegistroNCOff from './pages/RegistroNCOff';
-import RastreaDash from './pages/RastreaDash';
 import RastreaForm from './pages/RastreaForm';
 import EnderecForm from './pages/EnderecForm';
 import RelCampForm from './pages/RelCampForm';
-import PubcDash from './pages/PubcDash';
 import PubcForm from './pages/PubcForm';
-import DesigDash from './pages/DesigDash';
 import DesigForm from './pages/DesigForm';
 import UsersForm from './pages/UsersForm';
+import RelVisitForm from './pages/RelVisitForm';
 
-import './styles/App.css'; // Certifique-se de que o caminho está correto
+import './styles/App.css';
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Rota pública para login */}
         <Route path="/" element={<LoginForm />} />
         <Route path="/regist-ncoff" element={<RegistroNCOff />} />
         <Route path="/indic-formoff" element={<IndicaFormOFF />} />
-        <Route path="/relatoriocampo" element={<RelCampForm />} />
 
-        {/* Proteger a rota base /home com PrivateRoute */}
+        {/* Rota para a página de seleção de modo, apenas para administradores */}
+        <Route
+          path="/ls"
+          element={
+            <PrivateRoute
+              adminOnly={true}
+              adminComponent={() => <SelectTpUser />} // Passa SelectTpUser como função anônima
+            />
+          }
+        />
+
+        {/* Rotas para usuários simples usando SidebarUser */}
+        <Route
+          path="/huser/*"
+          element={
+            <PrivateRoute
+              userComponent={() => (
+                <SidebarUser>
+                  <Routes>
+                    <Route path="form-userview" element={<FormUserView />} />
+                    <Route path="relatoriocampo" element={<RelCampForm />} />
+                    <Route path="/ls" element={<SelectTpUser />} />
+                  </Routes>
+                </SidebarUser>
+              )}
+            />
+          }
+        />
+
+        {/* Rotas para administradores usando Sidebar */}
         <Route
           path="/home/*"
           element={
-            <PrivateRoute component={() => (
-              <Sidebar>
-                <Routes>
-                  {/* Rotas protegidas */}
-                  <Route path="form-region" element={<RegionForm />} />
-                  <Route path="form-congreg" element={<CongregForm />} />
-                  <Route path="dash-congreg" element={<CongregDash />} />
-                  <Route path="form-indicac" element={<IndicaForm />} />
-                  <Route path="dash-indicac" element={<IndicaDash />} />
-                  <Route path="form-registnc" element={<RegistroNC />} />
-                  <Route path="dash-registnc" element={<RegNCDash />} />
-                  <Route path="form-rastrea" element={<RastreaForm />} />
-                  <Route path="dash-rastrea" element={<RastreaDash />} />
-                  <Route path="form-enderec" element={<EnderecForm />} />
-                  <Route path="dash-pubc"    element={<PubcDash />} />
-                  <Route path="form-pubc"    element={<PubcForm />} />
-                  <Route path="dash-desig"   element={<DesigDash />} />
-                  <Route path="form-desig"   element={<DesigForm />} />
-                  <Route path="form-users"   element={<UsersForm />} />
-                </Routes>
-              </Sidebar>
-            )} />
+            <PrivateRoute
+              adminOnly={true}
+              adminComponent={() => (
+                <Sidebar>
+                  <Routes>
+                    <Route path="form-region" element={<RegionForm />} />
+                    <Route path="form-congreg" element={<CongregForm />} />
+                    <Route path="form-indicac" element={<IndicaForm />} />
+                    <Route path="form-registnc" element={<RegistroNC />} />
+                    <Route path="form-rastrea" element={<RastreaForm />} />
+                    <Route path="form-enderec" element={<EnderecForm />} />
+                    <Route path="form-pubc" element={<PubcForm />} />
+                    <Route path="form-desig" element={<DesigForm />} />
+                    <Route path="form-visit" element={<RelVisitForm />} />
+                    <Route path="form-users" element={<UsersForm />} />
+                    <Route path="/ls" element={<SelectTpUser />} />
+                  </Routes>
+                </Sidebar>
+              )}
+            />
           }
         />
       </Routes>

@@ -83,7 +83,7 @@ const RastreaForm = () => {
   // Função para enviar novo rastreamento
   const handleNewIndicationSubmit = async (e) => {
     e.preventDefault();
-    const { nome_publica, num_contato, cod_congreg, cod_regiao, enderec, origem, obs } = newIndication;
+    const { nome_publica, num_contato, cod_congreg, cod_regiao, enderec, origem } = newIndication;
 
     if (!nome_publica || !num_contato || !cod_congreg || !cod_regiao || !enderec || !origem) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');

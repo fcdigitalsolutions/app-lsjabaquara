@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import InputMask from 'react-input-mask';
-import { Box, Menu, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent, Paper, TablePagination, Button, TextField, Typography, Select, FormControl, Checkbox } from '@mui/material';
+import {
+  Box, Menu, MenuItem, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Card, CardContent, Paper, TablePagination, Button,
+  TextField, Typography, Select, FormControl, Checkbox,
+  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+} from '@mui/material';
+
 import { FaChevronDown, FaFileExport, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 import * as XLSX from 'xlsx'; // Importe a biblioteca XLSX
 import Switch from '@mui/material/Switch';
@@ -15,21 +21,110 @@ const IndicaForm = () => {
   const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [selected, setSelected] = useState([]);
-  const totalPendentes = data.filter(item => item.num_visitas <= 1).length;
-  const totalConcluidos = data.filter(item => item.num_visitas >= 2).length;
+  const totalPendentes = data.filter(item => item.end_confirm === '1').length;
+  const totalConcluidos = data.filter(item => item.end_confirm === '2').length;
   const totalRegioes = new Set(data.map(item => item.cod_regiao)).size;
   const [rowsPerPage, setRowsPerPage] = useState(10); // Limite de linhas por página
   const Data_Atual = new Date();
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [pendingNewTerritor, setPendingNewTerritor] = useState(null);
+  const [nextTerrNome, setNextTerrNome] = useState('');
+
+  useEffect(() => {
+    fetchLastTerrNome();
+  }, []);
+
+  // Função para buscar o último valor de `terr_nome` e calcular o próximo
+  const fetchLastTerrNome = async () => {
+    try {
+      const response = await api_service.get('/territall');
+      const data = response.data;
+
+      if (data.length > 0) {
+        // Encontrar o último código no campo `terr_nome`
+        const lastTerrNome = data[data.length - 1].terr_nome;
+        
+        // Extrair a letra e o número, incrementando o número em 1
+        const letterPart = lastTerrNome.match(/[A-Za-z]+/)[0];
+        const numberPart = parseInt(lastTerrNome.match(/\d+/)[0]) + 1;
+
+        // Formatar o próximo código
+        const newTerrNome = `${letterPart}${numberPart}`;
+        setNextTerrNome(newTerrNome);
+      } else {
+        setNextTerrNome('A1'); // Valor inicial se não houver registros
+      }
+    } catch (error) {
+      console.error("Erro ao buscar o último código de `terr_nome`: ", error);
+      setNextTerrNome('A1'); // Valor padrão caso ocorra erro
+    }
+  };
 
   const formatDateTime = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
     const day = String(date.getDate()).padStart(2, '0');
-  
+
     return `${day}/${month}/${year}`;
   };
 
   const defaultDtInclu = formatDateTime(Data_Atual);
+
+  const handleEndConfirmChange = async (e, row) => {
+    const newEndConfirm = e.target.value;
+    const updatedRowData = { ...row, end_confirm: newEndConfirm };
+
+    setEditedRowData(updatedRowData);
+
+    if (newEndConfirm === '2') { // Se "Confirmado"
+      const newTerritor = {
+        data_inclu: defaultDtInclu,
+        dt_ultvisit: defaultDtInclu,
+        dt_visit02: null,
+        dt_visit03: null,
+        dt_visit04: null,
+        id: row.id,
+        melhor_dia_hora: null,
+        melhor_hora: null,
+        num_pessoas: 1,
+        pub_tvis02: null,
+        pub_tvis03: null,
+        pub_tvis04: null,
+        pub_ultvisi: row.nome_publica,
+        terr_classif: '0',
+        terr_coord: row.coord, // ou outro campo apropriado
+        terr_cor: '2',
+        terr_desig: '1',
+        terr_enderec: row.enderec,
+        terr_link: row.indic_url_map,
+        terr_morador: 'SURDO (Vide Indicação)',
+        terr_nome: nextTerrNome, // ou outro valor apropriado
+        terr_obs: row.obs,
+        terr_regiao: row.cod_regiao,
+        terr_status: '0',
+        terr_tp_local: '1'
+      };
+
+      setPendingNewTerritor(newTerritor);
+      setOpenConfirmDialog(true); // Abre o diálogo de confirmação
+    } else {
+      setPendingNewTerritor(null);
+    }
+  };
+
+  const handleConfirmNewTerritor = async (confirm) => {
+    setOpenConfirmDialog(false);
+    if (confirm && pendingNewTerritor) {
+      try {
+        await api_service.post('/territ', pendingNewTerritor);
+        setMessage('Novo registro de mapa criado com sucesso!');
+      } catch (error) {
+        console.error("Erro ao criar novo registro de mapa: ", error);
+        setMessage('Erro ao criar novo registro de mapa.');
+      }
+    }
+    setPendingNewTerritor(null);
+  };
 
   const [newIndication, setNewIndication] = useState({
     end_confirm: '1',
@@ -229,16 +324,16 @@ const IndicaForm = () => {
   };
   // Função para determinar o status com base na confirmação do endereço
   const getStatus = (end_confirm) => {
-      switch (end_confirm) {
-        case '1':
-      return 'Pendente';
+    switch (end_confirm) {
+      case '1':
+        return 'Pendente';
       case '2':
         return 'Confirmado';
-        case '3':
-          return 'NA';
-        default:
-          return 'Outros';
-    } 
+      case '3':
+        return 'NA';
+      default:
+        return 'Outros';
+    }
   };
 
   // Função para determinar a cor de fundo da célula com base no status
@@ -248,8 +343,8 @@ const IndicaForm = () => {
         return 'green';
       case 'Confirmado':
         return '#202038';
-        case 'NA':
-          return '#708090';
+      case 'NA':
+        return '#708090';
       default:
         return 'transparent';
     }
@@ -558,7 +653,8 @@ const IndicaForm = () => {
                             <Select
                               name="end_confirm"
                               value={editedRowData.end_confirm}
-                              onChange={handleInputChange}
+                              onChange={(e) => handleEndConfirmChange(e, editedRowData)} // Chama a função aqui
+
                             >
                               <MenuItem value="1">Pendente</MenuItem>
                               <MenuItem value="2">Confirmado</MenuItem>
@@ -715,6 +811,27 @@ const IndicaForm = () => {
           </button>
         </Box>
       </Box>
+
+      {/* Diálogo de Confirmação */}
+      <Dialog
+        open={openConfirmDialog}
+        onClose={() => handleConfirmNewTerritor(false)}
+      >
+        <DialogTitle>Confirmar Ação</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Um novo registro de mapa será criado para este endereço confirmado. Deseja continuar?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleConfirmNewTerritor(false)} color="primary">
+            Não
+          </Button>
+          <Button onClick={() => handleConfirmNewTerritor(true)} color="primary" autoFocus>
+            Sim
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Formulário de nova indicação */}
       <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>

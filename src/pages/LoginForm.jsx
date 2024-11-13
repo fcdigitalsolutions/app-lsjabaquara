@@ -1,4 +1,3 @@
-// src/pages/LoginForm.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api_service from '../services/api_service'; // Importando serviço da API
@@ -10,16 +9,13 @@ const LoginForm = () => {
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
-    console.log(localStorage.getItem('token'));
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Verifica se todos os campos obrigatórios estão preenchidos
-    if (!username || !password ) {
-        setMessage('Por favor, preencha os campos de usuário e senha.');
-        return; // Impede o envio para a API
-      }
+        if (!username || !password) {
+            setMessage('Por favor, preencha os campos de usuário e senha.');
+            return;
+        }
 
         try {
             const response = await api_service.post('/auth/login', {
@@ -28,8 +24,31 @@ const LoginForm = () => {
             });
 
             if (response.status === 200) {
-                localStorage.setItem('token', response.data.token);
-                navigate('/home');
+                const userData = {
+                    message: response.data.message,
+                    iduser: response.data.iduser,
+                    nome: response.data.nome,
+                    idpublicador: response.data.idpublicador,
+                    receb_msg: response.data.receb_msg,
+                    gestor: response.data.gestor,
+                    gestor_terr: response.data.gestor_terr,
+                    gestor_rmwb: response.data.gestor_rmwb,
+                    gestor_rfds: response.data.gestor_rfds,
+                    gestor_mecan: response.data.gestor_mecan,
+                    dtinclusao: response.data.dtinclusao
+                };
+                sessionStorage.setItem('userData', JSON.stringify(userData));
+
+                // Verifica se o usuário é simples com base nos dados retornados
+                const isUserSimples = ['gestor', 'gestor_terr', 'gestor_rmwb', 'gestor_rfds', 'gestor_mecan']
+                    .every(key => userData[key] === '1');
+
+                // Redireciona com base na condição de tipo de usuário
+                if (isUserSimples) {
+                    navigate('/huser');
+                } else {
+                    navigate('/ls'); // Direciona para a página de seleção para administradores
+                }
             }
         } catch (error) {
             setMessage('Erro ao fazer login. Verifique suas credenciais.');
@@ -48,7 +67,6 @@ const LoginForm = () => {
                             id="username"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                    //        required
                             className="form-input"
                         />
                     </div>
@@ -59,7 +77,6 @@ const LoginForm = () => {
                             id="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                      //      required
                             className="form-input"
                         />
                     </div>

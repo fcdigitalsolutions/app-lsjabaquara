@@ -1,6 +1,6 @@
 # services.py
 from database import get_db_connection
-from models import Region,Congregation,Indicacoes,Rastreamento,RegistroNC,Publicadores,Designacoes,Territorios
+from models import Region,Congregation,Indicacoes,Rastreamento,RegistroNC,Publicadores,Designacoes,Territorios,RelVisita
 
 def rows_to_dict(cursor, rows):
     """Converte uma lista de tuplas em uma lista de dicionários usando os nomes das colunas."""
@@ -183,7 +183,6 @@ class IndicaService:
     def get_all_indica(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-    #    cursor.execute('SELECT * FROM cad_indicacoes')
         cursor.execute( 
             """    
                 select 
@@ -378,8 +377,8 @@ class DesignService:
     def add_desig(self,desig):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO cad_designacoes (data_inclu, dsg_data, pub_nome, dsg_tipo, dsg_detalhes, dsg_conselh, dsg_mapa_cod, dsg_mapa_end, dsg_status, dsg_obs, pub_obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-            (desig.data_inclu,desig.dsg_data,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_obs,desig.pub_obs ))
+        cursor.execute('INSERT INTO cad_designacoes (data_inclu, dsg_data,pub_login, pub_nome, dsg_tipo, dsg_detalhes, dsg_conselh, dsg_mapa_cod,dsg_mapa_url, dsg_mapa_end, dsg_status, dsg_obs, pub_obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (desig.data_inclu,desig.dsg_data,desig.pub_login,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_url,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_obs,desig.pub_obs ))
         conn.commit()
         desig_id = cursor.lastrowid
         conn.close()
@@ -388,8 +387,8 @@ class DesignService:
     def update_desig(self, desig_id, desig):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE cad_designacoes SET dsg_data= %s,pub_nome= %s,dsg_tipo= %s,dsg_detalhes= %s,dsg_conselh= %s,dsg_mapa_cod= %s,dsg_mapa_end= %s,dsg_status= %s,dsg_obs= %s,pub_obs= %s WHERE id = %s',
-            (desig.dsg_data,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_obs,desig.pub_obs, desig_id ))
+        cursor.execute('UPDATE cad_designacoes SET dsg_data= %s,pub_login= %s,pub_nome= %s,dsg_tipo= %s,dsg_detalhes= %s,dsg_conselh= %s,dsg_mapa_cod= %s,dsg_mapa_url= %s,dsg_mapa_end= %s,dsg_status= %s,dsg_obs= %s,pub_obs= %s WHERE id = %s',
+            (desig.dsg_data,desig.pub_login,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_url,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_obs,desig.pub_obs, desig_id ))
         conn.commit()
         conn.close()
         return desig_id
@@ -397,7 +396,16 @@ class DesignService:
     def get_all_desig(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM cad_designacoes')
+        cursor.execute("SELECT * FROM cad_designacoes")
+        desig = cursor.fetchall()
+        result = rows_to_dict(cursor, desig)
+        conn.close()
+        return result
+    
+    def get_desig_user(self, desig_user):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("select * from cad_designacoes where dsg_status in ('1','2','3') and pub_login = %s", (desig_user,) )
         desig = cursor.fetchall()
         result = rows_to_dict(cursor, desig)
         conn.close()
@@ -538,3 +546,68 @@ class TerritService:
         conn.commit()
         conn.close()
         return territ_id
+
+class VisitaService:
+    def add_visit(self,rvisitas):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO mov_relat_visitas (data_inclu, visit_data,pub_login, pub_nome, visit_cod, visit_url, visit_ender, visit_status,num_pessoas, melhor_dia, melhor_hora, terr_obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (rvisitas.data_inclu,rvisitas.visit_data,rvisitas.pub_login,rvisitas.pub_nome,rvisitas.visit_cod,rvisitas.visit_url,rvisitas.visit_ender,rvisitas.visit_status,rvisitas.num_pessoas,rvisitas.melhor_dia,rvisitas.melhor_hora,rvisitas.terr_obs ))
+        conn.commit()
+        rvisitas_id = cursor.lastrowid
+        conn.close()
+        return rvisitas_id
+
+    def get_all_visit(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(           
+            """
+        	select
+	            id             , 
+	            data_inclu	   ,
+                visit_data     ,
+                pub_login      ,        
+				pub_nome       ,
+	            visit_cod      ,	
+                visit_url      , 
+                visit_ender    ,     
+                visit_status   ,
+                num_pessoas    ,
+                melhor_dia     ,
+                melhor_hora    ,      
+                terr_obs       
+            from mov_relat_visitas where 1 = 1 
+            """
+            )
+        rvisitas = cursor.fetchall()
+        result = rows_to_dict(cursor, rvisitas)
+        conn.close()
+        return result
+
+    def delete_visit(self, rvisitas_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM mov_relat_visitas WHERE id = %s', (rvisitas_id,))
+        rvisitas = cursor.fetchone()
+
+        if not rvisitas:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM mov_relat_visitas WHERE id = %s', (rvisitas_id,))
+        conn.commit()
+        conn.close()
+        return rvisitas_id
+
+    def update_visit(self, rvisitas_id, rvisitas):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE mov_relat_visitas SET visit_data= %s,pub_login= %s,pub_nome= %s,visit_cod= %s,visit_url= %s,visit_ender= %s,visit_status= %s,num_pessoas= %s,melhor_dia= %s,melhor_hora= %s,terr_obs= %s WHERE id = %s',
+            (rvisitas.visit_data,rvisitas.pub_login,rvisitas.pub_nome,rvisitas.visit_cod,rvisitas.visit_url,rvisitas.visit_ender,rvisitas.visit_status,rvisitas.num_pessoas,rvisitas.melhor_dia,rvisitas.melhor_hora,rvisitas.terr_obs,rvisitas_id ))
+        conn.commit()
+        conn.close()
+        return rvisitas_id		

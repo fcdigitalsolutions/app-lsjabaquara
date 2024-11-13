@@ -7,8 +7,6 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 const RegionForm = () => {
-  
-  console.log('Token ativo: ',localStorage.getItem('token')); 
 
   const [regioes, setRegioes] = useState([]);
   const [rows, setRows] = useState([]);

@@ -109,9 +109,9 @@ const DesigForm = () => {
   const handleNewIndicationSubmit = async (e) => {
     e.preventDefault();
 
-    const { nome_publica, end_confirm, num_contato, cod_congreg, enderec } = newIndication;
+    const { dsg_data, pub_login, pub_nome, dsg_tipo, dsg_status } = newIndication;
 
-    if (!nome_publica || !end_confirm || !num_contato || !cod_congreg || !enderec) {
+    if (!dsg_data || !pub_login || !pub_nome || !dsg_tipo || !dsg_status) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -119,7 +119,7 @@ const DesigForm = () => {
     try {
       const response = await api_service.post('/desig', newIndication);
       setData([...data, response.data]); // Adiciona novo mapa aos dados
-      setNewIndication({ nome_publica: '', end_confirm: '', num_contato: '', cod_congreg: '', cod_regiao: '', enderec: '', origem: '', obs: '' }); // Limpa o formulário
+      setNewIndication({ data_inclu: '',dsg_data: '',pub_login: '',pub_nome: '',dsg_tipo: '',dsg_detalhes: '',dsg_conselh: '',dsg_mapa_cod: '',dsg_mapa_end: '',dsg_mapa_url: '' ,dsg_status: '',dsg_obs: '',pub_obs: ''  }); // Limpa o formulário
       setMessage('Mapa incluído com sucesso!');
     } catch (error) {
       console.error("Erro ao enviar as informações: ", error);
@@ -164,24 +164,53 @@ const DesigForm = () => {
     }
   };
 
-  // Função para determinar o status com base no número de visitas
-  const getStatus = (end_confirm) => {
-    if (end_confirm === '2') {
-      return 'Confirmado';
-    } else {
-      return 'Pendente';
+  const getStatusTipo = (dsg_status) => {
+    switch (dsg_status) {
+      case '0': return 'Mapa';
+      case '1': return 'Indicação';
+      case '2': return 'Dirigente Campo';
+      case '3': return 'Carrinho';
+      case '4': return 'Mecanicas';
+      case '5': return 'Reunião RMWB';
+      case '6': return 'Reunião FDS';
+      case '7': return 'Discurso Publico';
+      default: return 'Outros';
     }
   };
 
-  // Função para determinar a cor de fundo da célula com base no status
-  const getStatusColor = (status) => {
+  const getStatusColorTipo = (status) => {
     switch (status) {
-      case 'Pendente':
-        return 'green';
-      case 'Confirmado':
-        return '#202038';
-      default:
-        return 'transparent';
+      case 'Mapa': return '#2F4F2F';
+      case 'Indicação': return'#CC0000';
+      case 'Dirigente Campo': return '#42426F';
+      case 'Carrinho': return '#93DB70';
+      case 'Mecanicas': return '#000000';
+      case 'Reunião RMWB': return '#000000';
+      case 'Reunião FDS': return '#000000';
+      case 'Discurso Publico': return '#000000';
+      default: return 'transparent';
+    }
+  };
+
+  const getStatusDesig = (dsg_status) => {
+    switch (dsg_status) {
+      case '0': return 'Não Designada';
+      case '1': return 'Pendente';
+      case '2': return 'Realizada';
+      case '3': return 'Vencida';
+      case '4': return 'Encerrada';
+      default: return 'Outros';
+    }
+  };
+
+  const getStatusColorDesig = (status) => {
+    switch (status) {
+      case 'Não Designada': return '#D8BFD8';
+      case 'Pendente': return'#CC0000';
+      case 'Realizada': return '#42426F';
+      case 'Vencida': return '#5C4033';
+      case 'Encerrada': return '#000000';
+      default: return 'transparent';
     }
   };
 
@@ -228,20 +257,26 @@ const DesigForm = () => {
                       inputProps={{ 'aria-label': 'select all items' }}
                     />
                   </TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Endereço</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Detalhes</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Confirmado?</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Data</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Publicador</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Contato</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Congregação</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Nome Publicador</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Obs Publicador</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tipo</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Detalhes</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Conselho</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cod. Mapa</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>End. Mapa</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Url. Mapa</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Desig. OBS</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {currentData.map((row) => {
                   const isEditing = row.id === editRowId;
-                  const status = getStatus(row.end_confirm);
+                  const statusTipo = getStatusTipo(row.dsg_tipo);
+                  const statusDesig = getStatusDesig(row.dsg_status);
                   return (
                     <TableRow key={row.id}>
                       <TableCell TableCell align="center">
@@ -250,25 +285,34 @@ const DesigForm = () => {
                           onChange={() => handleSelect(row.id)}
                         />
                       </TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="enderec" value={editedRowData.enderec || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.enderec}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="obs" value={editedRowData.obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.obs}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="dsg_data" value={editedRowData.dsg_data || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_data}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="pub_login" value={editedRowData.pub_login || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_login}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="pub_nome" value={editedRowData.pub_nome || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_nome}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="pub_obs" value={editedRowData.pub_obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_obs}</TableCell>
                       {/* Campo editável de status */}
                       <TableCell align="center">
                         {isEditing ? (
                           <FormControl fullWidth>
                             <Select
-                              name="end_confirm"
-                              value={editedRowData.end_confirm || '1'}
+                              name="dsg_tipo"
+                              value={editedRowData.dsg_tipo || ' '}
                               onChange={handleInputChange}
                             >
-                              <MenuItem value="1">Pendente</MenuItem>
-                              <MenuItem value="2">Confirmado</MenuItem>
+                              <MenuItem value="0">Mapa</MenuItem>
+                              <MenuItem value="1">Indicação</MenuItem>
+                              <MenuItem value="2">Dirigente Campo</MenuItem>
+                              <MenuItem value="3">Carrinho</MenuItem>
+                              <MenuItem value="4">Mecanicas</MenuItem>
+                              <MenuItem value="5">Reunião RMWB</MenuItem>
+                              <MenuItem value="6">Reunião FDS</MenuItem>
+                              <MenuItem value="7">Discurso Publico</MenuItem>
+                              <MenuItem value="8">Outros</MenuItem>
                             </Select>
                           </FormControl>
                         ) : (
                           <div
                             style={{
-                              backgroundColor: getStatusColor(status),
+                              backgroundColor: getStatusColorTipo(statusTipo),
                               color: 'white',
                               padding: '2px',
                               borderRadius: '4px',
@@ -276,15 +320,53 @@ const DesigForm = () => {
                               fontSize: '0.65rem',
                             }}
                           >
-                            {status}
+                            {statusTipo}
                           </div>
                         )}
                       </TableCell>
 
-                      <TableCell align="center">{isEditing ? <TextField name="data_inclu" value={editedRowData.data_inclu || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.data_inclu}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="nome_publica" value={editedRowData.nome_publica || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.nome_publica}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="num_contato" value={editedRowData.num_contato || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.num_contato}</TableCell>
-                      <TableCell align="center">{isEditing ? <TextField name="cod_congreg" value={editedRowData.cod_congreg || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_congreg}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="dsg_detalhes" value={editedRowData.dsg_detalhes || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_detalhes}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="dsg_conselh" value={editedRowData.dsg_conselh || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_conselh}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="dsg_mapa_cod" value={editedRowData.dsg_mapa_cod || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_mapa_cod}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="dsg_mapa_end" value={editedRowData.dsg_mapa_end || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_mapa_end}</TableCell>
+                      <TableCell align="center">{isEditing ? <TextField name="dsg_mapa_url" value={editedRowData.dsg_mapa_url || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_mapa_url}</TableCell>
+                  
+                  {/* Campo editável de status */}
+                  <TableCell align="center">
+                        {isEditing ? (
+                          <FormControl fullWidth>
+                            <Select
+                              name="dsg_status"
+                              value={editedRowData.dsg_status || ' '}
+                              onChange={handleInputChange}
+                            >
+                              <MenuItem value="0">Não Designada</MenuItem>
+                              <MenuItem value="1">Pendente</MenuItem>
+                              <MenuItem value="2">Realizada</MenuItem>
+                              <MenuItem value="3">Vencida</MenuItem>
+                              <MenuItem value="4">Encerrada</MenuItem>
+                              <MenuItem value="5">Pendente</MenuItem>
+                              
+                            </Select>
+                          </FormControl>
+                        ) : (
+                          <div
+                            style={{
+                              backgroundColor: getStatusColorDesig(statusDesig),
+                              color: 'white',
+                              padding: '2px',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              fontSize: '0.65rem',
+                            }}
+                          >
+                            {statusDesig}
+                          </div>
+                        )}
+                      </TableCell>
+
+    <TableCell align="center">{isEditing ? <TextField name="dsg_obs" value={editedRowData.dsg_obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_congreg}</TableCell>
+                      
                       <TableCell align="center">
                         {isEditing ? (
                           <Button variant="contained" color="primary" size="small" onClick={handleSave} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Salvar</Button>
