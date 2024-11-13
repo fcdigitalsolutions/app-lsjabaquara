@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
-import InputMask from 'react-input-mask';
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, Checkbox } from '@mui/material';
+import { Box, Table, InputLabel, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, TextField, Typography, MenuItem, Select, FormControl, Checkbox } from '@mui/material';
 import { FaChartPie, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 
 const DesigForm = () => {
@@ -12,11 +11,11 @@ const DesigForm = () => {
   const [rowsPerPage] = useState(5); // Limite de linhas por página
   const [editRowId, setEditRowId] = useState(null); // ID da linha sendo editada
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
-  const [showNewIndicationForm, setShowNewIndicationForm] = useState(false); // Controla a exibição do formulário de nova indicação
+  const [showNewDesignCForm, setShowNewDesignCForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [selected, setSelected] = useState([]);
 
-  const [newIndication, setNewIndication] = useState({
+  const [newDesignC, setNewDesignC] = useState({
     nome_publica: '',
     num_contato: '',
     cod_congreg: '',
@@ -101,26 +100,26 @@ const DesigForm = () => {
 
   // Função para mostrar/esconder o formulário de novo mapa
   const handleNovoBotao = () => {
-    setShowNewIndicationForm(!showNewIndicationForm); // Alterna entre mostrar ou esconder o formulário
+    setShowNewDesignCForm(!showNewDesignCForm); // Alterna entre mostrar ou esconder o formulário
   };
 
 
   // Função para enviar ao novo mapa
-  const handleNewIndicationSubmit = async (e) => {
+  const handleNewDesignCSubmit = async (e) => {
     e.preventDefault();
 
-    const { dsg_data, pub_login, pub_nome, dsg_tipo, dsg_status } = newIndication;
+    const { pub_login, pub_nome, dsg_tipo, dsg_status } = newDesignC;
 
-    if (!dsg_data || !pub_login || !pub_nome || !dsg_tipo || !dsg_status) {
+    if (!pub_login || !pub_nome || !dsg_tipo || !dsg_status) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
     try {
-      const response = await api_service.post('/desig', newIndication);
+      const response = await api_service.post('/desig', newDesignC);
       setData([...data, response.data]); // Adiciona novo mapa aos dados
-      setNewIndication({ data_inclu: '',dsg_data: '',pub_login: '',pub_nome: '',dsg_tipo: '',dsg_detalhes: '',dsg_conselh: '',dsg_mapa_cod: '',dsg_mapa_end: '',dsg_mapa_url: '' ,dsg_status: '',dsg_obs: '',pub_obs: ''  }); // Limpa o formulário
-      setMessage('Mapa incluído com sucesso!');
+      setNewDesignC({ data_inclu: '',dsg_data: '',pub_login: '',pub_nome: '',dsg_tipo: '',dsg_detalhes: '',dsg_conselh: '',dsg_mapa_cod: '',dsg_mapa_end: '',dsg_mapa_url: '' ,dsg_status: '',dsg_obs: '',pub_obs: ''  }); // Limpa o formulário
+      setMessage('Informações enviadas com sucesso!');
     } catch (error) {
       console.error("Erro ao enviar as informações: ", error);
       setMessage('Erro ao incluir a indicação.');
@@ -403,17 +402,17 @@ const DesigForm = () => {
             type="button"
             style={{
               ...buttonStyle,
-              backgroundColor: showNewIndicationForm ? '#67e7eb' : '#202038',
-              color: showNewIndicationForm ? '#202038' : '#f1f1f1',
+              backgroundColor: showNewDesignCForm ? '#67e7eb' : '#202038',
+              color: showNewDesignCForm ? '#202038' : '#f1f1f1',
             }}
             onMouseEnter={(e) => {
-              if (!showNewIndicationForm) {
+              if (!showNewDesignCForm) {
                 e.currentTarget.style.backgroundColor = '#67e7eb'; // Cor ao passar o mouse
                 e.currentTarget.style.color = '#202038'; // Cor do texto ao passar o mouse
               }
             }}
             onMouseLeave={(e) => {
-              if (!showNewIndicationForm) {
+              if (!showNewDesignCForm) {
                 e.currentTarget.style.backgroundColor = '#202038'; // Cor original
                 e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
               }
@@ -426,33 +425,63 @@ const DesigForm = () => {
 
       </Box>
       {/* Formulário de nova indicação */}
-      <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
-        <form onSubmit={handleNewIndicationSubmit}>
+      <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewDesignCForm ? 'block' : 'none' }}>
+        <form onSubmit={handleNewDesignCSubmit}>
           <Box sx={formBoxStyle}>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Seu Nome *" variant="outlined" size="small" fullWidth value={newIndication.nome_publica} onChange={(e) => setNewIndication({ ...newIndication, nome_publica: e.target.value })} sx={inputStyle} />
+              <TextField label="Public. Login *" variant="outlined" size="small" fullWidth value={newDesignC.pub_login} onChange={(e) => setNewDesignC({ ...newDesignC, pub_login: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <InputMask mask="(99) 99999-9999" value={newIndication.num_contato} onChange={(e) => setNewIndication({ ...newIndication, num_contato: e.target.value })}>
-                {(inputProps) => <TextField {...inputProps} label="Seu Telefone *" variant="outlined" size="small" fullWidth sx={inputStyle} />}
-              </InputMask>
+              <TextField label="Public. Nome *" variant="outlined" size="small" fullWidth value={newDesignC.pub_nome} onChange={(e) => setNewDesignC({ ...newDesignC, pub_nome: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Sua Congregação *" variant="outlined" size="small" fullWidth value={newIndication.cod_congreg} onChange={(e) => setNewIndication({ ...newIndication, cod_congreg: e.target.value })} sx={inputStyle} />
+              <TextField label="Public. Obs *" variant="outlined" size="small" fullWidth value={newDesignC.pub_obs} onChange={(e) => setNewDesignC({ ...newDesignC, pub_obs: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Bairro do Surdo*" variant="outlined" size="small" fullWidth value={newIndication.cod_regiao} onChange={(e) => setNewIndication({ ...newIndication, cod_regiao: e.target.value })} sx={inputStyle} />
+              <TextField label="Tp. Designação *" variant="outlined" size="small" fullWidth value={newDesignC.dsg_tipo} onChange={(e) => setNewDesignC({ ...newDesignC, dsg_tipo: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Endereço do Surdo *" variant="outlined" size="small" fullWidth value={newIndication.enderec} onChange={(e) => setNewIndication({ ...newIndication, enderec: e.target.value })} sx={inputStyle} />
+              <TextField label="Detalhes Designação " variant="outlined" size="small" fullWidth value={newDesignC.dsg_detalhes} onChange={(e) => setNewDesignC({ ...newDesignC, dsg_detalhes: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
-              <TextField label="Detalhes e Referências " variant="outlined" size="small" fullWidth value={newIndication.obs} onChange={(e) => setNewIndication({ ...newIndication, obs: e.target.value })} sx={inputStyle} />
+              <TextField label="Conselho " variant="outlined" size="small" fullWidth value={newDesignC.dsg_conselh} onChange={(e) => setNewDesignC({ ...newDesignC, dsg_conselh: e.target.value })} sx={inputStyle} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="Cod. Mapa " variant="outlined" size="small" fullWidth value={newDesignC.dsg_mapa_cod} onChange={(e) => setNewDesignC({ ...newDesignC, dsg_mapa_cod: e.target.value })} sx={inputStyle} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="End. Mapa " variant="outlined" size="small" fullWidth value={newDesignC.dsg_mapa_end} onChange={(e) => setNewDesignC({ ...newDesignC, dsg_mapa_end: e.target.value })} sx={inputStyle} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="URL. Mapa " variant="outlined" size="small" fullWidth value={newDesignC.dsg_mapa_url} onChange={(e) => setNewDesignC({ ...newDesignC, dsg_mapa_url: e.target.value })} sx={inputStyle} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <FormControl fullWidth>
+                <InputLabel id="status-label">Status Designação</InputLabel>
+                <Select
+                  labelId="status-label"
+                  id="dsg_status"
+                  value={newDesignC.dsg_status}
+                  label="Situação *"
+                  onChange={(e) => setNewDesignC({ ...newDesignC, dsg_status: e.target.value })}
+                >
+                  <MenuItem value="0">Não Designada</MenuItem>
+                  <MenuItem value="1">Pendente</MenuItem>
+                  <MenuItem value="2">Realizada</MenuItem>
+                  <MenuItem value="3">Vencida</MenuItem>
+                  <MenuItem value="4">Realizada</MenuItem>
+                  <MenuItem value="5">Encerrada</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="OBS Desig. " variant="outlined" size="small" fullWidth value={newDesignC.obs} onChange={(e) => setNewDesignC({ ...newDesignC, obs: e.target.value })} sx={inputStyle} />
             </Box>
           </Box>
           <Box sx={{ marginTop: '20px' }}>
             <button
-              type="button"
+              type="submmit"
               style={{
                 ...buttonStyle,
                 backgroundColor: '#202038',
@@ -470,12 +499,11 @@ const DesigForm = () => {
                 e.currentTarget.style.backgroundColor = '#202038'; // Cor original
                 e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
               }}
-            > <FaShareSquare /> Enviar Indicação</button>
+            > <FaShareSquare /> Enviar Designação</button>
           </Box>
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
       </Box>
-
     </Box>
   );
 };
