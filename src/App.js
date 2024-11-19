@@ -11,15 +11,15 @@ import RegionForm from './pages/RegionForm';
 import CongregForm from './pages/CongregForm';
 import IndicaForm from './pages/IndicaForm';
 import IndicaFormOFF from './pages/IndicaFormOFF';
-import RegistroNC from './pages/RegistroNC';
 import RegistroNCOff from './pages/RegistroNCOff';
-import RastreaForm from './pages/RastreaForm';
 import EnderecForm from './pages/EnderecForm';
 import RelCampForm from './pages/RelCampForm';
 import PubcForm from './pages/PubcForm';
 import DesigForm from './pages/DesigForm';
 import UsersForm from './pages/UsersForm';
 import RelVisitForm from './pages/RelVisitForm';
+import FormUserViewEnsino from './pages/FormUserViewEnsino';
+import FormUserViewDesig from './pages/FormUserViewDesig';
 
 import './styles/App.css';
 
@@ -49,8 +49,10 @@ const App = () => {
             <PrivateRoute
               userComponent={() => (
                 <SidebarUser>
-                  <Routes>
+                  <Routes> 
                     <Route path="form-userview" element={<FormUserView />} />
+                    <Route path="formuserdesig" element={<FormUserViewDesig />} />
+                    <Route path="formuserensino" element={<FormUserViewEnsino />} />
                     <Route path="relatoriocampo" element={<RelCampForm />} />
                     <Route path="/ls" element={<SelectTpUser />} />
                   </Routes>
@@ -72,8 +74,6 @@ const App = () => {
                     <Route path="form-region" element={<RegionForm />} />
                     <Route path="form-congreg" element={<CongregForm />} />
                     <Route path="form-indicac" element={<IndicaForm />} />
-                    <Route path="form-registnc" element={<RegistroNC />} />
-                    <Route path="form-rastrea" element={<RastreaForm />} />
                     <Route path="form-enderec" element={<EnderecForm />} />
                     <Route path="form-pubc" element={<PubcForm />} />
                     <Route path="form-desig" element={<DesigForm />} />

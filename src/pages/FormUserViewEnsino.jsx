@@ -35,18 +35,16 @@ const ExpandMore = styled((props) => {
   }),
 }));
 
-const FormUserView = () => {
+const FormUserEnsino = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expanded, setExpanded] = useState({});
   const [darkMode, setDarkMode] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-
   const [selectedItemId, setSelectedItemId] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [openVisitDialog, setOpenVisitDialog] = useState(false);
-  const [openReservMapDialog, setOpenReservMapDialog] = useState(false);
   const [formFields, setFormFields] = useState({
     visit_status: '',
     num_pessoas: '',
@@ -75,7 +73,7 @@ const FormUserView = () => {
     switch (dsg_status) {
       case '0': return 'NÃO DESIGNADA';
       case '1': return 'PENDENTE';
-      case '2': return 'JÁ VISITEI';
+      case '2': return 'VISITANDO';
       case '3': return 'VENCIDA';
       case '4': return 'ENCERRADA';
       default: return 'Outros';
@@ -86,7 +84,7 @@ const FormUserView = () => {
     switch (status) {
       case 'NÃO DESIGNADA': return darkMode ? '#666666' : '#666666';
       case 'PENDENTE': return darkMode ? '#CC0000' : '#CC0000';
-      case 'JÁ VISITEI': return darkMode ? '#00009C' : '#00009C';
+      case 'VISITANDO': return darkMode ? '#00009C' : '#00009C';
       case 'VENCIDA': return darkMode ? '#5C4033' : '#5C4033';
       case 'ENCERRADA': return darkMode ? '#000000' : '#000000';
       default: return 'transparent';
@@ -122,23 +120,23 @@ const FormUserView = () => {
     }
   };
 
-  // Função para determinar a cor de fundo da célula com base no status
-  const getColorMapCor = (terr_cor) => {
-    switch (terr_cor) {
-      case '0':
-        return '#00009C';
-      case '1':
-        return '#CC0000';
-      case '2':
-        return '#238E23';
-      default:
-        return 'transparent';
-    }
-  };
+// Função para determinar a cor de fundo da célula com base no status
+const getColorMapCor = (terr_cor) => {
+  switch (terr_cor) {
+    case '0':
+      return '#00009C';
+    case '1':
+      return '#CC0000';
+    case '2':
+      return '#238E23';
+    default:
+      return 'transparent';
+  }
+};
 
   useEffect(() => {
     setLoading(true);
-    api_service.get(`/desig/${lginUser}`)
+    api_service.get(`/desigensin/${lginUser}`)
       .then((response) => {
         setData(response.data);
         setError(null);
@@ -167,20 +165,6 @@ const FormUserView = () => {
     setOpenVisitDialog(true); // Abre o diálogo
   };
 
-  const handleOpenReservDialog = (item) => {
-    setSelectedItem({
-      ...item,
-      territor_id: item.territor_id, // Adicione o ID do território
-    });
-
-    setFormFields({
-      melhor_dia: item.melhor_dia_hora || '',
-      melhor_hora: item.melhor_hora || '',
-      terr_obs: item.terr_obs || '',
-    });
-
-    setOpenReservMapDialog(true); // Abre o diálogo
-  };
   const handleFieldChange = (field, value) => {
     setFormFields((prevState) => ({ ...prevState, [field]: value }));
   };
@@ -235,8 +219,7 @@ const FormUserView = () => {
 
 
   const handleRealizar = async () => {
-    if (!selectedItem || !selectedItem.desig_id) {
-
+    if (!selectedItem || !selectedItem.id) {
       return;
     }
 
@@ -248,12 +231,12 @@ const FormUserView = () => {
 
     try {
       // Faz a requisição PUT para atualizar a designação
-      await api_service.put(`/desig/${selectedItem.desig_id}`, updatedData);
+      await api_service.put(`/desig/${selectedItem.id}`, updatedData);
 
       // Atualiza o estado local para refletir a mudança
       setData((prevData) =>
         prevData.map((item) =>
-          item.desig_id === selectedItem.desig_id ? { ...item, dsg_status: '2' } : item
+          item.id === selectedItem.id ? { ...item, dsg_status: '2' } : item
         )
       );
 
@@ -265,7 +248,6 @@ const FormUserView = () => {
 
   const handleUpdTerrit = async () => {
     if (!selectedItem || !selectedItem.territor_id) {
-
       return;
     }
 
@@ -294,36 +276,6 @@ const FormUserView = () => {
     }
   };
 
-  const handleReservTerrit = async () => {
-    if (!selectedItem || !selectedItem.territor_id) {
-      return;
-    }
-
-    const updatedTerrit = {
-      dt_ultvisit: new Date().toLocaleDateString("pt-BR"), // Data da última visita
-      pub_ultvisi: selectedItem.pub_login, // Publicador responsável pela última visita
-      terr_respons: selectedItem.pub_login, // Publicador responsável pela última visita
-      terr_status : selectedItem.terr_status,
-    };
-
-    try {
-      const response = await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerrit);
-      console.log("Resposta do servidor:", response.data);
-
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.territor_id === selectedItem.territor_id ? { ...item, ...updatedTerrit } : item
-        )
-      );
-
-      console.log("Território atualizado com sucesso.");
-    } catch (error) {
-      console.error("Erro ao atualizar o território:", error);
-    }
-    
-    setOpenReservMapDialog(false); // Abre o diálogo
-  };
-
   const handleVisitSubmit = async () => {
     if (!selectedItem) return;
     const visitData = {
@@ -346,9 +298,6 @@ const FormUserView = () => {
       await handleRealizar(); // Atualiza o status da designação
       await handleUpdTerrit(); // Atualiza os dados do território
       setOpenVisitDialog(false); // Fecha o modal de visita
-
-
-      console.log("Registro de Visita atualizado com sucesso.");
     } catch (error) {
       console.error("Erro ao registrar visita e atualizar os dados: ", error);
     }
@@ -395,7 +344,6 @@ const FormUserView = () => {
                   </Typography>
                   <Box
                     onClick={() => handleOpenVisitDialog(item)}
-
                     sx={{
                       display: 'flex',
                       cursor: 'pointer',
@@ -414,7 +362,7 @@ const FormUserView = () => {
                   </Box>
                   <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Responsável: {item.pub_nome}</Typography>
                   <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Última visita: {item.dt_ultvisit}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Cód. Mapa: {item.dsg_mapa_cod}</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Cod. Mapa: {item.dsg_mapa_cod}</Typography>
                   <Typography variant="body1" className="status-text-user" sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }} >
                     Local: {getStatusTpLocal(item.terr_tp_local)}
                   </Typography>
@@ -477,24 +425,6 @@ const FormUserView = () => {
                     <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '2px', color: darkMode ? '#67e7eb' : '#333' }}>
                       Observações: {item.terr_obs || 'Nenhuma observação disponível.'}
                     </Typography>
-                    <Box
-                      onClick={() => handleOpenReservDialog(item)}
-                      sx={{
-                        display: 'flex',
-                        cursor: 'pointer',
-                        fontSize: '0.95rem',
-                        marginLeft: '55px',
-                        marginTop: '10px',
-                        color: darkMode ? '#7FFF00' : '#2c2c4e',
-                        '&:hover': {
-                          color: darkMode ? '#67e7eb' : '#333333',
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      <FaCheckCircle style={{ marginRight: '4px' }} />
-                      Reservar Mapa
-                    </Box>
                   </CardContent>
                 </Collapse>
               </Card>
@@ -511,11 +441,7 @@ const FormUserView = () => {
           <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
           <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
 
-          <FormControl fullWidth margin="dense"
-          sx={{
-            fontSize: '0.85rem',
-            marginTop: '15px',
-          }}>
+          <FormControl fullWidth margin="dense">
             <InputLabel>Encontrou? *</InputLabel>
             <Select
               value={formFields.visit_status}
@@ -530,7 +456,6 @@ const FormUserView = () => {
           </FormControl>
 
           <TextField
-          
             margin="dense"
             label="QTD Surdos *"
             type="number"
@@ -601,52 +526,14 @@ const FormUserView = () => {
           <Button onClick={() => setOpenDialog(false)} color="primary">
             Não
           </Button>
-          <Button
-            onClick={async () => {
-              setOpenDialog(false);
-              await handleEncerrar();
-            }}
-            color="primary"
-            autoFocus
-          >
+          <Button onClick={handleEncerrar} color="primary" autoFocus>
             Sim
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openReservMapDialog} onClose={() => setOpenReservMapDialog(false)}>
-        <DialogTitle>Reservar Mapa (Estudos e Revisitas)</DialogTitle>
-        <DialogContent>
-          <DialogContentText></DialogContentText>
-          <Typography variant="body2">Responsável: {selectedItem?.pub_nome}</Typography>
-          <Typography variant="body2">Última Visita: {selectedItem?.dt_ultvisit}</Typography>
-          <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
-          <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
-          <FormControl fullWidth margin="dense"
-          sx={{
-            fontSize: '0.85rem',
-            marginTop: '15px',
-          }}
-          >
-            <InputLabel>Tipo de Reserva? *</InputLabel>
-            <Select
-              value={formFields.terr_status}
-              onChange={(e) => handleFieldChange('terr_status', e.target.value)}
-            >
-              <MenuItem value="1">Revisita</MenuItem>
-              <MenuItem value="2">Estudo</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenReservMapDialog(false)} color="primary">Cancelar</Button>
-          <Button onClick={handleReservTerrit} color="primary">Confirmar</Button>
-        </DialogActions>
-      </Dialog>
-
-
     </Box>
   );
 };
 
-export default FormUserView;
+export default FormUserEnsino;

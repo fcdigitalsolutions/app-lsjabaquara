@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaMapMarkedAlt, FaMapPin, FaSignOutAlt, FaBars, FaHouseUser, FaChalkboardTeacher, FaUserTie,FaExchangeAlt,FaFileSignature } from 'react-icons/fa';
-import { FaPeopleGroup, FaPersonCirclePlus, FaFileInvoice, FaUserGear } from 'react-icons/fa6';
+import { FaMapMarkedAlt, FaMapPin, FaSignOutAlt, FaBars, FaChalkboardTeacher, FaUserTie,FaExchangeAlt,FaFileSignature } from 'react-icons/fa';
+import { FaPeopleGroup, FaPersonCirclePlus, FaUserGear } from 'react-icons/fa6';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const routes = [
-  { path: "/home/form-rastrea", name: "Rastreamento", icon: <FaFileInvoice /> },
-  { path: "/home/form-indicac", name: "Indicações", icon: <FaPersonCirclePlus /> },
-  { path: "/home/form-registnc", name: "Registros NC", icon: <FaHouseUser /> },
-  { path: "/home/form-congreg", name: "Congregações", icon: <FaPeopleGroup /> },
-  { path: "/home/form-enderec", name: "Territórios", icon: <FaMapMarkedAlt /> },
-  { path: "/home/form-pubc", name: "Publicadores", icon: <FaUserTie /> },
-  { path: "/home/form-desig", name: "Designações", icon: <FaChalkboardTeacher /> },
   { path: "/home/form-region", name: "Regiões", icon: <FaMapPin /> },         // Caminhos atualizados
+  { path: "/home/form-congreg", name: "Congregações", icon: <FaPeopleGroup /> },
+  { path: "/home/form-indicac", name: "Indicações", icon: <FaPersonCirclePlus /> },
+  { path: "/home/form-enderec", name: "Territórios", icon: <FaMapMarkedAlt /> },
+  { path: "/home/form-desig", name: "Designações", icon: <FaChalkboardTeacher /> },
   { path: "/home/form-visit", name: "Reg. Visitas", icon: <FaFileSignature /> },         // Caminhos atualizados
+  { path: "/home/form-pubc", name: "Publicadores", icon: <FaUserTie /> },
   { path: "/home/form-users", name: "Usuários", icon: <FaUserGear /> },         // Caminhos atualizados
   { path: "/ls", name: "Trocar Visão", icon: <FaExchangeAlt /> },         // Caminhos atualizado
   { path: "/", name: "Sair", icon: <FaSignOutAlt /> },
 ];
-
 
 const Sidebar = ({ children }) => {
   const navigate = useNavigate();

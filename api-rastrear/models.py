@@ -105,7 +105,7 @@ class Designacoes:
 class Territorios:
     def __init__(self,data_inclu,dt_ultvisit,pub_ultvisi,dt_visit02,pub_tvis02,dt_visit03,pub_tvis03,dt_visit04,pub_tvis04,
                  terr_nome,terr_morador,terr_enderec,terr_regiao,terr_link,terr_coord,terr_cor,terr_status,num_pessoas,
-                 melhor_dia_hora,terr_tp_local,terr_classif,terr_desig,melhor_hora,terr_obs ):
+                 melhor_dia_hora,terr_tp_local,terr_classif,terr_desig,melhor_hora,terr_respons,terr_obs ):
         self.data_inclu	 = data_inclu	  
         self.dt_ultvisit  = dt_ultvisit   
         self.pub_ultvisi  = pub_ultvisi   
@@ -129,6 +129,7 @@ class Territorios:
         self.terr_classif  = terr_classif  
         self.terr_desig    = terr_desig  
         self.melhor_hora   = melhor_hora   
+        self.terr_respons  = terr_respons     
         self.terr_obs      = terr_obs         
 
 class RelVisita: 

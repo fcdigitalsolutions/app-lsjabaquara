@@ -424,8 +424,34 @@ def get_desiguser(desig_user):
     return jsonify([{
         **dict(desig_item),
         'dsg_data': format_date(desig_item.get('dsg_data')),
+        'dt_ultvisit': format_date(desig_item.get('dt_ultvisit')),
         'data_inclu': format_date(desig_item.get('data_inclu'))
     } for desig_item in desig])
+
+
+## Rotas da API para o cadastro de Designações 
+@app.route('/desigpend/<string:desig_user>', methods=['GET'])
+def get_desigpendente(desig_user):
+    desig = desig_service.get_desig_transf(desig_user)
+    return jsonify([{
+        **dict(desig_item),
+        'dsg_data': format_date(desig_item.get('dsg_data')),        
+        'dt_ultvisit': format_date(desig_item.get('dt_ultvisit')),
+        'data_inclu': format_date(desig_item.get('data_inclu'))
+    } for desig_item in desig])
+
+
+## Rotas da API para o cadastro de Designações 
+@app.route('/desigensin/<string:desig_user>', methods=['GET'])
+def get_desigensino(desig_user):
+    desig = desig_service.get_desig_ensino(desig_user)
+    return jsonify([{
+        **dict(desig_item),
+        'dsg_data': format_date(desig_item.get('dsg_data')),        
+        'dt_ultvisit': format_date(desig_item.get('dt_ultvisit')),
+        'data_inclu': format_date(desig_item.get('data_inclu'))
+    } for desig_item in desig])
+
 
 @app.route('/desig', methods=['POST'])
 def add_desig():
@@ -485,6 +511,7 @@ def get_territall():
     territ = territ_service.get_all_territ()
     return jsonify([{
         **dict(territ),
+        'dt_ultvisit': format_date(territ.get('dt_ultvisit')),
         'data_inclu': format_date(territ.get('data_inclu'))
     } for territ in territ])
 
@@ -513,7 +540,8 @@ def add_territ():
                         terr_tp_local=data.get('terr_tp_local'),
                         terr_classif=data.get('terr_classif'),
                         terr_desig=data.get('terr_desig'),
-                        melhor_hora=data.get('melhor_hora'),                       
+                        melhor_hora=data.get('melhor_hora'),                                 
+                        terr_respons=data.get('terr_respons'),                 
                         terr_obs=data.get('terr_obs')
                         )     
     territ_id = territ_service.add_territ(territ)
@@ -522,6 +550,7 @@ def add_territ():
 @app.route('/territ/<int:territ_id>', methods=['PUT'])
 def update_territ(territ_id):
     data = request.json
+   
     territ = Territorios(data_inclu=parse_date(data.get('data_inclu')),
                         dt_ultvisit=parse_date(data.get('dt_ultvisit')),
                         pub_ultvisi=data.get('pub_ultvisi'),
@@ -544,7 +573,8 @@ def update_territ(territ_id):
                         terr_tp_local=data.get('terr_tp_local'),
                         terr_classif=data.get('terr_classif'),
                         terr_desig=data.get('terr_desig'),
-                        melhor_hora=data.get('melhor_hora'),             
+                        melhor_hora=data.get('melhor_hora'),   
+                        terr_respons=data.get('terr_respons'),             
                         terr_obs=data.get('terr_obs')
                         )
     updated_territ_id = territ_service.update_territ(territ_id, territ)
@@ -561,6 +591,41 @@ def delete_territ(territ_id):
     except Exception as e:
         return jsonify({"message": "Erro ao excluir a Território", "error": str(e)}), 500
     
+
+@app.route('/terrupdesp/<int:territ_id>', methods=['PUT'])
+def update_specific_territ_fields(territ_id):
+    data = request.json
+
+    # Lista de campos permitidos
+    allowed_fields = [
+        'dt_ultvisit', 'pub_ultvisi', 'terr_cor', 'terr_status', 
+        'num_pessoas', 'melhor_dia_hora', 'melhor_hora','terr_respons',  
+        'terr_tp_local', 'terr_classif', 'terr_desig', 'terr_obs'
+    ]
+
+    # Dicionário para armazenar os campos a serem atualizados
+    fields_to_update = {}
+
+    # Tratamento especial para campos de data
+    if 'dt_ultvisit' in data:
+        fields_to_update['dt_ultvisit'] = parse_date(data.get('dt_ultvisit'))
+
+    # Verifica e adiciona os demais campos ao dicionário de atualização
+    for field in allowed_fields:
+        if field in data and field != 'dt_ultvisit':  # Evita duplicar 'dt_ultvisit'
+            fields_to_update[field] = data[field]
+
+    if not fields_to_update:
+        return jsonify({"error": "Nenhum campo válido para atualizar"}), 400
+
+    try:
+        # Chama o service para realizar a atualização
+        territ_service = TerritService()
+        updated_territ_id = territ_service.update_territ_especif(territ_id, fields_to_update)
+        return jsonify({"message": "Campos do território atualizados com sucesso!", "id": updated_territ_id}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 ## ## ## ## ##  ##  ##  ##  ## 
 ## Rotas da API para relatorio de visitas   

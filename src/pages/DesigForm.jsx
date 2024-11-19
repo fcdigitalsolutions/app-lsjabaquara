@@ -193,29 +193,29 @@ const DesigForm = () => {
 
   const getStatusDesig = (dsg_status) => {
     switch (dsg_status) {
-      case '0': return 'Não Designada';
-      case '1': return 'Pendente';
-      case '2': return 'Realizada';
-      case '3': return 'Vencida';
-      case '4': return 'Encerrada';
+      case '0': return 'NÃO DESIGNADA';
+      case '1': return 'PENDENTE';
+      case '2': return 'REALIZADA';
+      case '3': return 'VENCIDA';
+      case '4': return 'ENCERRADA';
       default: return 'Outros';
     }
   };
 
   const getStatusColorDesig = (status) => {
     switch (status) {
-      case 'Não Designada': return '#D8BFD8';
-      case 'Pendente': return'#CC0000';
-      case 'Realizada': return '#42426F';
-      case 'Vencida': return '#5C4033';
-      case 'Encerrada': return '#000000';
+      case 'NÃO DESIGNADA': return '#666666';
+      case 'PENDENTE': return'#CC0000';
+      case 'REALIZADA': return '#42426F';
+      case 'VENCIDA': return '#5C4033';
+      case 'ENCERRADA': return '#000000';
       default: return 'transparent';
     }
   };
 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
-      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Designações de Territórios</h2>
+      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Manutenção das Designações</h2>
 
       {/* Box separado para a tabela */}
       <Box sx={{ marginBottom: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>

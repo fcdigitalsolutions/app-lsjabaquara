@@ -125,6 +125,7 @@ const IndicaFormOff = () => {
       <Typography variant="h4" sx={{ color: '#202038', marginBottom: '20px' }}>
         Indicação de Surdo
       </Typography>
+      
       <table>
         <tr>
           <td><img
@@ -141,6 +142,7 @@ const IndicaFormOff = () => {
           </td>
         </tr>
       </table>
+
       <Typography variant="h5" sx={{ color: 'blue', marginBottom: '20px' }}>
         "Encontrei o surdo ou sei a casa, o que eu faço?"
       </Typography>

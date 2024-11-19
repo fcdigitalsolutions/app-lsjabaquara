@@ -156,7 +156,7 @@ const PubcForm = () => {
   };
 
 
-  // Função para enviar a nova indicação
+  // Função para enviar novo registro
   const handlenewPublicadSubmit = async (e) => {
     e.preventDefault();
 
@@ -858,7 +858,7 @@ const PubcForm = () => {
                 e.currentTarget.style.backgroundColor = '#202038'; // Cor original
                 e.currentTarget.style.color = '#f1f1f1'; // Cor do texto original
               }}
-            > <FaShareSquare /> Enviar Indicação</button>
+            > <FaShareSquare /> Enviar Publicador</button>
           </Box>
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}

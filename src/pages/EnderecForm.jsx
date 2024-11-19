@@ -12,6 +12,7 @@ const EnderecForm = () => {
   const [showNewTerritorForm, setShowNewTerritorForm] = useState(false); // Controla a exibição do formulário de nova indicação
   const [message, setMessage] = useState(''); // Mensagem de sucesso ou erro
   const [selected, setSelected] = useState([]);
+  const [publicadores, setPublicadores] = useState([]); // Estado para armazenar as opções de Publicadores
 
   const totalRevisitas = data.filter(item => item.terr_status === '1').length;
   const totalEstudantes = data.filter(item => item.terr_status === '2').length;
@@ -24,14 +25,6 @@ const EnderecForm = () => {
   const totalSurdos = data.reduce((accumulator, item) => {
     return accumulator + (item.num_pessoas || 0);
   }, 0);
-
-  const formatDateGrid = (date) => {
-    const parsedDate = new Date(date);
-    const year = String(parsedDate.getFullYear()); // Apenas os últimos 2 dígitos do ano
-    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-    const day = String(parsedDate.getDate()).padStart(2, '0');
-    return `${day}/${month}/${year}`;
-  };
 
   const formatDateTime = (date) => {
     const year = date.getFullYear();
@@ -70,8 +63,10 @@ const EnderecForm = () => {
   const filteredData = data.filter((row) => {
     return (
       (!filters.terr_status || row.terr_status === filters.terr_status) &&
+      (!filters.terr_regiao || row.terr_regiao === filters.terr_regiao) &&
       (!filters.terr_desig || row.terr_desig === filters.terr_desig) &&
       (!filters.terr_tp_local || row.terr_tp_local === filters.terr_tp_local) &&
+      (!filters.melhor_dia_hora || row.melhor_dia_hora === filters.melhor_dia_hora) &&
       (!filters.terr_classif || row.terr_classif === filters.terr_classif) &&
       (!filters.terr_cor || row.terr_cor === filters.terr_cor)
     );
@@ -99,7 +94,8 @@ const EnderecForm = () => {
     terr_status: '',
     num_pessoas: 0,
     melhor_dia_hora: '',
-    terr_obs: ''
+    terr_obs: '',
+    terr_respons: ''
   });
 
   useEffect(() => {
@@ -147,8 +143,12 @@ const EnderecForm = () => {
 
   // Função para lidar com alterações nos campos de entrada
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditedRowData({ ...editedRowData, [name]: value }); // Atualiza os dados editados
+    const { name, value } = e.target || {};
+    if (!name) {
+      console.error("O campo 'name' está ausente no evento.");
+      return;
+    }
+    setEditedRowData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   // Função para salvar as alterações
@@ -219,7 +219,9 @@ const EnderecForm = () => {
         terr_coord: '',
         terr_cor: '',
         terr_status: '',
-        terr_obs: ''
+        terr_obs: '',
+        terr_respons: ''
+
       }); // Limpa o formulário
       setMessage('Mapa incluído com sucesso!');
     } catch (error) {
@@ -350,36 +352,33 @@ const EnderecForm = () => {
     }
   };
 
-
   // Função para determinar o status com base na confirmação do endereço
   const getStatusTpLocal = (terr_tp_local) => {
     switch (terr_tp_local) {
       case '1':
-        return 'Residência';
+        return 'CASA';
       case '2':
-        return 'Comércio';
-        case '3':
-          return 'Condomínio';
+        return 'TRABALHO';
+      case '3':
+        return 'PRÉDIO';
       default:
-        return 'Outros';
+        return 'OUTROS';
     }
   };
-
 
   // Função para determinar a cor de fundo da célula com base no status
   const getStatusColorTpLocal = (status) => {
     switch (status) {
-      case 'Residência':
+      case 'CASA':
         return '#007FFF';
-      case 'Comércio':
+      case 'TRABALHO':
         return '#8B4513';
-        case 'Condomínio':
-          return '#42426F';
+      case 'PRÉDIO':
+        return '#42426F';
       default:
         return 'transparent';
     }
   };
-
 
   // Função para determinar o status com base na confirmação do endereço
   const getStatusDesig = (terr_desig) => {
@@ -427,7 +426,7 @@ const EnderecForm = () => {
       case 'Surdo':
         return '#99CC32';
       case 'D/A':
-        return '#5C3317'; 
+        return '#5C3317';
       case 'Tradutor':
         return '#330033';
       case 'Ouvinte':
@@ -437,10 +436,52 @@ const EnderecForm = () => {
     }
   };
 
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniqueBairro = () => {
+    const BairrosUnicos = [...new Set(data.map(row => row.terr_regiao))];
+    return BairrosUnicos;
+  };
+
+
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniquePublicad = () => {
+    const PublicadUnicos = [...new Set(data.map(row => row.terr_respons))];
+    return PublicadUnicos;
+  };
+
+
+  // Função para buscar os dados da API
+  useEffect(() => {
+    const fetchPublicadores = async () => {
+      try {
+        const response = await api_service.get('/pubcall'); // rota da API
+        setPublicadores(response.data); // a API retorna um array de dados
+      } catch (error) {
+        console.error('Erro ao carregar os dados:', error);
+      }
+    };
+
+    fetchPublicadores(); // Chama a função para carregar os dados
+  }, []);
+
+  useEffect(() => {
+    const fetchPublicadores = async () => {
+      try {
+        const response = await api_service.get('/pubcall');
+        setPublicadores(response.data);
+      } catch (error) {
+        console.error('Erro ao carregar publicadores:', error);
+      }
+    };
+
+    fetchPublicadores();
+  }, []);
+
+
   // -- // 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038', minWidth: '160px', maxWidth: '1420px', height: '500px' }}>
-      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Manutenção dos Territórios Ativos</h2>
+      <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Manutenção dos Territórios</h2>
 
       {/* Box separado para os cards */}
       <Box
@@ -553,7 +594,9 @@ const EnderecForm = () => {
                   <TableCell align="center" sx={TableCellTHStyle}>Morador</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Num. Pessoas</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Endereço</TableCell>
-                  <TableCell align="center" sx={TableCellTHStyle}>Bairro</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Bairro
+                    <FaChevronDown onClick={(event) => handleClick(event, 'terr_regiao')} />
+                  </TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Mapa Designado?
                     <FaChevronDown onClick={(event) => handleClick(event, 'terr_desig')} />
                   </TableCell>
@@ -562,7 +605,10 @@ const EnderecForm = () => {
                   </TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Link Maps</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Coordenadas</TableCell>
-                  <TableCell align="center" sx={TableCellTHStyle}>Melhor Dia/H</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Melhor Dia
+                    <FaChevronDown onClick={(event) => handleClick(event, 'melhor_dia_hora')} />
+                  </TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Melhor Hora</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Classif.
                     <FaChevronDown onClick={(event) => handleClick(event, 'terr_classif')} />
                   </TableCell>
@@ -574,9 +620,11 @@ const EnderecForm = () => {
                   </TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Dt. Última Visita</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Pub. Última Visita</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Pub. Responsável
+                    <FaChevronDown onClick={(event) => handleClick(event, 'terr_respons')} />
+                  </TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Detalhes e Referências</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Ações</TableCell>
-
                 </TableRow>
                 {/* Menu suspenso para filtros */}
                 <Menu
@@ -584,16 +632,47 @@ const EnderecForm = () => {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  {filterColumn === 'terr_status' && (
+                  {filterColumn === 'terr_regiao' && (
                     <>
                       <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('0')}>Ativo</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('1')}>Revisita</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('2')}>Estudante</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('3')}>Doente</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('4')}>Mudou</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('5')}>Faleceu</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('6')}>Não Quer</MenuItem>
+                      {/* Gerar dinamicamente os nome de publicador únicos */}
+                      {getUniqueBairro().map((terr_regiao) => (
+                        <MenuItem key={terr_regiao} onClick={() => handleFilterSelect(terr_regiao)}>
+                          {terr_regiao}
+                        </MenuItem>
+                      ))}
+                    </>
+                  )}
+
+                  {filterColumn === 'terr_desig' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Não</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Sim</MenuItem>
+                    </>
+                  )}
+                  {filterColumn === 'terr_tp_local' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>CASA</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>TRABALHO</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('3')}>PRÉDIO</MenuItem>
+                    </>
+                  )}
+                  {filterColumn === 'melhor_dia_hora' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Livre')}>Livre</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Segunda')}>Segunda</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Terça')}>Terça</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Quarta')}>Quarta</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Quinta')}>Quinta</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Sexta')}>Sexta</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Sábado')}>Sábado</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Domingo')}>Domingo</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Sab-Dom')}>Sab-Dom</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('Feriados')}>Feriados</MenuItem>
+
                     </>
                   )}
                   {filterColumn === 'terr_classif' && (
@@ -613,37 +692,40 @@ const EnderecForm = () => {
                       <MenuItem onClick={() => handleFilterSelect('2')}>Verde</MenuItem>
                     </>
                   )}
-                  {filterColumn === 'terr_desig' && (
+                  {filterColumn === 'terr_status' && (
                     <>
                       <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('1')}>Não</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('2')}>Sim</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('0')}>Ativo</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Revisita</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Estudante</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('3')}>Doente</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('4')}>Mudou</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('5')}>Faleceu</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('6')}>Não Quer</MenuItem>
                     </>
                   )}
-
-                  {filterColumn === 'terr_tp_local' && (
+                  {filterColumn === 'terr_respons' && (
                     <>
                       <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('1')}>Residência</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('2')}>Comércio</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('3')}>Condomínio</MenuItem>
+                      {/* Gerar dinamicamente os nome de publicador únicos */}
+                      {getUniquePublicad().map((terr_respons) => (
+                        <MenuItem key={terr_respons} onClick={() => handleFilterSelect(terr_respons)}>
+                          {terr_respons}
+                        </MenuItem>
+                      ))}
                     </>
                   )}
 
                 </Menu>
               </TableHead>
               <TableBody>
-
                 {paginatedData.map((row) => {
-
                   const isEditing = row.id === editRowId;
-
                   const statusmpcor = getStatusMapCor(row.terr_cor);
                   const statusSit = getStatusSit(row.terr_status);
                   const statusDsg = getStatusDesig(row.terr_desig);
                   const statusTploc = getStatusTpLocal(row.terr_tp_local);
                   const statusClassif = getStatusClassif(row.terr_classif);
-
                   return (
                     <TableRow key={row.id}>
                       <TableCell TableCell align="center" sx={TableCellBDStyle}>
@@ -686,6 +768,7 @@ const EnderecForm = () => {
                           </div>
                         )}
                       </TableCell>
+
                       {/* Campo editável Tipo do território */}
                       <TableCell align="center">
                         {isEditing ? (
@@ -695,9 +778,9 @@ const EnderecForm = () => {
                               value={editedRowData.terr_tp_local || '1'}
                               onChange={handleInputChange}
                             >
-                              <MenuItem value="1">Residência</MenuItem>
-                              <MenuItem value="2">Comércio</MenuItem>
-                              <MenuItem value="3">Condomínio</MenuItem>
+                              <MenuItem value="1">CASA</MenuItem>
+                              <MenuItem value="2">TRABALHO</MenuItem>
+                              <MenuItem value="3">PRÉDIO</MenuItem>
                             </Select>
                           </FormControl>
                         ) : (
@@ -715,13 +798,35 @@ const EnderecForm = () => {
                           </div>
                         )}
                       </TableCell>
-
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_link" value={editedRowData.terr_link || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_link}
                         <Button variant="contained" color="primary" size="small" onClick={() => handleAbreMapa(row.terr_link)} sx={{ fontSize: '0.55rem', padding: '2px 5px' }}>Abrir Mapa</Button>
                       </TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_coord" value={editedRowData.terr_coord || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_coord}</TableCell>
-                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="melhor_dia_hora" value={editedRowData.melhor_dia_hora || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.melhor_dia_hora}</TableCell>
 
+                      {/* Campo editável melhor dia de visita */}
+                      <TableCell align="center">
+                        {isEditing ? (
+                          <FormControl fullWidth>
+                            <Select
+                              name="melhor_dia_hora"
+                              value={editedRowData.melhor_dia_hora || ' '}
+                              onChange={handleInputChange}
+                            >
+                              <MenuItem value="Livre">Livre</MenuItem>
+                              <MenuItem value="Segunda">Segunda</MenuItem>
+                              <MenuItem value="Terça">Terça</MenuItem>
+                              <MenuItem value="Quarta">Quarta</MenuItem>
+                              <MenuItem value="Quinta">Quinta</MenuItem>
+                              <MenuItem value="Sexta">Sexta</MenuItem>
+                              <MenuItem value="Sábado">Sábado</MenuItem>
+                              <MenuItem value="Domingo">Domingo</MenuItem>
+                              <MenuItem value="Sab-Dom">Sab-Dom</MenuItem>
+                              <MenuItem value="Feriados">Feriados</MenuItem>
+                            </Select>
+                          </FormControl>
+                        ) : (row.melhor_dia_hora)}
+                      </TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="melhor_hora" value={editedRowData.melhor_hora || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.melhor_hora}</TableCell>
                       {/* Campo editável de status cor do mapa */}
                       <TableCell align="center" sx={TableCellBDStyle}>
                         {isEditing ? (
@@ -753,7 +858,6 @@ const EnderecForm = () => {
                           </div>
                         )}
                       </TableCell>
-
                       {/* Campo editável de status cor do mapa */}
                       <TableCell align="center" sx={TableCellBDStyle}>
                         {isEditing ? (
@@ -817,8 +921,35 @@ const EnderecForm = () => {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="dt_ultvisit" value={formatDateGrid(editedRowData.dt_ultvisit) || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : formatDateGrid(row.dt_ultvisit)}</TableCell>
+                      <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="dt_ultvisit" value={editedRowData.dt_ultvisit || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.dt_ultvisit}</TableCell>
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="pub_ultvisi" value={editedRowData.pub_ultvisi || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.pub_ultvisi}</TableCell>
+
+                      {/* Campo editável de reponsável */}
+                      <TableCell align="center" sx={TableCellBDStyle}>
+                        {isEditing ? (
+                         <FormControl fullWidth>
+                         <InputLabel id="publicadores-label">Publicador Responsável</InputLabel>
+                         <Select
+                           labelId="publicadores-label"
+                           id="publicadores"
+                           value={editedRowData.terr_respons || ''} // Certifique-se de que o valor é passado corretamente
+                           onChange={(e) =>
+                             setEditedRowData({
+                               ...editedRowData,
+                               terr_respons: e.target.value, // Atualiza o campo no estado
+                             })
+                           }
+                           name="terr_respons" // Garante que o campo seja identificado corretamente
+                         >
+                           {publicadores.map((publicador) => (
+                             <MenuItem key={publicador.id} value={publicador.pub_login}>
+                               {publicador.pub_nome}
+                             </MenuItem>
+                           ))}
+                         </Select>
+                       </FormControl>
+                        ) : (row.terr_respons)}
+                      </TableCell>
 
                       <TableCell align="center" sx={TableCellBDStyle} >{isEditing ? <TextField name="terr_obs" value={editedRowData.terr_obs || ''} onChange={handleInputChange} size="small" sx={TableCellBDStyle} /> : row.terr_obs}</TableCell>
 
@@ -838,7 +969,6 @@ const EnderecForm = () => {
               </TableBody>
             </Table>
           </TableContainer>
-
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]} // Caso queira outras opções
             component="div"
@@ -854,7 +984,6 @@ const EnderecForm = () => {
               '& .MuiTablePagination-displayedRows': { fontSize: '0.80rem' },
             }}
           />
-
 
           {/* Botão para abrir o formulário */}
           <button
@@ -881,7 +1010,6 @@ const EnderecForm = () => {
             <FaUserPlus /> Incluir Novo Mapa
           </button>
         </Box>
-
       </Box>
       {/* Formulário de nova indicação */}
       <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewTerritorForm ? 'block' : 'none' }}>
@@ -974,7 +1102,6 @@ const EnderecForm = () => {
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
       </Box>
-
     </Box>
   );
 };

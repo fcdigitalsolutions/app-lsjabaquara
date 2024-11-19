@@ -192,31 +192,30 @@
 .card-container-user {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
 }
 
 /* Estilo dos Cards de Designação */
 .card-box-user {
-  flex: 1 1 200px;
-  max-width: 250px;
+  flex: 1 1 300px;
+  max-width: 300px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
   border-radius: 12px;
 }
 
 .card-user {
-  padding: 8px; /* Reduzido para diminuir a altura */
-  border-radius: 16px;
+  padding: 9.5px; /* Reduzido para diminuir a altura */
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: right;
   justify-content: space-between;
 }
 
 .status-badge-user {
   padding: 4px;
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: 0.6rem;
   color: #ffffff;
   text-align: center;
@@ -225,24 +224,6 @@
   background-color: #CC0000; /* Ajuste conforme o status */
   position: relative; /* Necessário para centralizar */
   top: -15px; /* Ajuste fino para centralizar verticalmente */
-}
-
-/* Ajustes para o Botão "Abrir Mapa" */
-.open-map-button-user {
-  font-size: 0.6rem;
-  padding: 4px 10px;
-  background-color: #67e7eb;
-  color: #202038;
-  transition: background-color 0.3s ease;
-  text-align: center;
-  margin-top: 4px;
-  align-self: center;
-  margin-bottom: 6px; /* Ajuste de margem para alinhar com a badge */
-}
-
-.open-map-button-user:hover {
-  background-color: #ffffff;
-  color: #2c2c4e;
 }
 
 .div-map-user {

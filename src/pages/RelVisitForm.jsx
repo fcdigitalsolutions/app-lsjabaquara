@@ -377,7 +377,7 @@ const RelVisitForm = () => {
                                         <FaChevronDown onClick={(event) => handleClick(event, 'pub_nome')} />
                                     </TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Email</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Pessoas no Local</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Quantidade de Surdos</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Melhor Dia</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Melhor Hora</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ações</TableCell>

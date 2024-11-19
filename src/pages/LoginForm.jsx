@@ -84,7 +84,6 @@ const LoginForm = () => {
                 </form>
                 {message && <p className="error-message">{message}</p>}
                 <div className="external-links">
-                    <button onClick={() => navigate('/regist-ncoff')} className="external-button">+ Não em Casa</button>
                     <button onClick={() => navigate('/indic-formoff')} className="external-button">+ Indicação de Surdo</button>
                 </div>
             </div>

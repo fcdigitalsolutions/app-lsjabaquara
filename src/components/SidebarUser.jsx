@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 
 const routes = [
   { path: "/huser/form-userview", name: "Pregação" },
+  { path: "/huser/formuserensino", name: "Ensino" },
+  { path: "/huser/formuserdesig", name: "Designar" },
   { path: "/huser/relatoriocampo", name: "Relat. Mensal" },
   { path: "/", name: "Sair" },
 ];

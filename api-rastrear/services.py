@@ -405,11 +405,97 @@ class DesignService:
     def get_desig_user(self, desig_user):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("select * from cad_designacoes where dsg_status in ('1','2','3') and pub_login = %s", (desig_user,) )
+        cursor.execute("""
+            SELECT 
+                desg.id AS desig_id,         -- ID da designação
+                terr.id AS territor_id,      -- ID do território
+                desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
+                desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
+                desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
+                desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+            FROM cad_designacoes desg
+            LEFT JOIN cad_territorios terr ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE 
+                1 = 1 
+                and desg.dsg_status IN ('1', '2', '3') 
+                and desg.dsg_tipo IN  ('0', '1')                       
+                and terr.terr_status IN  ('0')
+                and desg.pub_login = %s
+            ORDER BY desg.dsg_mapa_cod ASC
+            """, (desig_user,))
+        
         desig = cursor.fetchall()
         result = rows_to_dict(cursor, desig)
         conn.close()
         return result
+    
+    def get_desig_transf(self, desig_user):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+              SELECT 
+                desg.id AS desig_id,         -- ID da designação
+                terr.id AS territor_id,      -- ID do território
+                desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
+                desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
+                desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
+                desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+            FROM cad_designacoes desg
+            LEFT JOIN cad_territorios terr ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE 
+                1 = 1 
+                and desg.dsg_status IN ('0') 
+                and desg.dsg_tipo IN  ('0', '1')
+                and terr.terr_status IN  ('0')
+                and desg.pub_login <> %s
+            ORDER BY desg.dsg_mapa_cod ASC
+            """, (desig_user,))
+        
+        desig = cursor.fetchall()
+        result = rows_to_dict(cursor, desig)
+        conn.close()
+        return result
+
+    def get_desig_ensino(self, desig_user):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+              SELECT 
+                desg.id AS desig_id,         -- ID da designação
+                terr.id AS territor_id,      -- ID do território
+                desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
+                desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
+                desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
+                desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+            FROM cad_designacoes desg
+            LEFT JOIN cad_territorios terr ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE 
+                1 = 1 
+                and desg.dsg_status IN ('2') 
+                and desg.dsg_tipo IN  ('0', '1')
+                and terr.terr_status IN  ('1', '2')
+                and terr.terr_respons = %s
+                and desg.pub_login = %s
+            ORDER BY desg.dsg_mapa_cod ASC
+            """, (desig_user,desig_user,))
+        
+        desig = cursor.fetchall()
+        result = rows_to_dict(cursor, desig)
+        conn.close()
+        return result
+
     
     def delete_desig(self, desig_id):
         conn = get_db_connection()
@@ -444,8 +530,8 @@ class TerritService:
                 terr_cor,terr_status,
                 num_pessoas,melhor_dia_hora,
                 terr_tp_local,terr_classif,terr_desig,melhor_hora,
-                terr_obs) 
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                terr_respons,terr_obs) 
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """,
             (territ.data_inclu,
              territ.dt_ultvisit,
@@ -470,6 +556,7 @@ class TerritService:
              territ.terr_classif,
              territ.terr_desig,
              territ.melhor_hora,
+             territ.terr_respons,
              territ.terr_obs ))
         conn.commit()
         territ_id = cursor.lastrowid
@@ -488,7 +575,7 @@ class TerritService:
             terr_link= %s,terr_coord= %s,terr_cor= %s, terr_status= %s,
             num_pessoas= %s, melhor_dia_hora= %s,
             terr_tp_local= %s,terr_classif= %s,terr_desig= %s,melhor_hora= %s,
-            terr_obs= %s WHERE id = %s
+            terr_respons= %s,terr_obs= %s WHERE id = %s
             """,    
           (  territ.dt_ultvisit,
              territ.pub_ultvisi,
@@ -512,12 +599,31 @@ class TerritService:
              territ.terr_classif,
              territ.terr_desig,
              territ.melhor_hora,
+             territ.terr_respons,
              territ.terr_obs,
              territ_id
             ))
         
         conn.commit()
         conn.close()
+        return territ_id
+    
+    def update_territ_especif(self, territ_id, fields_to_update):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Monta a cláusula SET dinamicamente com os campos enviados
+        set_clause = ', '.join([f"{key} = %s" for key in fields_to_update.keys()])
+        query = f"UPDATE cad_territorios SET {set_clause} WHERE id = %s"
+
+        # Valores para a query, adicionando o `territ_id` no final
+        values = list(fields_to_update.values())
+        values.append(territ_id)
+
+        # Executa a query de atualização
+        cursor.execute(query, values)
+        conn.commit()
+        conn.close()    
         return territ_id
 
     def get_all_territ(self):

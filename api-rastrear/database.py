@@ -175,7 +175,8 @@ def init_db():
                 terr_tp_local varchar(255) NULL,
                 terr_classif  varchar(255) NULL,
                 terr_desig    varchar(255) NULL,
-                melhor_hora   varchar(255) NULL,      
+                melhor_hora   varchar(255) NULL, 
+                terr_respons   varchar(255) NULL,                          
                 terr_obs      text             
             )
         ''')        
