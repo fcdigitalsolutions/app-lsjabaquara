@@ -170,17 +170,22 @@ const FormUserView = () => {
   const handleOpenReservDialog = (item) => {
     setSelectedItem({
       ...item,
-      territor_id: item.territor_id, // Adicione o ID do território
+      territor_id: item.territor_id, // ID do território
+      desig_id: item.desig_id, // ID da designação
     });
 
     setFormFields({
-      melhor_dia: item.melhor_dia_hora || '',
-      melhor_hora: item.melhor_hora || '',
-      terr_obs: item.terr_obs || '',
+      dt_ultvisit: new Date().toLocaleDateString("pt-BR"), // Data da última visita
+      pub_ultvisi: item.pub_login || '',
+      terr_respons: item.pub_login || '',
+      terr_status: item.terr_status || '',
+      terr_desig: item.terr_desig || '',
     });
 
     setOpenReservMapDialog(true); // Abre o diálogo
   };
+
+
   const handleFieldChange = (field, value) => {
     setFormFields((prevState) => ({ ...prevState, [field]: value }));
   };
@@ -194,12 +199,11 @@ const FormUserView = () => {
     setOpenDialog(true);
   };
 
-
   const handleEncerrar = async () => {
     setOpenDialog(false);
 
+    // Verifica se o item está selecionado ou busca pelo ID
     if (!selectedItem && selectedItemId) {
-      // Busca o item na lista `data` usando o ID
       const itemToUpdate = data.find((item) => item.desig_id === selectedItemId);
       if (itemToUpdate) {
         setSelectedItem(itemToUpdate);
@@ -213,30 +217,45 @@ const FormUserView = () => {
       return;
     }
 
-    const updatedData = {
+    const updatedDesignacao = {
       ...selectedItem,
       dsg_status: '4', // Atualiza o status para "Encerrada"
     };
 
+    const updatedTerritorio = {
+      terr_desig: '1', // 1 - Não designado, 2 - Designado - Atualiza para indicar que o território está livre
+      terr_respons: '',
+      terr_status: '0', // 0 - ativo, 1 - revisita, 2 - estudante
+    };
+
     try {
-      await api_service.put(`/desig/${selectedItem.desig_id}`, updatedData);
-      // Atualiza o estado local
+      // Atualiza o status da designação
+      await api_service.put(`/desig/${selectedItem.desig_id}`, updatedDesignacao);
+      console.log("Designação encerrada com sucesso.");
+
+      // Atualiza o status do território
+      await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
+      console.log("Território liberado com sucesso.");
+
+      // Atualiza o estado local para refletir as mudanças
       setData((prevData) =>
         prevData.map((item) =>
-          item.desig_id === selectedItem.desig_id ? { ...item, dsg_status: '4' } : item
+          item.desig_id === selectedItem.desig_id
+            ? { ...item, dsg_status: '4', terr_desig: '0' }
+            : item
         )
       );
+
       setSelectedItem(null);
       setSelectedItemId(null);
     } catch (error) {
-      console.error("Erro ao encerrar a designação: ", error);
+      console.error("Erro ao encerrar a designação ou liberar o território: ", error);
     }
   };
 
 
   const handleRealizar = async () => {
     if (!selectedItem || !selectedItem.desig_id) {
-
       return;
     }
 
@@ -299,29 +318,45 @@ const FormUserView = () => {
       return;
     }
 
+    // Atualiza os dados do Território
     const updatedTerrit = {
       dt_ultvisit: new Date().toLocaleDateString("pt-BR"), // Data da última visita
       pub_ultvisi: selectedItem.pub_login, // Publicador responsável pela última visita
-      terr_respons: selectedItem.pub_login, // Publicador responsável pela última visita
-      terr_status : selectedItem.terr_status,
+      terr_respons: selectedItem.pub_login, // Publicador responsável pelo território
+      terr_status: formFields.terr_status, // Status da reserva (1 = Revisita, 2 = Estudo)
+      terr_desig: '2'
+    };
+
+    // Atualiza o status da Designação correspondente
+    const updatedDesignacao = {
+      ...selectedItem,
+      dsg_status: '2', // Atualiza o status para "Já Visitei" ou "Reservado"
     };
 
     try {
-      const response = await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerrit);
-      console.log("Resposta do servidor:", response.data);
+      // Atualiza o Território
+      const responseTerrit = await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerrit);
+      console.log("Resposta do servidor para Território:", responseTerrit.data);
 
+      // Atualiza a tabela de Designações
+      const responseDesignacao = await api_service.put(`/desig/${selectedItem.desig_id}`, updatedDesignacao);
+      console.log("Resposta do servidor para Designação:", responseDesignacao.data);
+
+      // Atualiza os estados locais
       setData((prevData) =>
         prevData.map((item) =>
-          item.territor_id === selectedItem.territor_id ? { ...item, ...updatedTerrit } : item
+          item.territor_id === selectedItem.territor_id
+            ? { ...item, ...updatedTerrit, dsg_status: updatedDesignacao.dsg_status }
+            : item
         )
       );
 
-      console.log("Território atualizado com sucesso.");
+      console.log("Território e Designação atualizados com sucesso.");
     } catch (error) {
-      console.error("Erro ao atualizar o território:", error);
+      console.error("Erro ao atualizar os dados:", error);
     }
-    
-    setOpenReservMapDialog(false); // Abre o diálogo
+
+    setOpenReservMapDialog(false); // Fecha o diálogo
   };
 
   const handleVisitSubmit = async () => {
@@ -512,10 +547,10 @@ const FormUserView = () => {
           <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
 
           <FormControl fullWidth margin="dense"
-          sx={{
-            fontSize: '0.85rem',
-            marginTop: '15px',
-          }}>
+            sx={{
+              fontSize: '0.85rem',
+              marginTop: '15px',
+            }}>
             <InputLabel>Encontrou? *</InputLabel>
             <Select
               value={formFields.visit_status}
@@ -530,7 +565,7 @@ const FormUserView = () => {
           </FormControl>
 
           <TextField
-          
+
             margin="dense"
             label="QTD Surdos *"
             type="number"
@@ -614,6 +649,7 @@ const FormUserView = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Caixa de diálogo de Reservar Mapa  */}
       <Dialog open={openReservMapDialog} onClose={() => setOpenReservMapDialog(false)}>
         <DialogTitle>Reservar Mapa (Estudos e Revisitas)</DialogTitle>
         <DialogContent>
@@ -623,10 +659,10 @@ const FormUserView = () => {
           <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
           <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
           <FormControl fullWidth margin="dense"
-          sx={{
-            fontSize: '0.85rem',
-            marginTop: '15px',
-          }}
+            sx={{
+              fontSize: '0.85rem',
+              marginTop: '15px',
+            }}
           >
             <InputLabel>Tipo de Reserva? *</InputLabel>
             <Select

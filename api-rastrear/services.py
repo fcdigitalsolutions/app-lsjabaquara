@@ -455,9 +455,9 @@ class DesignService:
                 and desg.dsg_status IN ('0') 
                 and desg.dsg_tipo IN  ('0', '1')
                 and terr.terr_status IN  ('0')
-                and desg.pub_login <> %s
+                and (isnull(desg.pub_login) or desg.pub_login = '')
             ORDER BY desg.dsg_mapa_cod ASC
-            """, (desig_user,))
+            """)
         
         desig = cursor.fetchall()
         result = rows_to_dict(cursor, desig)

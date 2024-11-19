@@ -71,7 +71,7 @@ const FormUserEnsino = () => {
   const getStatusDesig = (dsg_status) => {
     switch (dsg_status) {
       case '0': return 'NÃO DESIGNADA';
-      case '1': return 'PENDENTE';
+      case '1': return 'DESIGNADA';
       case '2': return 'JÁ VISITEI';
       case '3': return 'VENCIDA';
       case '4': return 'ENCERRADA';
@@ -82,7 +82,7 @@ const FormUserEnsino = () => {
   const getStatusColorDesig = (status) => {
     switch (status) {
       case 'NÃO DESIGNADA': return darkMode ? '#666666' : '#666666';
-      case 'PENDENTE': return darkMode ? '#CC0000' : '#CC0000';
+      case 'DESIGNADA': return darkMode ? '#00009C' : '#00009C';
       case 'JÁ VISITEI': return darkMode ? '#00009C' : '#00009C';
       case 'VENCIDA': return darkMode ? '#5C4033' : '#5C4033';
       case 'ENCERRADA': return darkMode ? '#000000' : '#000000';
@@ -213,6 +213,12 @@ const FormUserEnsino = () => {
       return;
     }
 
+    const updatedTerritorio = {
+      terr_desig: '2', // 1 - Não designado, 2 - Designado - Atualiza para indicar que o território está livre
+      terr_respons: '',
+      terr_status: '0', // 0 - ativo, 1 - revisita, 2 - estudante
+    };
+
     // Atualiza o status da designação
     const updatedData = {
       ...selectedItem,
@@ -225,15 +231,22 @@ const FormUserEnsino = () => {
       // Faz a requisição PUT para atualizar a designação
       await api_service.put(`/desig/${selectedItem.desig_id}`, updatedData);
 
-      // Atualiza o estado local para refletir a mudança
-      setData((prevData) =>
+      // Atualiza o status do território
+      await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
+      console.log("Território liberado com sucesso.");
+      
+       // Atualiza o estado local para refletir as mudanças
+       setData((prevData) =>
         prevData.map((item) =>
-          item.desig_id === selectedItem.id ? { ...item, ...updatedData } : item
+          item.desig_id === selectedItem.desig_id
+            ? { ...item, dsg_status: '1', terr_desig: '0' }
+            : item
         )
       );
 
       setOpenVisitDialog(false); // Fecha o diálogo
       console.log("Designação atualizada com sucesso.");
+      //Alert("Designação atualizada com sucesso.");
     } catch (error) {
       console.error("Erro ao designar a designação: ", error);
     }

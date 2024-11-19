@@ -356,24 +356,24 @@ const EnderecForm = () => {
   const getStatusTpLocal = (terr_tp_local) => {
     switch (terr_tp_local) {
       case '1':
-        return 'CASA';
+        return 'Casa';
       case '2':
-        return 'TRABALHO';
+        return 'Trabalho';
       case '3':
-        return 'PRÉDIO';
+        return 'Prédio';
       default:
-        return 'OUTROS';
+        return 'Outros';
     }
   };
 
   // Função para determinar a cor de fundo da célula com base no status
   const getStatusColorTpLocal = (status) => {
     switch (status) {
-      case 'CASA':
+      case 'Casa':
         return '#007FFF';
-      case 'TRABALHO':
+      case 'Trabalho':
         return '#8B4513';
-      case 'PRÉDIO':
+      case 'Prédio':
         return '#42426F';
       default:
         return 'transparent';

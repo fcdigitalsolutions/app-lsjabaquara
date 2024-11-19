@@ -182,8 +182,8 @@ const getColorMapCor = (terr_cor) => {
   const handleEncerrar = async () => {
     setOpenDialog(false);
 
+    // Verifica se o item está selecionado ou busca pelo ID
     if (!selectedItem && selectedItemId) {
-      // Busca o item na lista `data` usando o ID
       const itemToUpdate = data.find((item) => item.desig_id === selectedItemId);
       if (itemToUpdate) {
         setSelectedItem(itemToUpdate);
@@ -197,26 +197,41 @@ const getColorMapCor = (terr_cor) => {
       return;
     }
 
-    const updatedData = {
+    const updatedDesignacao = {
       ...selectedItem,
       dsg_status: '4', // Atualiza o status para "Encerrada"
     };
 
+    const updatedTerritorio = {
+      terr_desig: '1', // 1 - Não designado, 2 - Designado - Atualiza para indicar que o território está livre
+      terr_respons: '',
+      terr_status: '0', // 0 - ativo, 1 - revisita, 2 - estudante
+    };
+
     try {
-      await api_service.put(`/desig/${selectedItem.desig_id}`, updatedData);
-      // Atualiza o estado local
+      // Atualiza o status da designação
+      await api_service.put(`/desig/${selectedItem.desig_id}`, updatedDesignacao);
+      console.log("Designação encerrada com sucesso.");
+
+      // Atualiza o status do território
+      await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
+      console.log("Território liberado com sucesso.");
+
+      // Atualiza o estado local para refletir as mudanças
       setData((prevData) =>
         prevData.map((item) =>
-          item.desig_id === selectedItem.desig_id ? { ...item, dsg_status: '4' } : item
+          item.desig_id === selectedItem.desig_id
+            ? { ...item, dsg_status: '4', terr_desig: '0' }
+            : item
         )
       );
+
       setSelectedItem(null);
       setSelectedItemId(null);
     } catch (error) {
-      console.error("Erro ao encerrar a designação: ", error);
+      console.error("Erro ao encerrar a designação ou liberar o território: ", error);
     }
   };
-
 
   const handleRealizar = async () => {
     if (!selectedItem || !selectedItem.id) {
