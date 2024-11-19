@@ -21,7 +21,7 @@ const RelCampForm = () => {
   useEffect(() => {
     const fetchPublicadores = async () => {
       try {
-        const response = await api_service.get('/pubcall');
+        const response = await api_service.get('/pubcallsint');
         console.log('Publicadores carregados:', response.data);
         setPublicadores(response.data);
       } catch (error) {
@@ -125,8 +125,8 @@ const RelCampForm = () => {
                 onChange={(e) => setPublica(e.target.value)}
               >
                 {publicadores.map((publicador) => (
-                  <MenuItem key={publicador.id} value={publicador.nome}>
-                    {publicador.nome}
+                  <MenuItem key={publicador.id} value={publicador.pub_chave}>
+                    {publicador.pub_nome}
                   </MenuItem>
                 ))}
               </Select>

@@ -351,6 +351,15 @@ def get_pubcall():
         'data_inclu': format_date(pubc.get('data_inclu'))
     } for pubc in pubc])
 
+## Rotas da API para o cadastro de puiblicadores 
+@app.route('/pubcallsint', methods=['GET'])
+def get_pubcallsint():
+    pubc = pubc_service.get_all_pubc_sint()
+    return jsonify([{
+        **dict(pubc),    
+        'data_inclu': format_date(pubc.get('data_inclu'))
+    } for pubc in pubc])
+
 @app.route('/pubc', methods=['POST'])
 def add_pubc():
     data = request.json
@@ -428,18 +437,16 @@ def get_desiguser(desig_user):
         'data_inclu': format_date(desig_item.get('data_inclu'))
     } for desig_item in desig])
 
-
 ## Rotas da API para o cadastro de Designações 
-@app.route('/desigpend/<string:desig_user>', methods=['GET'])
-def get_desigpendente(desig_user):
-    desig = desig_service.get_desig_transf(desig_user)
+@app.route('/desigpend', methods=['GET'])
+def get_desigpendente():
+    desig = desig_service.get_desig_transf()
     return jsonify([{
-        **dict(desig_item),
-        'dsg_data': format_date(desig_item.get('dsg_data')),        
-        'dt_ultvisit': format_date(desig_item.get('dt_ultvisit')),
-        'data_inclu': format_date(desig_item.get('data_inclu'))
-    } for desig_item in desig])
-
+        **dict(desig),
+        'dsg_data': format_date(desig.get('dsg_data')),        
+        'dt_ultvisit': format_date(desig.get('dt_ultvisit')),
+        'data_inclu': format_date(desig.get('data_inclu'))
+    } for desig in desig])
 
 ## Rotas da API para o cadastro de Designações 
 @app.route('/desigensin/<string:desig_user>', methods=['GET'])

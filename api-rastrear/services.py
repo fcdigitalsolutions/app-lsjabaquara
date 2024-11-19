@@ -346,11 +346,21 @@ class PublicaService:
     def get_all_pubc(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM cad_publicador')
+        cursor.execute('SELECT * FROM cad_publicador where 1 = 1 ')
         pubc = cursor.fetchall()
         result = rows_to_dict(cursor, pubc)
         conn.close()
         return result
+
+    def get_all_pubc_sint(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT pub_nome,pub_login as 'pub_chave',pub_status,data_inclu  FROM cad_publicador where 1 = 1 ")
+        pubc = cursor.fetchall()
+        result = rows_to_dict(cursor, pubc)
+        conn.close()
+        return result
+
 
     def delete_publi(self, pubc_id):
         print(f"Excluindo publicador com ID: {pubc_id}")  # Adiciona um print para debug
@@ -407,8 +417,8 @@ class DesignService:
         cursor = conn.cursor()
         cursor.execute("""
             SELECT 
-                desg.id AS desig_id,         -- ID da designação
-                terr.id AS territor_id,      -- ID do território
+                desg.id AS desig_id,     
+                terr.id AS territor_id,   
                 desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
                 desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
                 desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
@@ -433,13 +443,13 @@ class DesignService:
         conn.close()
         return result
     
-    def get_desig_transf(self, desig_user):
+    def get_desig_transf(self):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
               SELECT 
-                desg.id AS desig_id,         -- ID da designação
-                terr.id AS territor_id,      -- ID do território
+                desg.id AS desig_id,     
+                terr.id AS territor_id, 
                 desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
                 desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
                 desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 

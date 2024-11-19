@@ -454,7 +454,7 @@ const EnderecForm = () => {
   useEffect(() => {
     const fetchPublicadores = async () => {
       try {
-        const response = await api_service.get('/pubcall'); // rota da API
+        const response = await api_service.get('/pubcallsint'); // rota da API
         setPublicadores(response.data); // a API retorna um array de dados
       } catch (error) {
         console.error('Erro ao carregar os dados:', error);
@@ -463,20 +463,6 @@ const EnderecForm = () => {
 
     fetchPublicadores(); // Chama a função para carregar os dados
   }, []);
-
-  useEffect(() => {
-    const fetchPublicadores = async () => {
-      try {
-        const response = await api_service.get('/pubcall');
-        setPublicadores(response.data);
-      } catch (error) {
-        console.error('Erro ao carregar publicadores:', error);
-      }
-    };
-
-    fetchPublicadores();
-  }, []);
-
 
   // -- // 
   return (
@@ -654,9 +640,9 @@ const EnderecForm = () => {
                   {filterColumn === 'terr_tp_local' && (
                     <>
                       <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('1')}>CASA</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('2')}>TRABALHO</MenuItem>
-                      <MenuItem onClick={() => handleFilterSelect('3')}>PRÉDIO</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('1')}>Casa</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('2')}>Trabalho</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('3')}>Prédio</MenuItem>
                     </>
                   )}
                   {filterColumn === 'melhor_dia_hora' && (
@@ -778,9 +764,9 @@ const EnderecForm = () => {
                               value={editedRowData.terr_tp_local || '1'}
                               onChange={handleInputChange}
                             >
-                              <MenuItem value="1">CASA</MenuItem>
-                              <MenuItem value="2">TRABALHO</MenuItem>
-                              <MenuItem value="3">PRÉDIO</MenuItem>
+                              <MenuItem value="1">Casa</MenuItem>
+                              <MenuItem value="2">Trabalho</MenuItem>
+                              <MenuItem value="3">P´redio</MenuItem>
                             </Select>
                           </FormControl>
                         ) : (
@@ -942,7 +928,7 @@ const EnderecForm = () => {
                            name="terr_respons" // Garante que o campo seja identificado corretamente
                          >
                            {publicadores.map((publicador) => (
-                             <MenuItem key={publicador.id} value={publicador.pub_login}>
+                             <MenuItem key={publicador.id} value={publicador.pub_chave}>
                                {publicador.pub_nome}
                              </MenuItem>
                            ))}

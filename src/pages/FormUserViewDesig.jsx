@@ -50,8 +50,8 @@ const FormUserEnsino = () => {
     terr_obs: ''
   });
 
-  const userDados = JSON.parse(sessionStorage.getItem('userData'));
-  const lginUser = userDados?.iduser;
+  //const userDados = JSON.parse(sessionStorage.getItem('userData'));
+  //const lginUser = userDados?.iduser;
   const [publicadores, setPublicadores] = useState([]); // Estado para armazenar as opções de Publicadores
 
   const totalMapas = new Set(data.map(item => item.desig_id)).size;
@@ -135,7 +135,7 @@ const FormUserEnsino = () => {
 
   useEffect(() => {
     setLoading(true);
-    api_service.get(`/desigpend/${lginUser}`)
+    api_service.get(`/desigpend`)
       .then((response) => {
         setData(response.data);
         setError(null);
@@ -145,14 +145,14 @@ const FormUserEnsino = () => {
         setError('Erro ao carregar as designações. Tente novamente mais tarde.');
       })
       .finally(() => setLoading(false));
-  }, [lginUser]);
+  }, []);
 
 
   // Função para buscar os dados da API
   useEffect(() => {
     const fetchPublicadores = async () => {
       try {
-        const response = await api_service.get('/pubcall'); // rota da API
+        const response = await api_service.get('/pubcallsint'); // rota da API
         setPublicadores(response.data); // a API retorna um array de dados
       } catch (error) {
         console.error('Erro ao carregar os dados:', error);
@@ -161,20 +161,6 @@ const FormUserEnsino = () => {
 
     fetchPublicadores(); // Chama a função para carregar os dados
   }, []);
-
-  useEffect(() => {
-    const fetchPublicadores = async () => {
-      try {
-        const response = await api_service.get('/pubcall');
-        setPublicadores(response.data);
-      } catch (error) {
-        console.error('Erro ao carregar publicadores:', error);
-      }
-    };
-
-    fetchPublicadores();
-  }, []);
-
 
   const handleOpenVisitDialog = (item) => {
     setSelectedItem({
@@ -384,7 +370,7 @@ const FormUserEnsino = () => {
               onChange={(e) => handleFieldChange('pub_login', e.target.value)} // Atualiza pub_login no formFields
             >
               {publicadores.map((publicador) => (
-                <MenuItem key={publicador.id} value={publicador.pub_login}>
+                <MenuItem key={publicador.id} value={publicador.pub_chave}>
                   {publicador.pub_nome} {/* Exibe o nome no dropdown */}
                 </MenuItem>
               ))}
