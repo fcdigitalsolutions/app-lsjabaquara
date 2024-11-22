@@ -20,6 +20,7 @@ import UsersForm from './pages/UsersForm';
 import RelVisitForm from './pages/RelVisitForm';
 import FormUserViewEnsino from './pages/FormUserViewEnsino';
 import FormUserViewDesig from './pages/FormUserViewDesig';
+import { ThemeProvider } from './components/ThemeContext';
 
 import './styles/App.css';
 
@@ -48,6 +49,7 @@ const App = () => {
           element={
             <PrivateRoute
               userComponent={() => (
+                <ThemeProvider>
                 <SidebarUser>
                   <Routes> 
                     <Route path="form-userview" element={<FormUserView />} />
@@ -57,6 +59,7 @@ const App = () => {
                     <Route path="/ls" element={<SelectTpUser />} />
                   </Routes>
                 </SidebarUser>
+                </ThemeProvider>
               )}
             />
           }

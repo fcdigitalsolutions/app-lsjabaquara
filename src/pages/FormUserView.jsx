@@ -21,8 +21,9 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { FaAngleDoubleDown, FaMoon, FaSun, FaCheckCircle, FaMapMarked, FaFileSignature } from 'react-icons/fa';
+import { FaAngleDoubleDown, FaCheckCircle, FaMapMarked, FaFileSignature } from 'react-icons/fa';
 import { styled } from '@mui/material/styles';
+import { useTheme } from '../components/ThemeContext';
 
 const ExpandMore = styled((props) => {
   const { expand, ...other } = props;
@@ -40,7 +41,7 @@ const FormUserView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expanded, setExpanded] = useState({});
-  const [darkMode, setDarkMode] = useState(true);
+
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -67,9 +68,7 @@ const FormUserView = () => {
     window.open(row, '_blank');
   };
 
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
-  };
+  const { darkMode } = useTheme();
 
   const getStatusDesig = (dsg_status) => {
     switch (dsg_status) {
@@ -392,24 +391,19 @@ const FormUserView = () => {
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
-      <Button onClick={toggleTheme} sx={{ margin: '2px', fontSize: '12px' }} startIcon={darkMode ? <FaSun /> : <FaMoon />}>
-        {darkMode ? 'Modo Claro' : 'Modo Escuro'}
-      </Button>
+   
       <Box
         sx={{
           display: 'flex',
-          fontSize: '0.85rem',
+          justifyItems:'center',
+          fontSize: '0.8rem',
           marginLeft: '110px',
-          marginTop: '-5px',
-          marginBottom: '5px',
-          color: darkMode ? '#ffffff' : '#2c2c4e',
-          '&:hover': {
-            color: darkMode ? '#67e7eb' : '#333333',
-          },
+          marginTop: '5px',
+          marginBottom: '2px',
+          color: darkMode ? '#67e7eb' : '#333333' ,
         }}
       >
         Total de Mapas: {totalMapas}
-
       </Box>
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
@@ -449,7 +443,7 @@ const FormUserView = () => {
                   </Box>
                   <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Responsável: {item.pub_nome}</Typography>
                   <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Última visita: {item.dt_ultvisit}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Cód. Mapa: {item.dsg_mapa_cod}</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Mapa: {item.dsg_mapa_cod}</Typography>
                   <Typography variant="body1" className="status-text-user" sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }} >
                     Local: {getStatusTpLocal(item.terr_tp_local)}
                   </Typography>

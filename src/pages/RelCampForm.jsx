@@ -81,9 +81,7 @@ const RelCampForm = () => {
       <Typography variant="h4" sx={{ color: '#202038', marginBottom: '20px' }}>
         Relatório Mensal de Pregação
       </Typography>
-      <Typography variant="h5" sx={{ color: '#202038', marginBottom: '20px' }}>
-        Preencha o formulário abaixo com as informações:
-      </Typography>
+  
 
       <form onSubmit={handleSubmit} style={{ marginBottom: '25px' }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>

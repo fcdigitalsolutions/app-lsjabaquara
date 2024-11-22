@@ -21,8 +21,9 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { FaAngleDoubleDown, FaMoon, FaSun, FaCheckCircle, FaMapMarked, FaFileSignature } from 'react-icons/fa';
+import { FaAngleDoubleDown, FaCheckCircle, FaMapMarked, FaFileSignature } from 'react-icons/fa';
 import { styled } from '@mui/material/styles';
+import { useTheme } from '../components/ThemeContext';
 
 const ExpandMore = styled((props) => {
   const { expand, ...other } = props;
@@ -40,7 +41,6 @@ const FormUserEnsino = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expanded, setExpanded] = useState({});
-  const [darkMode, setDarkMode] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -65,9 +65,7 @@ const FormUserEnsino = () => {
     window.open(row, '_blank');
   };
 
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
-  };
+  const { darkMode } = useTheme();
 
   const getStatusDesig = (dsg_status) => {
     switch (dsg_status) {
@@ -120,19 +118,19 @@ const FormUserEnsino = () => {
     }
   };
 
-// Função para determinar a cor de fundo da célula com base no status
-const getColorMapCor = (terr_cor) => {
-  switch (terr_cor) {
-    case '0':
-      return '#00009C';
-    case '1':
-      return '#CC0000';
-    case '2':
-      return '#238E23';
-    default:
-      return 'transparent';
-  }
-};
+  // Função para determinar a cor de fundo da célula com base no status
+  const getColorMapCor = (terr_cor) => {
+    switch (terr_cor) {
+      case '0':
+        return '#00009C';
+      case '1':
+        return '#CC0000';
+      case '2':
+        return '#238E23';
+      default:
+        return 'transparent';
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -321,24 +319,18 @@ const getColorMapCor = (terr_cor) => {
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
-      <Button onClick={toggleTheme} sx={{ margin: '2px', fontSize: '12px' }} startIcon={darkMode ? <FaSun /> : <FaMoon />}>
-        {darkMode ? 'Modo Claro' : 'Modo Escuro'}
-      </Button>
       <Box
         sx={{
           display: 'flex',
-          fontSize: '0.85rem',
+          justifyItems:'center',
+          fontSize: '0.8rem',
           marginLeft: '110px',
-          marginTop: '-5px',
-          marginBottom: '5px',
-          color: darkMode ? '#ffffff' : '#2c2c4e',
-          '&:hover': {
-            color: darkMode ? '#67e7eb' : '#333333',
-          },
+          marginTop: '5px',
+          marginBottom: '2px',
+          color: darkMode ? '#67e7eb' : '#333333' ,
         }}
       >
         Total de Mapas: {totalMapas}
-
       </Box>
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
@@ -377,7 +369,7 @@ const getColorMapCor = (terr_cor) => {
                   </Box>
                   <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Responsável: {item.pub_nome}</Typography>
                   <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Última visita: {item.dt_ultvisit}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Cod. Mapa: {item.dsg_mapa_cod}</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Mapa: {item.dsg_mapa_cod}</Typography>
                   <Typography variant="body1" className="status-text-user" sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }} >
                     Local: {getStatusTpLocal(item.terr_tp_local)}
                   </Typography>

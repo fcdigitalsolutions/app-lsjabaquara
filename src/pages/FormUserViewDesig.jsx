@@ -20,8 +20,10 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { FaAngleDoubleDown, FaMoon, FaSun, FaMapMarked, FaFileSignature } from 'react-icons/fa';
+import { FaAngleDoubleDown, FaMapMarked, FaFileSignature } from 'react-icons/fa';
 import { styled } from '@mui/material/styles';
+import { useTheme } from '../components/ThemeContext';
+
 
 const ExpandMore = styled((props) => {
   const { expand, ...other } = props;
@@ -39,7 +41,6 @@ const FormUserEnsino = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expanded, setExpanded] = useState({});
-  const [darkMode, setDarkMode] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [openVisitDialog, setOpenVisitDialog] = useState(false);
   const [formFields, setFormFields] = useState({
@@ -64,28 +65,26 @@ const FormUserEnsino = () => {
     window.open(row, '_blank');
   };
 
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
-  };
+  const { darkMode } = useTheme();
 
   const getStatusDesig = (dsg_status) => {
     switch (dsg_status) {
-      case '0': return 'NÃO DESIGNADA';
-      case '1': return 'DESIGNADA';
+      case '0': return 'NÃO DESIGNADO';
+      case '1': return 'DESIGNADO';
       case '2': return 'JÁ VISITEI';
-      case '3': return 'VENCIDA';
-      case '4': return 'ENCERRADA';
+      case '3': return 'VENCIDO';
+      case '4': return 'ENCERRADO';
       default: return 'Outros';
     }
   };
 
   const getStatusColorDesig = (status) => {
     switch (status) {
-      case 'NÃO DESIGNADA': return darkMode ? '#666666' : '#666666';
-      case 'DESIGNADA': return darkMode ? '#00009C' : '#00009C';
+      case 'NÃO DESIGNADO': return darkMode ? '#666666' : '#666666';
+      case 'DESIGNADO': return darkMode ? '#00009C' : '#00009C';
       case 'JÁ VISITEI': return darkMode ? '#00009C' : '#00009C';
-      case 'VENCIDA': return darkMode ? '#5C4033' : '#5C4033';
-      case 'ENCERRADA': return darkMode ? '#000000' : '#000000';
+      case 'VENCIDO': return darkMode ? '#5C4033' : '#5C4033';
+      case 'ENCERRADO': return darkMode ? '#000000' : '#000000';
       default: return 'transparent';
     }
   };
@@ -181,7 +180,7 @@ const FormUserEnsino = () => {
 
   const handleFieldChange = (field, value) => {
     if (field === 'pub_login') {
-      const selectedPublicador = publicadores.find(p => p.pub_login === value);
+      const selectedPublicador = publicadores.find(p => p.pub_chave === value);
       setFormFields((prevState) => ({
         ...prevState,
         pub_login: value, // Define o pub_login selecionado
@@ -210,7 +209,8 @@ const FormUserEnsino = () => {
       ...selectedItem,
       dsg_status: '1', // Define o status como "Pendente"
       pub_login: formFields.pub_login, // Login do publicador selecionado
-      pub_nome: publicadores.find(p => p.pub_login === formFields.pub_login)?.pub_nome || '', // Nome do publicador correspondente
+      pub_nome: publicadores.find(p => p.pub_chave === formFields.pub_login)?.pub_nome || '', // Nome do publicador correspondente
+      dsg_data: new Date().toLocaleDateString("pt-BR"), // Data da designação
     };
 
     try {
@@ -220,9 +220,9 @@ const FormUserEnsino = () => {
       // Atualiza o status do território
       await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
       console.log("Território liberado com sucesso.");
-      
-       // Atualiza o estado local para refletir as mudanças
-       setData((prevData) =>
+
+      // Atualiza o estado local para refletir as mudanças
+      setData((prevData) =>
         prevData.map((item) =>
           item.desig_id === selectedItem.desig_id
             ? { ...item, dsg_status: '1', terr_desig: '0' }
@@ -241,25 +241,18 @@ const FormUserEnsino = () => {
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
-
-      <Button onClick={toggleTheme} sx={{ margin: '2px', fontSize: '12px' }} startIcon={darkMode ? <FaSun /> : <FaMoon />}>
-        {darkMode ? 'Modo Claro' : 'Modo Escuro'}
-      </Button>
       <Box
         sx={{
           display: 'flex',
-          fontSize: '0.85rem',
+          justifyItems:'center',
+          fontSize: '0.8rem',
           marginLeft: '110px',
-          marginTop: '-5px',
-          marginBottom: '5px',
-          color: darkMode ? '#ffffff' : '#2c2c4e',
-          '&:hover': {
-            color: darkMode ? '#67e7eb' : '#333333',
-          },
+          marginTop: '5px',
+          marginBottom: '2px',
+          color: darkMode ? '#67e7eb' : '#333333' ,
         }}
       >
         Total de Mapas: {totalMapas}
-
       </Box>
       {loading ?
         (
@@ -297,7 +290,7 @@ const FormUserEnsino = () => {
                         Designar/Transferir
                       </Box>
                       <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Última visita: {item.dt_ultvisit}</Typography>
-                      <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Cod. Mapa: {item.dsg_mapa_cod}</Typography>
+                      <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Mapa: {item.dsg_mapa_cod}</Typography>
                       <Typography variant="body1" className="status-text-user" sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }} >
                         Local: {getStatusTpLocal(item.terr_tp_local)}
                       </Typography>
@@ -360,7 +353,6 @@ const FormUserEnsino = () => {
           <Typography variant="body2">Última Visita: {selectedItem?.dt_ultvisit}</Typography>
           <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
           <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
-
           <FormControl fullWidth margin="dense">
             <InputLabel>Escolha o Publicador*</InputLabel>
             <Select
