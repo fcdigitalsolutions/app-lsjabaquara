@@ -180,6 +180,7 @@ def init_db():
                 terr_obs      text             
             )
         ''')        
+        
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS mov_relat_visitas (
 	            id INT AUTO_INCREMENT PRIMARY KEY,
@@ -197,7 +198,24 @@ def init_db():
                 terr_obs       text             
             )
         ''')    
-            
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cad_configcampo (
+	            id INT AUTO_INCREMENT PRIMARY KEY,
+	            data_inclu	   datetime NULL,
+				cmp_tipo	   varchar(255) NULL,
+                cmp_diadasem   varchar(255) NULL,
+                cmp_seq	       varchar(255) NULL,
+				cmp_local      varchar(255) NULL,
+				cmp_enderec    varchar(255) NULL,
+				cmp_url        varchar(255) NULL,
+				cmp_tipoativ   varchar(255) NULL,
+				cmp_horaini    varchar(255) NULL,
+				cmp_horafim    varchar(255) NULL,
+				cmp_detalhes   text         
+            )
+        ''')    
+
         conn.commit()
         cursor.close()
         conn.close()

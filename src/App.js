@@ -20,6 +20,9 @@ import UsersForm from './pages/UsersForm';
 import RelVisitForm from './pages/RelVisitForm';
 import FormUserViewEnsino from './pages/FormUserViewEnsino';
 import FormUserViewDesig from './pages/FormUserViewDesig';
+import FormUserViewOutras from './pages/FormUserViewOutras';
+import ConfigCampoForm from './pages/ConfigCampoForm';
+
 import { ThemeProvider } from './components/ThemeContext';
 
 import './styles/App.css';
@@ -55,6 +58,7 @@ const App = () => {
                     <Route path="form-userview" element={<FormUserView />} />
                     <Route path="formuserdesig" element={<FormUserViewDesig />} />
                     <Route path="formuserensino" element={<FormUserViewEnsino />} />
+                    <Route path="formuseroutras" element={<FormUserViewOutras />} />
                     <Route path="relatoriocampo" element={<RelCampForm />} />
                     <Route path="/ls" element={<SelectTpUser />} />
                   </Routes>
@@ -79,6 +83,7 @@ const App = () => {
                     <Route path="form-indicac" element={<IndicaForm />} />
                     <Route path="form-enderec" element={<EnderecForm />} />
                     <Route path="form-pubc" element={<PubcForm />} />
+                    <Route path="form-cfgcamp" element={<ConfigCampoForm />} />
                     <Route path="form-desig" element={<DesigForm />} />
                     <Route path="form-visit" element={<RelVisitForm />} />
                     <Route path="form-users" element={<UsersForm />} />

@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import Region,Congregation,Indicacoes,Rastreamento,AuthLogin,RegistroNC,Publicadores,Designacoes,Territorios,RelVisita
-from services import RegionService,CongregacaoService,IndicaService,RastrearService,AuthService,RegistroNCService,PublicaService,DesignService,TerritService,VisitaService
+from models import Region,Congregation,Indicacoes,Rastreamento,AuthLogin,RegistroNC,Publicadores,Designacoes,Territorios,RelVisita,ConfigCampo
+from services import RegionService,CongregacaoService,IndicaService,RastrearService,AuthService,RegistroNCService,PublicaService,DesignService,TerritService,VisitaService,CfgCampoService
 from database import init_db
-from datetime import datetime
+from datetime import datetime,timedelta
 import config_env
 
 app = Flask(__name__)
@@ -18,6 +18,7 @@ pubc_service = PublicaService()
 desig_service = DesignService()
 territ_service = TerritService()
 rvisita_service = VisitaService()
+cfgcampo_service = CfgCampoService()
 
 # Inicializa o banco de dados
 init_db()
@@ -38,6 +39,13 @@ def parse_date(date_str):
     except ValueError:
         # Caso a data não esteja no formato esperado, retorna None ou lança um erro apropriado
         return None
+
+
+def excel_serial_to_date(serial):
+    """Converte número serial de data do Excel para string no formato 'YYYY-MM-DD'."""
+    excel_start_date = datetime(1899, 12, 30)  # Excel considera 1º de janeiro de 1900 como dia 1
+    converted_date = excel_start_date + timedelta(days=serial)
+    return converted_date.strftime('%Y-%m-%d')
 
 
 @app.route('/authxall', methods=['GET'])
@@ -460,6 +468,28 @@ def get_desigensino(desig_user):
     } for desig_item in desig])
 
 
+## Rotas da API para o cadastro de Designações 
+@app.route('/desigsuges', methods=['GET'])
+def get_desigsugest():
+    desig = desig_service.get_desig_sugest()
+    return jsonify([{
+        **dict(desig),
+        'dsg_data': format_date(desig.get('dsg_data')),        
+        'dt_ultvisit': format_date(desig.get('dt_ultvisit')),
+        'data_inclu': format_date(desig.get('data_inclu'))
+    } for desig in desig])
+
+## Rotas da API para o cadastro de Designações 
+@app.route('/desigoutras/<string:desig_user>', methods=['GET'])
+def get_desigoutras(desig_user):
+    desig = desig_service.get_desig_user_outras(desig_user)
+    return jsonify([{
+        **dict(desig_item),
+        'dsg_data': format_date(desig_item.get('dsg_data')),
+        'dt_ultvisit': format_date(desig_item.get('dt_ultvisit')),
+        'data_inclu': format_date(desig_item.get('data_inclu'))
+    } for desig_item in desig])
+
 @app.route('/desig', methods=['POST'])
 def add_desig():
     data = request.json
@@ -479,6 +509,48 @@ def add_desig():
                         )                
     desig_id = desig_service.add_desig(desig)
     return jsonify({"id": desig_id, "message": "Designação add com sucesso!"}), 201
+
+
+@app.route('/desiglot', methods=['POST'])
+def add_batch_desig():
+    data = request.json
+    ## print("Dados recebidos:", data)
+
+    # Verificar se os dados são uma lista
+    if not isinstance(data, list):
+        print("Erro: Dados não são uma lista.")
+        return jsonify({"message": "Dados invalidos. Esperado uma lista de objetos."}), 400
+
+    # Criar objetos Designacoes para cada item
+    desigs = []
+    for item in data:
+        try:
+            desigs.append(Designacoes(
+                data_inclu=parse_date(item.get('data_inclu')),
+                dsg_data=parse_date(item.get('dsg_data')),
+                pub_login=item.get('pub_login'),
+                pub_nome=item.get('pub_nome'),
+                pub_obs=item.get('pub_obs'),
+                dsg_tipo=item.get('dsg_tipo'),
+                dsg_detalhes=item.get('dsg_detalhes'),
+                dsg_conselh=item.get('dsg_conselh'),
+                dsg_mapa_cod=item.get('dsg_mapa_cod'),
+                dsg_mapa_url=item.get('dsg_mapa_url'),
+                dsg_mapa_end=item.get('dsg_mapa_end'),
+                dsg_status=item.get('dsg_status'),
+                dsg_obs=item.get('dsg_obs')
+            ))
+        except Exception as e:
+            print(f"Erro ao processar item: {item} - Erro: {e}")
+            return jsonify({"message": "Erro ao processar um dos itens."}), 500
+    try:
+        # Chamar o serviço para adicionar o lote
+        count = desig_service.add_batch_desig(desigs)
+        print(f"{count} designações adicionadas com sucesso!")
+        return jsonify({"message": f"{count} designações adicionadas com sucesso!"}), 201
+    except Exception as e:
+        print(f"Erro ao adicionar designações em lote: {e}")
+        return jsonify({"message": "Erro ao processar o lote."}), 500
 
 @app.route('/desig/<int:desig_id>', methods=['PUT'])
 def update_desig(desig_id):
@@ -664,6 +736,7 @@ def add_rvisitas():
     rvisitas_id = rvisita_service.add_visit(rvisitas)
     return jsonify({"id": rvisitas_id, "message": "Registro add com sucesso!"}), 201
 
+
 @app.route('/rvisitas/<int:rvisitas_id>', methods=['PUT'])
 def update_rvisitas(rvisitas_id):
     data = request.json
@@ -688,13 +761,91 @@ def update_rvisitas(rvisitas_id):
 @app.route('/rvisitas/<int:rvisitas_id>', methods=['DELETE'])
 def delete_rvisitas(rvisitas_id):
     try:
-        rvisita_service.delete_visit(rvisitas_id)  # Chama o serviço para deletar Publicador
+        rvisita_service.delete_visit(rvisitas_id)  # Chama o serviço para deletar o registro
         return jsonify({"message": "Registro excluído com sucesso!"}), 200
     except ValueError:
-        return jsonify({"message": "Registro não encontrada!"}), 404
+        return jsonify({"message": "Registro não encontrado!"}), 404
     except Exception as e:
         return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
     
+
+@app.route('/rvisitas/batch', methods=['POST'])
+def add_batch_rvisitas():
+    data = request.json
+    if not isinstance(data, list):
+        return jsonify({"error": "Payload deve ser uma lista de registros"}), 400
+
+    try:
+        # Converter datas no formato serial do Excel para string
+        for visit in data:
+            if isinstance(visit.get('data_inclu'), int):
+                visit['data_inclu'] = excel_serial_to_date(visit['data_inclu'])
+            else:
+                visit['data_inclu'] = parse_date(str(visit.get('data_inclu', "")))
+
+            if isinstance(visit.get('visit_data'), int):
+                visit['visit_data'] = excel_serial_to_date(visit['visit_data'])
+            else:
+                visit['visit_data'] = parse_date(str(visit.get('visit_data', "")))
+
+        # Enviar os dados para o serviço
+        rows_inserted = rvisita_service.add_batch_visits(data)
+        return jsonify({"message": f"{rows_inserted} registros inseridos com sucesso!"}), 201
+    except Exception as e:
+        return jsonify({"error": f"Erro ao inserir registros: {str(e)}"}), 500
+
+##                                              #########
+##                                              #########
+## Rotas da API para o cadastro de Configurações de Campo
+@app.route('/cfgcampoall', methods=['GET'])
+def get_cfgcampo():
+    cfgcampo = cfgcampo_service.get_all_cfgcampo()
+    return jsonify([{
+        **dict(cfgcampo),        
+        'data_inclu': format_date(cfgcampo.get('data_inclu'))
+    } for cfgcampo in cfgcampo])
+
+@app.route('/cfgcarrinall', methods=['GET'])
+def get_cfgcarrinh():
+    cfgcampo = cfgcampo_service.get_all_cfgcarrin()
+    return jsonify([{
+        **dict(cfgcampo),        
+        'data_inclu': format_date(cfgcampo.get('data_inclu'))
+    } for cfgcampo in cfgcampo])
+
+@app.route('/cfgcampo', methods=['POST'])
+def add_cfgcampo():
+    data = request.json
+    cfgcampo = ConfigCampo(data_inclu=parse_date(data.get('data_inclu')),
+                        cmp_tipo=data.get('cmp_tipo'),
+                        cmp_diadasem=data.get('cmp_diadasem'),
+                        cmp_seq=data.get('cmp_seq'),
+                        cmp_local=data.get('cmp_local'),
+                        cmp_enderec=data.get('cmp_enderec'),
+                        cmp_url=data.get('cmp_url'),
+                        cmp_tipoativ=data.get('cmp_tipoativ'),
+                        cmp_horaini=data.get('cmp_horaini'),                        
+                        cmp_horafim=data.get('cmp_horafim'),
+                        cmp_detalhes=data.get('cmp_detalhes')                      
+                        )     
+    cfgcampo_id = cfgcampo_service.add_cfgcampo(cfgcampo)
+    return jsonify({"id": cfgcampo_id, "message": "Registro add com sucesso!"}), 201
+
+
+# Rota DELETE para de Configurações de Campo
+@app.route('/cfgcampo/<int:cfgcampo_id>', methods=['DELETE'])
+def delete_cfgcampo(cfgcampo_id):
+    try:
+        cfgcampo_service.delete_cfgcampo(cfgcampo_id)  # Chama o serviço para deletar o registro
+        return jsonify({"message": "Registro excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Registro não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
+    
+
+
+### FIM DAS ROTAS 
 
 if __name__ == '__main__':
   ## habilite essa linha modo desenvolvedor

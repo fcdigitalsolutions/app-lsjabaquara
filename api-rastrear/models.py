@@ -87,10 +87,10 @@ class Publicadores:
         self.resp_obs	  = resp_obs			   
     
 class Designacoes: 
-    def __init__(self, data_inclu, dsg_data,pub_login,pub_nome,dsg_tipo,dsg_detalhes,dsg_conselh,dsg_mapa_cod,dsg_mapa_url,dsg_mapa_end,dsg_status,dsg_obs,pub_obs ):
+    def __init__(self,data_inclu,dsg_data,pub_login,pub_nome,dsg_tipo,dsg_detalhes,dsg_conselh,dsg_mapa_cod,dsg_mapa_url,dsg_mapa_end,dsg_status,dsg_obs,pub_obs ):
         self.data_inclu	  = data_inclu
         self.dsg_data     = dsg_data
-        self.pub_login     = pub_login
+        self.pub_login    = pub_login
         self.pub_nome     = pub_nome
         self.dsg_tipo     = dsg_tipo
         self.dsg_detalhes = dsg_detalhes
@@ -146,3 +146,19 @@ class RelVisita:
         self.melhor_dia     = melhor_dia
         self.melhor_hora	= melhor_hora
         self.terr_obs       = terr_obs
+
+class ConfigCampo: 
+    def __init__(self, data_inclu,cmp_tipo,cmp_diadasem,cmp_seq,cmp_local,cmp_enderec,cmp_url,cmp_tipoativ,cmp_horaini,cmp_horafim,cmp_detalhes ):
+        self.data_inclu	    = data_inclu
+        self.cmp_tipo       = cmp_tipo
+        self.cmp_diadasem   = cmp_diadasem
+        self.cmp_seq        = cmp_seq
+        self.cmp_local      = cmp_local
+        self.cmp_enderec    = cmp_enderec
+        self.cmp_url        = cmp_url
+        self.cmp_tipoativ   = cmp_tipoativ
+        self.cmp_horaini    = cmp_horaini
+        self.cmp_horafim    = cmp_horafim
+        self.cmp_detalhes   = cmp_detalhes
+
+## FIM DOS MODELS

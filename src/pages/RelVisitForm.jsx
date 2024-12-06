@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
 import InputMask from 'react-input-mask';
-import { Box, Menu, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent, Paper, TablePagination, Button, TextField, Typography, Select, FormControl, Checkbox } from '@mui/material';
-import { FaChevronDown, FaFileExport, FaUserPlus, FaShareSquare } from 'react-icons/fa';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Box, Menu, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent, Paper, TablePagination, Button, TextField, Typography, Select, FormControl, Checkbox } from '@mui/material';
+import { FaChevronDown, FaFileExport, FaUserPlus, FaShareSquare, FaUpload, FaCloudUploadAlt } from 'react-icons/fa';
 import * as XLSX from 'xlsx'; // Importe a biblioteca XLSX
 import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -19,6 +19,13 @@ const RelVisitForm = () => {
     const totalRegioes = new Set(data.map(item => item.cod_regiao)).size;
     const [rowsPerPage, setRowsPerPage] = useState(10); // Limite de linhas por página
     const Data_Atual = new Date();
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [selectedFileName, setSelectedFileName] = useState(""); // Armazena o nome do arquivo selecionado
+    const [openDialog, setOpenDialog] = useState(false); // Controla o estado do diálogo
+    const handleOpenDialog = () => setOpenDialog(true);
+    const handleCloseDialog = () => setOpenDialog(false);
+    const [displayMessage, setDisplayMessage] = useState(""); // Armazena a mensagem atual
+    const [messageColor, setMessageColor] = useState("black"); // Armazena a cor da mensagem
 
     const formatDateTime = (date) => {
         const year = date.getFullYear();
@@ -47,6 +54,95 @@ const RelVisitForm = () => {
         num_visitas: '',
         enderec: ''
     });
+
+    const formatToDDMMYYYY = (date) => {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0'); // Janeiro é 0
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setSelectedFileName(file.name); // Atualiza o nome do arquivo selecionado
+        setDisplayMessage(`Arquivo selecionado: ${file.name}`);
+        setMessageColor("black"); // Cor padrão para mensagem de seleção
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            const data = e.target.result;
+            const workbook = XLSX.read(data, { type: 'binary' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+            const excelSerialToDate = (serial) => {
+                const excelStartDate = new Date(1899, 11, 30); // 30 de dezembro de 1899
+                const convertedDate = new Date(excelStartDate.getTime() + serial * 86400000); // Adiciona dias em milissegundos
+                return convertedDate.toISOString().split('T')[0]; // Retorna em formato "YYYY-MM-DD"
+
+            };
+
+            // Transforme os dados para o formato necessário para a API
+            const formattedData = jsonData.map((row) => ({
+                data_inclu: excelSerialToDate(row["Data Inclusão"] || ""),
+                visit_data: excelSerialToDate(row["Data Visita"] || ""),
+                pub_login: row["Publicador Login"] || "",
+                pub_nome: row["Nome Publicador"] || "",
+                visit_cod: row["Mapa"] || "",
+                visit_url: row["Link Mapa"] || "",
+                visit_ender: row["Endereço"] || "",
+                visit_status: row["Encontrou?"] || "",
+                num_pessoas: row["QTD de Surdos"] || 0,
+                melhor_dia: row["Melhor Dia"] || "",
+                melhor_hora: row["Melhor Hora"] || "",
+                terr_obs: row["Detalhes"] || "",
+            }));
+
+            setSelectedRows(formattedData); // Salva os dados processados
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
+    const prepareBatchData = () => {
+        return selectedRows.map((row) => ({
+            data_inclu: formatToDDMMYYYY(row.data_inclu),
+            visit_data: formatToDDMMYYYY(row.visit_data),
+            pub_login: row.pub_login,
+            pub_nome: row.pub_nome,
+            visit_cod: row.visit_cod,
+            visit_url: row.visit_url,
+            visit_ender: row.visit_ender,
+            visit_status: row.visit_status,
+            num_pessoas: row.num_pessoas,
+            melhor_dia: row.melhor_dia,
+            melhor_hora: row.melhor_hora,
+            terr_obs: row.terr_obs,
+        }));
+    };
+
+    const handleBatchSubmit = async () => {
+        const batchData = prepareBatchData();
+
+        if (batchData.length === 0) {
+            setMessage("Nenhum registro selecionado.");
+            return;
+        }
+
+        try {
+            const response = await api_service.post('/rvisitas/batch', batchData);
+            console.log("Lote enviado com sucesso:", response.data);
+            setMessage(`Lote de ${batchData.length} registros enviado com sucesso!`);
+        } catch (error) {
+            console.error("Erro ao enviar o lote:", error);
+            setMessage("Erro ao enviar o lote de registros.");
+        }
+    };
 
     const handleClose = () => {
         setAnchorEl(null);
@@ -349,6 +445,51 @@ const RelVisitForm = () => {
                         </Box>
                     </Box>
 
+                    <Box sx={{
+                        marginTop: '12px',
+                        justifyContent: 'space-between',
+                    }}>
+
+                        {displayMessage && (
+                            <Typography
+                                variant="body2"
+                                sx={{ color: messageColor, marginTop: '16px' }}
+                            >
+                                {displayMessage}
+                            </Typography>
+                        )}
+
+                        <Button variant="contained" component="label"
+                            style={{
+                                ...buttonStyle,
+                                mr: 4,
+                                padding: '4px 12px',
+                                fontSize: '0.60rem',
+                                marginTop: '10px',
+                            }}
+                        >
+                            <FaUpload style={{ marginRight: '6px' }} />
+                            Trazer dados da Planilha
+                            <input type="file" accept=".xlsx, .xls" hidden onChange={handleFileUpload} />
+                        </Button>
+
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleOpenDialog}
+
+                            style={{
+                                ...buttonStyle,
+                                padding: '4px 12px',
+                                fontSize: '0.60rem',
+                                marginTop: '10px',
+                                marginLeft: '10px',
+                            }}
+                        >
+                            <FaCloudUploadAlt style={{ marginRight: '6px' }} />
+                            Enviar Dados da Planilha  </Button>
+                    </Box>
+
                     <TableContainer component={Paper} sx={{ marginTop: '10px' }}>
                         <Table>
                             <TableHead>
@@ -526,7 +667,7 @@ const RelVisitForm = () => {
                                 fontSize: '0.60rem',
                             }}
                         >
-                            <FaFileExport style={{ marginRight: '8px' }} /> Exportar Planilha
+                            <FaFileExport style={{ marginRight: '8px' }} /> Exportar dados para Excel
                         </Button>
                     </p><br></br>
 
@@ -556,6 +697,41 @@ const RelVisitForm = () => {
                     </button>
                 </Box>
             </Box>
+
+            <Dialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+            >
+                <DialogTitle>Confirmação</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Tem certeza de que deseja enviar os dados para a API? Essa ação não pode ser desfeita.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog} color="secondary">
+                        Não
+                    </Button>
+                    <Button
+                        onClick={async () => {
+                            try {
+                                await handleBatchSubmit(); // Chama o envio para a API
+                                setDisplayMessage("Arquivo importado com sucesso para a base de dados!");
+                                setMessageColor("green");
+                            } catch (error) {
+                                setDisplayMessage("Erro ao importar o arquivo.");
+                                setMessageColor("red");
+                            } finally {
+                                handleCloseDialog(); // Fecha o diálogo
+                            }
+                        }}
+                        color="primary"
+                    >
+                        Sim
+                    </Button>
+
+                </DialogActions>
+            </Dialog>
 
             {/* Formulário de nova indicação */}
             <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
@@ -624,6 +800,7 @@ const RelVisitForm = () => {
                 </form>
                 {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
             </Box >
+
         </Box >
     );
 };

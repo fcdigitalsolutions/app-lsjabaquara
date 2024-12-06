@@ -36,7 +36,7 @@ const ExpandMore = styled((props) => {
   }),
 }));
 
-const FormUserView = () => {
+const FormUserViewOutras = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -679,4 +679,4 @@ const FormUserView = () => {
   );
 };
 
-export default FormUserView;
+export default FormUserViewOutras;

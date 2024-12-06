@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaMapMarkedAlt, FaMapPin, FaSignOutAlt, FaBars, FaChalkboardTeacher, FaUserTie,FaExchangeAlt,FaFileSignature } from 'react-icons/fa';
+import { 
+    FaMapMarkedAlt, 
+    FaMapPin, 
+    FaSignOutAlt, 
+    FaBars, 
+    FaChalkboardTeacher, 
+    FaUserTie,
+    FaExchangeAlt,
+    FaFileSignature,
+    FaCalendarAlt
+  } from 'react-icons/fa';
 import { FaPeopleGroup, FaPersonCirclePlus, FaUserGear } from 'react-icons/fa6';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -9,6 +19,7 @@ const routes = [
   { path: "/home/form-congreg", name: "Congregações", icon: <FaPeopleGroup /> },
   { path: "/home/form-indicac", name: "Indicações", icon: <FaPersonCirclePlus /> },
   { path: "/home/form-enderec", name: "Territórios", icon: <FaMapMarkedAlt /> },
+  { path: "/home/form-cfgcamp", name: "Cfg. Campo", icon: <FaCalendarAlt /> },
   { path: "/home/form-desig", name: "Designações", icon: <FaChalkboardTeacher /> },
   { path: "/home/form-visit", name: "Reg. Visitas", icon: <FaFileSignature /> },         // Caminhos atualizados
   { path: "/home/form-pubc", name: "Publicadores", icon: <FaUserTie /> },

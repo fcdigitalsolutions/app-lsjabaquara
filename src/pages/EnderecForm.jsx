@@ -91,9 +91,12 @@ const EnderecForm = () => {
     terr_link: '',
     terr_coord: '',
     terr_cor: '',
-    terr_status: '',
-    num_pessoas: 0,
-    melhor_dia_hora: '',
+    terr_status: '0',
+    num_pessoas: 1,
+    terr_desig: '1',
+    melhor_dia_hora: 'Livre',   
+    terr_classif: '0',
+    terr_tp_local: '1',
     terr_obs: '',
     terr_respons: ''
   });
@@ -218,7 +221,10 @@ const EnderecForm = () => {
         terr_link: '',
         terr_coord: '',
         terr_cor: '',
-        terr_status: '',
+        terr_desig: '1',
+        melhor_dia_hora: 'Livre',
+        terr_classif: '0',
+        terr_tp_local: '1',
         terr_obs: '',
         terr_respons: ''
 
@@ -442,13 +448,11 @@ const EnderecForm = () => {
     return BairrosUnicos;
   };
 
-
   // Função para obter a lista única de logradouros (enderec)
   const getUniquePublicad = () => {
     const PublicadUnicos = [...new Set(data.map(row => row.terr_respons))];
     return PublicadUnicos;
   };
-
 
   // Função para buscar os dados da API
   useEffect(() => {
@@ -766,7 +770,7 @@ const EnderecForm = () => {
                             >
                               <MenuItem value="1">Casa</MenuItem>
                               <MenuItem value="2">Trabalho</MenuItem>
-                              <MenuItem value="3">P´redio</MenuItem>
+                              <MenuItem value="3">Prédio</MenuItem>
                             </Select>
                           </FormControl>
                         ) : (

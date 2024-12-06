@@ -1,6 +1,6 @@
 # services.py
 from database import get_db_connection
-from models import Region,Congregation,Indicacoes,Rastreamento,RegistroNC,Publicadores,Designacoes,Territorios,RelVisita
+from models import Region,Congregation,Indicacoes,Rastreamento,RegistroNC,Publicadores,Designacoes,Territorios,RelVisita,ConfigCampo
 
 def rows_to_dict(cursor, rows):
     """Converte uma lista de tuplas em uma lista de dicionários usando os nomes das colunas."""
@@ -393,7 +393,36 @@ class DesignService:
         desig_id = cursor.lastrowid
         conn.close()
         return desig_id
-    
+   
+    def add_batch_desig(self, desigs):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            sql = """
+            INSERT INTO cad_designacoes (
+                data_inclu, dsg_data, pub_login, pub_nome, dsg_tipo, dsg_detalhes, dsg_conselh,  
+                dsg_mapa_cod, dsg_mapa_url, dsg_mapa_end, dsg_status, dsg_obs, pub_obs
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            batch_values = [
+                (
+                    desig.data_inclu, desig.dsg_data, desig.pub_login, desig.pub_nome, 
+                    desig.dsg_tipo, desig.dsg_detalhes, desig.dsg_conselh, desig.dsg_mapa_cod, 
+                    desig.dsg_mapa_url, desig.dsg_mapa_end, desig.dsg_status, desig.dsg_obs,
+                    desig.pub_obs,
+                )
+                for desig in desigs
+            ]
+            cursor.executemany(sql, batch_values)
+            conn.commit()
+            return cursor.rowcount
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            cursor.close()
+            conn.close()
+
     def update_desig(self, desig_id, desig):
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -506,6 +535,69 @@ class DesignService:
         conn.close()
         return result
 
+    def get_desig_sugest(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+        
+            SELECT 
+                desg.id AS desig_id,     
+				desg.dsg_data,
+				desg.dsg_detalhes,
+				desg.dsg_mapa_cod,
+                terr.id AS territor_id, 
+                terr.terr_nome, 
+                terr.data_inclu, 
+                terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+            FROM cad_territorios terr
+            LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE 
+                1 = 1 
+                and terr.terr_status IN  ('0')
+                and not (terr.terr_desig in ('2') )
+                and (isnull(desg.id) or desg.dsg_status in ('4'))
+            ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 10
+            """)
+        
+        desig = cursor.fetchall()
+        result = rows_to_dict(cursor, desig)
+        conn.close()
+        return result
+    
+    def get_desig_user_outras(self, desig_user):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                desg.id AS desig_id,     
+                terr.id AS territor_id,   
+                desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
+                desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
+                desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
+                desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+            FROM cad_designacoes desg
+            LEFT JOIN cad_territorios terr ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE 
+                1 = 1 
+                and desg.dsg_status IN ('1', '2', '3') 
+                and desg.dsg_tipo IN  ('0', '1')                       
+                and terr.terr_status IN  ('0')
+                and desg.pub_login = %s
+            ORDER BY desg.dsg_mapa_cod ASC
+            """, (desig_user,))
+        
+        desig = cursor.fetchall()
+        result = rows_to_dict(cursor, desig)
+        conn.close()
+        return result
     
     def delete_desig(self, desig_id):
         conn = get_db_connection()
@@ -639,7 +731,7 @@ class TerritService:
     def get_all_territ(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM cad_territorios')
+        cursor.execute('SELECT * FROM cad_territorios where 1 = 1 ORDER BY terr_nome ASC')
         territ = cursor.fetchall()
         result = rows_to_dict(cursor, territ)
         conn.close()
@@ -727,3 +819,90 @@ class VisitaService:
         conn.commit()
         conn.close()
         return rvisitas_id		
+
+    def add_batch_visits(self, rvisitas_list):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            sql = """
+            INSERT INTO mov_relat_visitas (
+                data_inclu, visit_data, pub_login, pub_nome, visit_cod, visit_url, 
+                visit_ender, visit_status, num_pessoas, melhor_dia, melhor_hora, terr_obs
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            batch_values = [
+                (
+                    visit['data_inclu'], visit['visit_data'], visit['pub_login'], visit['pub_nome'], 
+                    visit['visit_cod'], visit['visit_url'], visit['visit_ender'], visit['visit_status'], 
+                    visit['num_pessoas'], visit['melhor_dia'], visit['melhor_hora'], visit['terr_obs']
+                )
+                for visit in rvisitas_list
+            ]
+            cursor.executemany(sql, batch_values)
+            conn.commit()
+            return cursor.rowcount
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            cursor.close()
+            conn.close()
+##
+## Serviços para a config de campo
+class CfgCampoService:
+    def add_cfgcampo(self,cfgcampo):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO cad_configcampo(data_inclu,cmp_tipo,cmp_diadasem,cmp_seq,cmp_local,cmp_enderec,cmp_url,cmp_tipoativ,cmp_horaini,cmp_horafim,cmp_detalhes) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (cfgcampo.data_inclu,cfgcampo.cmp_tipo,cfgcampo.cmp_diadasem,cfgcampo.cmp_seq,cfgcampo.cmp_local,cfgcampo.cmp_enderec,cfgcampo.cmp_url,cfgcampo.cmp_tipoativ,cfgcampo.cmp_horaini,cfgcampo.cmp_horafim,cfgcampo.cmp_detalhes ))
+        conn.commit()
+        cfgcampo_id = cursor.lastrowid
+        conn.close()
+        return cfgcampo_id
+    
+    def update_cfgcampo(self, cfgcampo_id, cfgcampo):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE cad_configcampo SET cmp_tipo = %s, cmp_diadasem = %s, cmp_seq = %s, cmp_local = %s,cmp_enderec = %s,cmp_url = %s,cmp_tipoativ = %s,cmp_horaini = %s,cmp_horafim = %s,cmp_detalhes = %s WHERE id = %s',
+            ( cfgcampo.cmp_tipo,cfgcampo.cmp_diadasem,cfgcampo.cmp_seq,cfgcampo.cmp_local,cfgcampo.cmp_enderec,cfgcampo.cmp_url,cfgcampo.cmp_tipoativ,cfgcampo.cmp_horaini,cfgcampo.cmp_horafim,cfgcampo.cmp_detalhes,cfgcampo_id ))
+        conn.commit()
+        conn.close()
+        return cfgcampo_id
+    
+    def get_all_cfgcampo(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM cad_configcampo where 1 = 1 and cmp_tipo in ('2') order by cmp_seq ASC")
+        cfgcampo = cursor.fetchall()
+        result = rows_to_dict(cursor, cfgcampo)
+        conn.close()
+        return result
+    
+    def get_all_cfgcarrin(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM cad_configcampo where 1 = 1 and cmp_tipo in ('3') order by cmp_seq ASC")
+        cfgcampo = cursor.fetchall()
+        result = rows_to_dict(cursor, cfgcampo)
+        conn.close()
+        return result
+
+    def delete_cfgcampo(self, cfgcampo_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM cad_configcampo WHERE id = %s', (cfgcampo_id,))
+        rastrear = cursor.fetchone()
+
+        if not rastrear:
+            conn.close()
+            raise ValueError("Registro não encontrada")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM cad_configcampo WHERE id = %s', (cfgcampo_id,))
+        conn.commit()
+        conn.close()
+        return cfgcampo_id
+    
+##
