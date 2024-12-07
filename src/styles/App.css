@@ -241,6 +241,21 @@ body {
   top: -15px; /* Ajuste fino para centralizar verticalmente */
 }
 
+.status-badge-user-body {
+  padding: 1px;
+  border-radius: 0px;
+  font-size: 0.8rem;
+  color: #ffffff;
+  text-align: center;
+  margin-left: 'auto';
+  width: 130px;
+  margin: 0 1;
+  background-color: #1400cc; /* Ajuste conforme o status */
+  position: relative; /* Necessário para centralizar */
+  top: 6px; /* Ajuste fino para centralizar verticalmente */
+}
+
+
 .div-map-user {
   padding: 4px;
   border-radius: 8px;

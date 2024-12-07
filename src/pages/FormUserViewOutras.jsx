@@ -21,7 +21,7 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { FaAngleDoubleDown, FaCheckCircle, FaMapMarked, FaFileSignature } from 'react-icons/fa';
+import { FaAngleDoubleDown, FaCheckCircle, FaMapMarked } from 'react-icons/fa';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '../components/ThemeContext';
 
@@ -58,7 +58,7 @@ const FormUserViewOutras = () => {
 
   const userDados = JSON.parse(sessionStorage.getItem('userData'));
   const lginUser = userDados?.iduser;
-  const totalMapas = new Set(data.map(item => item.desig_id)).size;
+  const totalCards = new Set(data.map(item => item.desig_id)).size;
 
   const handleExpandClick = (id) => {
     setExpanded((prevExpanded) => ({ ...prevExpanded, [id]: !prevExpanded[id] }));
@@ -93,51 +93,37 @@ const FormUserViewOutras = () => {
   };
 
   // Função para determinar o status com base na confirmação do endereço
-  const getStatusTpLocal = (terr_tp_local) => {
-    switch (terr_tp_local) {
-      case '1':
-        return 'CASA';
-      case '2':
-        return 'TRABALHO';
-      case '3':
-        return 'PRÉDIO';
-      default:
-        return 'OUTROS';
-    }
-  };
-  // Função para determinar o status com base na confirmação do endereço
-  const getStatusClassif = (terr_classif) => {
-    switch (terr_classif) {
-      case '0':
-        return 'SURDO';
-      case '1':
-        return 'D/A';
-      case '2':
-        return 'TRADUTOR';
-      case '3':
-        return 'OUVINTE';
-      default:
-        return 'OUTROS';
+  const getStatusDesigTipo = (dsg_tipo) => {
+    switch (dsg_tipo) {
+      case '0': return 'Mapa';
+      case '1': return 'Indicação';
+      case '2': return 'Dirigente Campo';
+      case '3': return 'Carrinho';
+      case '4': return 'Mecânicas';
+      case '5': return 'Reunião RMWB';
+      case '6': return 'Reunião FDS';
+      case '7': return 'Discurso Publico';
+      default: return 'Outros';
     }
   };
 
-  // Função para determinar a cor de fundo da célula com base no status
-  const getColorMapCor = (terr_cor) => {
-    switch (terr_cor) {
-      case '0':
-        return '#00009C';
-      case '1':
-        return '#CC0000';
-      case '2':
-        return '#238E23';
-      default:
-        return 'transparent';
+  const getStatusColorDsgTipo = (status) => {
+    switch (status) {
+      case 'Mapa': return '#2F4F2F';
+      case 'Indicação': return '#CC0000';
+      case 'Dirigente Campo': return '#8C1717';
+      case 'Carrinho': return '"#2F2F4F';
+      case 'Mecânicas': return '#000000';
+      case 'Reunião RMWB': return '#000000';
+      case 'Reunião FDS': return '#000000';
+      case 'Discurso Publico': return '#000000';
+      default: return 'transparent';
     }
   };
-
+ 
   useEffect(() => {
     setLoading(true);
-    api_service.get(`/desig/${lginUser}`)
+    api_service.get(`/desigoutras/${lginUser}`)
       .then((response) => {
         setData(response.data);
         setError(null);
@@ -149,24 +135,7 @@ const FormUserViewOutras = () => {
       .finally(() => setLoading(false));
   }, [lginUser]);
 
-  const handleOpenVisitDialog = (item) => {
-    setSelectedItem({
-      ...item,
-      territor_id: item.territor_id, // Adicione o ID do território
-    });
-
-    setFormFields({
-      visit_status: item.visit_status || '',
-      num_pessoas: item.num_pessoas || '',
-      melhor_dia: item.melhor_dia_hora || '',
-      melhor_hora: item.melhor_hora || '',
-      terr_obs: item.terr_obs || '',
-    });
-
-    setOpenVisitDialog(true); // Abre o diálogo
-  };
-
-  const handleOpenReservDialog = (item) => {
+   const handleOpenReservDialog = (item) => {
     setSelectedItem({
       ...item,
       territor_id: item.territor_id, // ID do território
@@ -221,26 +190,18 @@ const FormUserViewOutras = () => {
       dsg_status: '4', // Atualiza o status para "Encerrada"
     };
 
-    const updatedTerritorio = {
-      terr_desig: '1', // 1 - Não designado, 2 - Designado - Atualiza para indicar que o território está livre
-      terr_respons: '',
-      terr_status: '0', // 0 - ativo, 1 - revisita, 2 - estudante
-    };
+  
 
     try {
       // Atualiza o status da designação
       await api_service.put(`/desig/${selectedItem.desig_id}`, updatedDesignacao);
       console.log("Designação encerrada com sucesso.");
 
-      // Atualiza o status do território
-      await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
-      console.log("Território liberado com sucesso.");
-
       // Atualiza o estado local para refletir as mudanças
       setData((prevData) =>
         prevData.map((item) =>
           item.desig_id === selectedItem.desig_id
-            ? { ...item, dsg_status: '4', terr_desig: '0' }
+            ? { ...item, dsg_status: '4' }
             : item
         )
       );
@@ -403,7 +364,7 @@ const FormUserViewOutras = () => {
           color: darkMode ? '#67e7eb' : '#333333' ,
         }}
       >
-        Total de Mapas: {totalMapas}
+        Total de Designações: {totalCards}
       </Box>
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
@@ -422,39 +383,24 @@ const FormUserViewOutras = () => {
                       {getStatusDesig(item.dsg_status)}
                     </div>
                   </Typography>
-                  <Box
-                    onClick={() => handleOpenVisitDialog(item)}
-
-                    sx={{
-                      display: 'flex',
-                      cursor: 'pointer',
-                      fontSize: '0.95rem',
-                      marginLeft: '55px',
-                      marginTop: '-4px',
-                      color: darkMode ? '#ffffff' : '#2c2c4e',
-                      '&:hover': {
-                        color: darkMode ? '#67e7eb' : '#333333',
-                        textDecoration: 'underline',
-                      },
-                    }}
-                  >
-                    <FaFileSignature style={{ marginRight: '4px' }} />
-                    Registro de Visita
-                  </Box>
+                  
                   <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Responsável: {item.pub_nome}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Última visita: {item.dt_ultvisit}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Mapa: {item.dsg_mapa_cod}</Typography>
                   <Typography variant="body1" className="status-text-user" sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }} >
-                    Local: {getStatusTpLocal(item.terr_tp_local)}
+                    <div className="status-badge-user-body" style={{ backgroundColor: getStatusColorDsgTipo(getStatusDesigTipo(item.dsg_tipo))  }}>
+                      {getStatusDesigTipo(item.dsg_tipo)}
+                    </div>
                   </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Bairro: {item.terr_regiao} </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Endereço: {item.terr_enderec}</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Será Realizada: {item.dsg_data}</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Dia: {item.dsg_mapa_cod}</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Horário: {item.cmp_horaini}</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Local: {item.cmp_local}</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Endereço: {item.cmp_enderec}</Typography>
 
                   <Box
                     sx={{ display: 'flex', gap: 3, marginTop: '8px' }}
                   >
                     <Box
-                      onClick={() => handleAbreMapa(item.terr_link)}
+                      onClick={() => handleAbreMapa(item.cmp_url)}
                       sx={{
                         display: 'flex',
                         cursor: 'pointer',
@@ -500,11 +446,8 @@ const FormUserViewOutras = () => {
                 </CardActions>
                 <Collapse in={expanded[item.id]} timeout="auto" unmountOnExit>
                   <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
-                    <Typography variant="body2" sx={{ fontSize: '0.85rem', marginTop: '-15px', backgroundColor: getColorMapCor(item.terr_cor), color: darkMode ? '#ffffff' : '#ffffff' }}>
-                      Grau: {getStatusClassif(item.terr_classif) || 'Grau não informado'}
-                    </Typography>
                     <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '2px', color: darkMode ? '#67e7eb' : '#333' }}>
-                      Observações: {item.terr_obs || 'Nenhuma observação disponível.'}
+                      Observações: {item.dsg_obs || 'Nenhuma observação disponível.'}
                     </Typography>
                     <Box
                       onClick={() => handleOpenReservDialog(item)}
@@ -512,8 +455,8 @@ const FormUserViewOutras = () => {
                         display: 'flex',
                         cursor: 'pointer',
                         fontSize: '0.95rem',
-                        marginLeft: '55px',
-                        marginTop: '10px',
+                        marginLeft: '40px',
+                        marginTop: '12px',
                         color: darkMode ? '#7FFF00' : '#2c2c4e',
                         '&:hover': {
                           color: darkMode ? '#67e7eb' : '#333333',
@@ -522,7 +465,7 @@ const FormUserViewOutras = () => {
                       }}
                     >
                       <FaCheckCircle style={{ marginRight: '4px' }} />
-                      Reservar Mapa
+                      Registrar Publicações
                     </Box>
                   </CardContent>
                 </Collapse>
@@ -649,9 +592,9 @@ const FormUserViewOutras = () => {
         <DialogContent>
           <DialogContentText></DialogContentText>
           <Typography variant="body2">Responsável: {selectedItem?.pub_nome}</Typography>
-          <Typography variant="body2">Última Visita: {selectedItem?.dt_ultvisit}</Typography>
-          <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
-          <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
+          <Typography variant="body2">Data: {selectedItem?.dsg_data}</Typography>
+          <Typography variant="body2">Dia: {selectedItem?.dsg_mapa_cod}</Typography>
+          <Typography variant="body2">Endereço: {selectedItem?.cmp_enderec}</Typography>
           <FormControl fullWidth margin="dense"
             sx={{
               fontSize: '0.85rem',

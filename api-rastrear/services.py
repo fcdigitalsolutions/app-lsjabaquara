@@ -463,7 +463,7 @@ class DesignService:
                 and desg.dsg_status IN ('1', '2', '3') 
                 and desg.dsg_tipo IN  ('0', '1')                       
                 and terr.terr_status IN  ('0')
-                and desg.pub_login = %s
+                and trim(desg.pub_login) = %s
             ORDER BY desg.dsg_mapa_cod ASC
             """, (desig_user,))
         
@@ -525,8 +525,8 @@ class DesignService:
                 and desg.dsg_status IN ('2') 
                 and desg.dsg_tipo IN  ('0', '1')
                 and terr.terr_status IN  ('1', '2')
-                and terr.terr_respons = %s
-                and desg.pub_login = %s
+                and trim(terr.terr_respons) = %s
+                and trim(desg.pub_login) = %s
             ORDER BY desg.dsg_mapa_cod ASC
             """, (desig_user,desig_user,))
         
@@ -540,7 +540,7 @@ class DesignService:
         cursor = conn.cursor()
         cursor.execute("""
         
-            SELECT 
+         (  SELECT 
                 desg.id AS desig_id,     
 				desg.dsg_data,
 				desg.dsg_detalhes,
@@ -558,9 +558,56 @@ class DesignService:
             WHERE 
                 1 = 1 
                 and terr.terr_status IN  ('0')
+                and terr.terr_cor IN  ('0')
                 and not (terr.terr_desig in ('2') )
                 and (isnull(desg.id) or desg.dsg_status in ('4'))
-            ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 10
+            ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 4  )
+		    UNION 
+           ( SELECT 
+                desg.id AS desig_id,     
+				desg.dsg_data,
+				desg.dsg_detalhes,
+				desg.dsg_mapa_cod,
+                terr.id AS territor_id, 
+                terr.terr_nome, 
+                terr.data_inclu, 
+                terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+            FROM cad_territorios terr
+            LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE 
+                1 = 1 
+                and terr.terr_status IN  ('0')
+                and terr.terr_cor IN  ('1')
+                and not (terr.terr_desig in ('2') )
+                and (isnull(desg.id) or desg.dsg_status in ('4'))
+            ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 4)
+            UNION 
+            ( SELECT 
+                desg.id AS desig_id,     
+				desg.dsg_data,
+				desg.dsg_detalhes,
+				desg.dsg_mapa_cod,
+                terr.id AS territor_id, 
+                terr.terr_nome, 
+                terr.data_inclu, 
+                terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+            FROM cad_territorios terr
+            LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE 
+                1 = 1 
+                and terr.terr_status IN  ('0')
+                and terr.terr_cor IN  ('2')
+                and not (terr.terr_desig in ('2') )
+                and (isnull(desg.id) or desg.dsg_status in ('4'))
+            ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 2)
             """)
         
         desig = cursor.fetchall()
@@ -574,24 +621,22 @@ class DesignService:
         cursor.execute("""
             SELECT 
                 desg.id AS desig_id,     
-                terr.id AS territor_id,   
+                camp.id AS camp_id,   
                 desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
                 desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
                 desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
-                desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
-                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
-                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
-                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
-                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+                desg.pub_obs, camp.data_inclu, camp.cmp_tipo,  
+                camp.cmp_diadasem, camp.cmp_seq, camp.cmp_local, 
+                camp.cmp_enderec, camp.cmp_url, camp.cmp_tipoativ, camp.cmp_horaini,
+                camp.cmp_horafim, camp.cmp_detalhes 
             FROM cad_designacoes desg
-            LEFT JOIN cad_territorios terr ON desg.dsg_mapa_cod = terr.terr_nome
+            LEFT JOIN cad_configcampo camp ON desg.dsg_mapa_cod = camp.cmp_diadasem and desg.dsg_tipo = camp.cmp_tipo
             WHERE 
                 1 = 1 
                 and desg.dsg_status IN ('1', '2', '3') 
-                and desg.dsg_tipo IN  ('0', '1')                       
-                and terr.terr_status IN  ('0')
-                and desg.pub_login = %s
-            ORDER BY desg.dsg_mapa_cod ASC
+                and desg.dsg_tipo IN  ('2', '3','4')              
+                and trim(desg.pub_login) = %s
+             ORDER BY desg.dsg_data ASC
             """, (desig_user,))
         
         desig = cursor.fetchall()
