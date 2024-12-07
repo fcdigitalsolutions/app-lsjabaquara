@@ -20,7 +20,7 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { FaAngleDoubleDown, FaMapMarked, FaFileSignature } from 'react-icons/fa';
+import { FaAngleDoubleDown, FaMapMarked, FaUserCheck } from 'react-icons/fa';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '../components/ThemeContext';
 
@@ -286,7 +286,7 @@ const FormUserEnsino = () => {
                           },
                         }}
                       >
-                        <FaFileSignature style={{ marginRight: '4px' }} />
+                        <FaUserCheck style={{ marginRight: '4px' }} />
                         Designar/Transferir
                       </Box>
                       <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Última visita: {item.dt_ultvisit}</Typography>

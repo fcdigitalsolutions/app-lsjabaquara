@@ -10,10 +10,10 @@ import {
 } from '@mui/material';
 
 const routes = [
-  { path: "/huser/form-userview", name: "Pregação" },
+  { path: "/huser/form-userview", name: "Mapas" },
   { path: "/huser/formuserensino", name: "Ensino" },
   { path: "/huser/formuserdesig", name: "Designar" },
-  { path: "/huser/formuseroutras", name: "Outras" },
+  { path: "/huser/formuseroutras", name: "Atividades" },
   //  { path: "/huser/relatoriocampo", name: "Relat. Mensal" },
   { path: "/", name: "Sair" },
 ];
