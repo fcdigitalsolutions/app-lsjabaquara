@@ -13,9 +13,9 @@ const routes = [
   { path: "/huser/formuseroutras", name: "Atividades" },
   { path: "/huser/form-userview", name: "Mapas" },
   { path: "/huser/formuserensino", name: "Ensino" },
-  { path: "/huser/formuseranota", name: "Anotações" },
+  { path: "/huser/formuseranota", name: "Notas" },
   { path: "/huser/formuserdesig", name: "Designar" },
-  { path: "/huser/relatoriocampo", name: "Relatório" },
+  { path: "/huser/relatoriocampo", name: "Horas" },
   //  { path: "/huser/relatoriocampo", name: "Relat. Mensal" },
   { path: "/", name: "Sair" },
 ];
@@ -39,18 +39,18 @@ const SidebarUser = ({ children }) => {
   return (
     <Box className="main-containerusers" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
       <Box style={{ 
-        fontSize: '0.8rem', 
+        fontSize: '11px', 
         backgroundColor: darkMode ? '#202038' : '#f0f0f0', 
         color: darkMode ? '#D9D919' : '#23238E', 
         justifyItems:'center'
         }}>
-          <Typography sx={{ fontSize: '0.8rem', marginTop: '10px' }}>Seja bem-vindo(a), {userDados?.nome || 'Usuário'}!</Typography>
+          <Typography sx={{ fontSize: '10px', marginTop: '10px' }}>Seja bem-vindo(a), {userDados?.nome || 'Usuário'}!</Typography>
       </Box>
       <Box>
         <Button onClick={toggleTheme} 
           sx={{ 
             margin: '2px', 
-            fontSize: '10px', 
+            fontSize: '9px', 
             color: darkMode ? '#67e7eb' : '#23238E', 
             }} 
           startIcon={darkMode ? <FaSun /> : <FaMoon 
@@ -65,6 +65,7 @@ const SidebarUser = ({ children }) => {
         }}
         style={{
           justifyItems:'center',
+          fontSize: '12px', 
           color: darkMode ? '#D9D919' : '#202038',
         }}
       >
@@ -85,7 +86,7 @@ const SidebarUser = ({ children }) => {
           ))}
         </section>
       </motion.div>
-      <motion.div className="content" style={{ fontSize: '0.7rem', backgroundColor: darkMode ? '#202038' : '#f0f0f0' }}>
+      <motion.div className="content" style={{ fontSize: '9px', backgroundColor: darkMode ? '#202038' : '#f0f0f0' }}>
         {children}
       </motion.div>
     </Box>
