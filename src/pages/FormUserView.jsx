@@ -501,9 +501,14 @@ const FormUserView = () => {
                 sx={{
                   backgroundColor: darkMode ? '#2c2c4e' : '#ffffff',
                   color: darkMode ? '#67e7eb' : '#333',
-                  transition: 'transform 0.2s ease-in-out', // Adiciona transição suave
+                  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
                   '&:hover': {
-                    transform: 'translateY(-10px)', // Move o card para cima
+                    transform: 'translateY(-10px) scale(1.03)', // Efeito para navegadores desktop
+                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(-10px) scale(1.03)', // Efeito para dispositivos móveis (toque)
+                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
                   },
                 }}
               > <CardContent>
