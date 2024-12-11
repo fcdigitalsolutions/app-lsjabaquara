@@ -65,7 +65,7 @@ const SidebarUser = ({ children }) => {
         }}
         style={{
           justifyItems:'center',
-          fontSize: '12px', 
+          fontSize: '13px', 
           color: darkMode ? '#D9D919' : '#202038',
         }}
       >

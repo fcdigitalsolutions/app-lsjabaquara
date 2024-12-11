@@ -47,7 +47,7 @@ const FormUserViewOutras = () => {
 
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [openVisitDialog, setOpenVisitDialog] = useState(false);
-  const [openReservMapDialog, setOpenReservMapDialog] = useState(false);
+  const [openRegPublicDialog, setOpenRegPublicDialog] = useState(false);
   const [formFields, setFormFields] = useState({
     visit_status: '',
     num_pessoas: '',
@@ -120,7 +120,7 @@ const FormUserViewOutras = () => {
       default: return 'transparent';
     }
   };
- 
+
   useEffect(() => {
     setLoading(true);
     api_service.get(`/desigoutras/${lginUser}`)
@@ -135,7 +135,7 @@ const FormUserViewOutras = () => {
       .finally(() => setLoading(false));
   }, [lginUser]);
 
-   const handleOpenReservDialog = (item) => {
+  const handleOpenRegPublicDialog = (item) => {
     setSelectedItem({
       ...item,
       territor_id: item.territor_id, // ID do território
@@ -150,7 +150,7 @@ const FormUserViewOutras = () => {
       terr_desig: item.terr_desig || '',
     });
 
-    setOpenReservMapDialog(true); // Abre o diálogo
+    setOpenRegPublicDialog(true); // Abre o diálogo
   };
 
 
@@ -190,7 +190,7 @@ const FormUserViewOutras = () => {
       dsg_status: '4', // Atualiza o status para "Encerrada"
     };
 
-  
+
 
     try {
       // Atualiza o status da designação
@@ -316,7 +316,7 @@ const FormUserViewOutras = () => {
       console.error("Erro ao atualizar os dados:", error);
     }
 
-    setOpenReservMapDialog(false); // Fecha o diálogo
+    setOpenRegPublicDialog(false); // Fecha o diálogo
   };
 
   const handleVisitSubmit = async () => {
@@ -352,16 +352,16 @@ const FormUserViewOutras = () => {
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
-   
+
       <Box
         sx={{
           display: 'flex',
-          justifyItems:'center',
+          justifyItems: 'center',
           fontSize: '0.8rem',
           marginLeft: '110px',
           marginTop: '5px',
           marginBottom: '2px',
-          color: darkMode ? '#67e7eb' : '#333333' ,
+          color: darkMode ? '#67e7eb' : '#333333',
         }}
       >
         Total de Designações: {totalCards}
@@ -376,29 +376,73 @@ const FormUserViewOutras = () => {
         <Box className="card-container-user">
           {data.map((item, index) => (
             <Box key={index} className="card-box-user">
-              <Card className="card-user" sx={{ backgroundColor: darkMode ? '#2c2c4e' : '#ffffff', color: darkMode ? '#67e7eb' : '#333' }}>
+              <Card
+                className="card-user"
+                sx={{
+                  backgroundColor: darkMode ? '#2c2c4e' : '#ffffff',
+                  color: darkMode ? '#67e7eb' : '#333',
+                  transition: 'transform 0.2s ease-in-out', // Adiciona transição suave
+                  '&:hover': {
+                    transform: 'translateY(-10px)', // Move o card para cima
+                  },
+                }}
+              >
                 <CardContent>
                   <Typography variant="body1" className="status-text-user">
-                    <div className="status-badge-user" style={{ backgroundColor: getStatusColorDesig(getStatusDesig(item.dsg_status)) }}>
+                    <div
+                      className="status-badge-user"
+                      style={{
+                        backgroundColor: getStatusColorDesig(getStatusDesig(item.dsg_status)),
+                      }}
+                    >
                       {getStatusDesig(item.dsg_status)}
                     </div>
                   </Typography>
-                  
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Responsável: {item.pub_nome}</Typography>
-                  <Typography variant="body1" className="status-text-user" sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }} >
-                    <div className="status-badge-user-body" style={{ backgroundColor: getStatusColorDsgTipo(getStatusDesigTipo(item.dsg_tipo))  }}>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>
+                    Responsável: {item.pub_nome}
+                  </Typography>
+
+                  {/* Botão Registrar Publicações exibido apenas se dsg_tipo for "3" */}
+                  {(item.dsg_tipo) === '3' && (
+                    <Box>
+                      <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                        Apoio: {item.cmp_publicador02}
+                      </Typography>
+
+                    </Box>
+                  )}
+
+                  <Typography
+                    variant="body1"
+                    className="status-text-user"
+                    sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}
+                  >
+                    <div
+                      className="status-badge-user-body"
+                      style={{
+                        backgroundColor: getStatusColorDsgTipo(getStatusDesigTipo(item.dsg_tipo)),
+                      }}
+                    >
                       {getStatusDesigTipo(item.dsg_tipo)}
                     </div>
                   </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Será Realizada: {item.dsg_data}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Dia: {item.dsg_mapa_cod}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Horário: {item.cmp_horaini}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Local: {item.cmp_local}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Endereço: {item.cmp_enderec}</Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>
+                    Será Realizada: {item.dsg_data}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                    Dia: {item.dsg_mapa_cod}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                    Horário: {item.cmp_horaini}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                    Local: {item.cmp_local}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                    Endereço: {item.cmp_enderec}
+                  </Typography>
 
-                  <Box
-                    sx={{ display: 'flex', gap: 3, marginTop: '8px' }}
-                  >
+                  <Box sx={{ display: 'flex', gap: 3, marginTop: '8px' }}>
                     <Box
                       onClick={() => handleAbreMapa(item.cmp_url)}
                       sx={{
@@ -434,41 +478,56 @@ const FormUserViewOutras = () => {
                     </Box>
                   </Box>
                 </CardContent>
-                <CardActions disableSpacing sx={{ marginTop: '-20px', marginRight: '230px' }}>
+                <CardActions
+                  disableSpacing
+                  sx={{ marginTop: '-20px', marginRight: '230px' }}
+                >
                   <ExpandMore
-                    expand={expanded[item.id]}
-                    onClick={() => handleExpandClick(item.id)}
-                    aria-expanded={expanded[item.id]}
+                    expand={expanded[item.desig_id]}
+                    onClick={() => handleExpandClick(item.desig_id)}
+                    aria-expanded={expanded[item.desig_id]}
                     aria-label="Mostrar mais"
                   >
                     <FaAngleDoubleDown />
                   </ExpandMore>
                 </CardActions>
-                <Collapse in={expanded[item.id]} timeout="auto" unmountOnExit>
-                  <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
-                    <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '2px', color: darkMode ? '#67e7eb' : '#333' }}>
-                      Observações: {item.dsg_obs || 'Nenhuma observação disponível.'}
-                    </Typography>
-                    <Box
-                      onClick={() => handleOpenReservDialog(item)}
+                <Collapse in={expanded[item.desig_id]} timeout="auto" unmountOnExit>
+                  <CardContent>
+                    <Typography
+                      variant="body2"
                       sx={{
-                        display: 'flex',
-                        cursor: 'pointer',
-                        fontSize: '0.95rem',
-                        marginLeft: '40px',
-                        marginTop: '12px',
-                        color: darkMode ? '#7FFF00' : '#2c2c4e',
-                        '&:hover': {
-                          color: darkMode ? '#67e7eb' : '#333333',
-                          textDecoration: 'underline',
-                        },
+                        fontSize: '0.8rem',
+                        marginTop: '2px',
+                        color: darkMode ? '#67e7eb' : '#333',
                       }}
                     >
-                      <FaCheckCircle style={{ marginRight: '4px' }} />
-                      Registrar Publicações
-                    </Box>
+                      Observações: {item.dsg_obs || 'Nenhuma observação disponível.'}
+                    </Typography>
+
+                    {/* Botão Registrar Publicações exibido apenas se dsg_tipo for "3" */}
+                    {(item.dsg_tipo) === '3' && (
+                      <Box
+                        onClick={() => handleOpenRegPublicDialog(item)}
+                        sx={{
+                          display: 'flex',
+                          cursor: 'pointer',
+                          fontSize: '0.95rem',
+                          marginLeft: '36px',
+                          marginTop: '12px',
+                          color: darkMode ? '#7FFF00' : '#2c2c4e',
+                          '&:hover': {
+                            color: darkMode ? '#67e7eb' : '#333333',
+                            textDecoration: 'underline',
+                          },
+                        }}
+                      >
+                        <FaCheckCircle style={{ marginRight: '4px' }} />
+                        Registrar Publicações
+                      </Box>
+                    )}
                   </CardContent>
                 </Collapse>
+
               </Card>
             </Box>
           ))}
@@ -586,9 +645,9 @@ const FormUserViewOutras = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Caixa de diálogo de Reservar Mapa  */}
-      <Dialog open={openReservMapDialog} onClose={() => setOpenReservMapDialog(false)}>
-        <DialogTitle>Reservar Mapa (Estudos e Revisitas)</DialogTitle>
+      {/* Caixa de diálogo de Apontar Publicações  */}
+      <Dialog open={openRegPublicDialog} onClose={() => setOpenRegPublicDialog(false)}>
+        <DialogTitle>Registrar Publicações (Carrinho)</DialogTitle>
         <DialogContent>
           <DialogContentText></DialogContentText>
           <Typography variant="body2">Responsável: {selectedItem?.pub_nome}</Typography>
@@ -601,22 +660,35 @@ const FormUserViewOutras = () => {
               marginTop: '15px',
             }}
           >
-            <InputLabel>Tipo de Reserva? *</InputLabel>
+            <InputLabel>Tipo de Publicação? *</InputLabel>
             <Select
               value={formFields.terr_status}
               onChange={(e) => handleFieldChange('terr_status', e.target.value)}
             >
-              <MenuItem value="1">Revisita</MenuItem>
-              <MenuItem value="2">Estudo</MenuItem>
+              <MenuItem value="1">Folheto</MenuItem>
+              <MenuItem value="2">Revista</MenuItem>
+              <MenuItem value="3">Brochura</MenuItem>
+              <MenuItem value="4">Livro</MenuItem>
+              <MenuItem value="5">Bíblia</MenuItem>
+              <MenuItem value="6">CD/DVD</MenuItem>
+              <MenuItem value="7">Volte p/ Jeová</MenuItem>
             </Select>
+            <TextField
+
+              margin="dense"
+              label="Quantidade? *"
+              type="number"
+              fullWidth
+              value={formFields.num_pessoas}
+              onChange={(e) => handleFieldChange('num_pessoas', e.target.value)}
+            />
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenReservMapDialog(false)} color="primary">Cancelar</Button>
+          <Button onClick={() => setOpenRegPublicDialog(false)} color="primary">Cancelar</Button>
           <Button onClick={handleReservTerrit} color="primary">Confirmar</Button>
         </DialogActions>
       </Dialog>
-
 
     </Box>
   );

@@ -68,7 +68,8 @@ const RelVisitForm = () => {
         if (!file) return;
 
         setSelectedFileName(file.name); // Atualiza o nome do arquivo selecionado
-        setDisplayMessage(`Arquivo selecionado: ${file.name}`);
+      //  setDisplayMessage(`Arquivo selecionado: ${file.name}`)
+        setDisplayMessage(`Arquivo selecionado: ${selectedFileName}`);
         setMessageColor("black"); // Cor padrão para mensagem de seleção
 
         const reader = new FileReader();

@@ -619,7 +619,7 @@ class DesignService:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT 
+   SELECT 
                 desg.id AS desig_id,     
                 camp.id AS camp_id,   
                 desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
@@ -628,13 +628,21 @@ class DesignService:
                 desg.pub_obs, camp.data_inclu, camp.cmp_tipo,  
                 camp.cmp_diadasem, camp.cmp_seq, camp.cmp_local, 
                 camp.cmp_enderec, camp.cmp_url, camp.cmp_tipoativ, camp.cmp_horaini,
-                camp.cmp_horafim, camp.cmp_detalhes 
+                camp.cmp_horafim, camp.cmp_detalhes, 
+                (select 
+					desg2.pub_nome from cad_designacoes desg2 
+                    where 1 =1 
+						and desg2.dsg_mapa_cod = camp.cmp_diadasem 
+						and desg2.dsg_tipo = desg.dsg_tipo
+                        and desg2.dsg_data = desg.dsg_data
+                       and not(desg2.pub_login in (desg.pub_login))
+                    group by desg2.pub_nome limit 1) as 'cmp_publicador02'
             FROM cad_designacoes desg
             LEFT JOIN cad_configcampo camp ON desg.dsg_mapa_cod = camp.cmp_diadasem and desg.dsg_tipo = camp.cmp_tipo
             WHERE 
                 1 = 1 
                 and desg.dsg_status IN ('1', '2', '3') 
-                and desg.dsg_tipo IN  ('2', '3','4')              
+                and desg.dsg_tipo IN  ('2', '3','4')                 
                 and trim(desg.pub_login) = %s
              ORDER BY desg.dsg_data ASC
             """, (desig_user,))

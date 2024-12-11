@@ -9,6 +9,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  CircularProgress,
+  Backdrop,
 } from '@mui/material';
 
 import { FaChevronDown, FaUserPlus, FaShareSquare, FaUpload } from 'react-icons/fa';
@@ -17,7 +19,6 @@ import * as XLSX from 'xlsx'; // Importe a biblioteca XLSX
 const DesigForm = () => {
   const [data, setData] = useState([]);
   const [dataSugest, setDataSugest] = useState([]);
-
   const [pageSugest, setPageSugest] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(10); // Limite de linhas por página
@@ -28,12 +29,385 @@ const DesigForm = () => {
   const [selected, setSelected] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [filterColumn, setFilterColumn] = useState(''); // Guarda a coluna sendo filtrada  
-  const [openVisitDialog, setOpenVisitDialog] = useState(false);
+  const [openImportCarrDialog, setOpenImportCarrDialog] = useState(false);
 
+  const [selectedFile, setSelectedFile] = useState(null);
   const [selectedFileName, setSelectedFileName] = useState(""); // Armazena o nome do arquivo selecionado
+  const [selectedRows, setSelectedRows] = useState([]); // Armazena as linhas processadas
+
   const [displayMessage, setDisplayMessage] = useState(""); // Armazena a mensagem atual
   const [messageColor, setMessageColor] = useState("black"); // Armazena a cor da mensagem
-  const [selectedRows, setSelectedRows] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(false); // Estado para controlar o loading
+  const [value, setValue] = useState(0); // Estado para o progresso
+
+  const [publicadores, setPublicadores] = useState([]);
+  const excelSerialToDate = (value) => {
+    if (!value) return ""; // Se o valor for nulo ou vazio, retorna vazio.
+
+    // Verifica se é um número (serial do Excel).
+    if (!isNaN(value)) {
+      const excelStartDate = new Date(1899, 11, 30); // Data base do Excel.
+      const convertedDate = new Date(excelStartDate.getTime() + value * 86400000); // Adiciona dias em milissegundos.
+      return convertedDate.toISOString().split('T')[0]; // Retorna no formato "YYYY-MM-DD".
+    }
+
+    // Trata o caso de string no formato "DD/MM/YYYY".
+    if (typeof value === "string" && value.includes("/")) {
+      const [day, month, year] = value.split("/").map(Number); // Divide a string em partes numéricas.
+      return new Date(year, month - 1, day).toISOString().split('T')[0]; // Retorna no formato "YYYY-MM-DD".
+    }
+
+    return ""; // Retorna vazio para valores inválidos.
+  };
+
+
+  useEffect(() => {
+    let timer;
+
+    if (isLoading) {
+      timer = setInterval(() => {
+        setValue((prev) => {
+          const nextValue = prev + 10;
+
+          // Verifica se o valor alcançou ou excedeu 100
+          if (nextValue >= 100) {
+            clearInterval(timer);
+            setIsLoading(false); // Finaliza o loading
+            return 100; // Garante que não passe de 100
+          }
+
+          return nextValue;
+        });
+      }, 500); // Intervalo de 500ms
+    }
+
+    // Cleanup para limpar o intervalo quando o efeito for desmontado
+    return () => {
+      clearInterval(timer);
+    };
+  }, [isLoading]);
+
+  useEffect(() => {
+    // Lógica que reage ao valor de `value`
+    if (value === 100) {
+      console.log('O progresso atingiu 100%.');
+      // Outras ações que deseja realizar
+    }
+  }, [value]); // Reage a mudanças no valor de `value`
+
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      setDisplayMessage("Nenhum arquivo foi selecionado.");
+      setMessageColor("red");
+      return;
+    }
+
+    setSelectedFile(file);
+    setSelectedFileName(file.name);
+    setDisplayMessage(`Arquivo selecionado: ${selectedFileName}`);
+    setMessageColor("black");
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const data = e.target.result;
+      const workbook = XLSX.read(data, { type: 'binary' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      const formattedData = jsonData.map((row) => {
+        // Extrair o primeiro nome e a inicial do sobrenome da planilha
+        const partialName = row["Dirigente"]?.split(" ")[0];
+        const initialLastName = row["Dirigente"]?.split(" ")[1]?.replace(".", "");
+
+        // Localizar o publicador correspondente
+        const publicador = publicadores.find((pub) => {
+          const pubFirstName = pub.pub_nome.split(" ")[0];
+          const pubLastNameInitial = pub.pub_nome.split(" ")[1]?.charAt(0);
+          return (
+            pubFirstName === partialName &&
+            (!initialLastName || pubLastNameInitial === initialLastName)
+          );
+        });
+
+        return {
+          data_inclu: excelSerialToDate(row["Data Inclusão"] || ""),
+          dsg_data: excelSerialToDate(row["Data"] || ""),
+          dsg_mapa_cod: row["Dia Sem."] || "",
+          pub_login: publicador ? publicador.pub_chave : "",
+          pub_nome: publicador ? publicador.pub_nome : row["Dirigente"] || "",
+          pub_obs: row["OBS Publicador"] || "",
+          dsg_tipo: row["Tipo"] || "2",
+          dsg_detalhes: "4",
+          dsg_conselh: row["Conselho"] || "00",
+          dsg_mapa_url: row["Url"] || "",
+          dsg_mapa_end: row["Endereço"] || "",
+          dsg_status: row["Status"] || "1",
+          dsg_obs: row["Observ"] || "",
+        };
+      });
+
+      setData(formattedData); // Atualiza os dados processados
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  const handleFileUploadType3 = (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      setDisplayMessage("Nenhum arquivo foi selecionado.");
+      setMessageColor("red");
+      return;
+    }
+
+    setSelectedFile(file); // Armazena o arquivo selecionado
+    setSelectedFileName(file.name); // Atualiza o nome do arquivo selecionado
+    setDisplayMessage(`Arquivo selecionado: ${file.name}`);
+    setMessageColor("black");
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const data = e.target.result;
+      const workbook = XLSX.read(data, { type: 'binary' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      const processedData = jsonData.flatMap((row) => {
+        // Localiza publicadores da rota
+        const publicadores01 = publicadores.find(
+          (pub) => pub.pub_nome.split(' ')[0] === row["Publicador 01"]
+        );
+        const publicadores02 = publicadores.find(
+          (pub) => pub.pub_nome.split(' ')[0] === row["Publicador 02"]
+        );
+        const publicadores03 = publicadores.find(
+          (pub) => pub.pub_nome.split(' ')[0] === row["Publicador 03"]
+        );
+        const publicadores04 = publicadores.find(
+          (pub) => pub.pub_nome.split(' ')[0] === row["Publicador 04"]
+        );
+
+        const baseRow = {
+          data_inclu: new Date().toLocaleDateString("pt-BR"),
+          dsg_data: row["Data"] || "",
+          dsg_mapa_cod: row["Dia Sem."] || "",
+          dsg_detalhes: "4",
+          dsg_conselh: row["Conselho"] || "00",
+          dsg_mapa_url: row["Url"] || "",
+          dsg_mapa_end: row["Endereço"] || "",
+          dsg_status: row["Status"] || "1",
+          dsg_obs: row["Observ"] || "",
+          dsg_tipo: row["Tipo"] || "3",
+        };
+
+        // Cria uma linha para cada publicador encontrado
+        const publicadorRows = [];
+        if (publicadores01) {
+          publicadorRows.push({
+            ...baseRow,
+            pub_login: publicadores01.pub_chave,
+            pub_nome: publicadores01.pub_nome,
+          });
+        }
+        if (publicadores02) {
+          publicadorRows.push({
+            ...baseRow,
+            pub_login: publicadores02.pub_chave,
+            pub_nome: publicadores02.pub_nome,
+          });
+        }
+        if (publicadores03) {
+          publicadorRows.push({
+            ...baseRow,
+            pub_login: publicadores03.pub_chave,
+            pub_nome: publicadores03.pub_nome,
+          });
+        }
+        if (publicadores04) {
+          publicadorRows.push({
+            ...baseRow,
+            pub_login: publicadores04.pub_chave,
+            pub_nome: publicadores04.pub_nome,
+          });
+        }
+
+        return publicadorRows; // Adiciona as linhas para cada publicador
+      });
+
+      setSelectedRows(processedData); // Atualiza o estado com os dados processados
+      console.log("Dados processados para Tipo 3:", processedData);
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+
+  const handleImportAndSubmit = async () => {
+    if (!selectedFile) {
+      setDisplayMessage("Por favor, selecione uma planilha antes de importar.");
+      setMessageColor("red");
+      return;
+    }
+
+    setIsLoading(true); // Ativa o loading
+    // Simulação de uma tarefa
+    setTimeout(() => {
+      setOpenImportCarrDialog(false); // Fecha o diálogo após a tarefa
+      setIsLoading(false); // Finaliza o loading
+    }, 1000); // Tempo total de execução (ajuste conforme necessário)
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        // Processar os dados e realizar a correspondência
+        const formattedData = jsonData.map((row) => {
+          // Extrair o primeiro nome e a inicial do sobrenome da planilha
+          const partialName = row["Dirigente"]?.split(" ")[0];
+          const initialLastName = row["Dirigente"]?.split(" ")[1]?.replace(".", "");
+
+          // Localizar o publicador correspondente
+          const publicador = publicadores.find((pub) => {
+            const pubFirstName = pub.pub_nome.split(" ")[0];
+            const pubLastNameInitial = pub.pub_nome.split(" ")[1]?.charAt(0);
+            return (
+              pubFirstName === partialName &&
+              (!initialLastName || pubLastNameInitial === initialLastName)
+            );
+          });
+
+          return {
+            data_inclu: new Date().toLocaleDateString("pt-BR"),
+            dsg_data: row["Data"] || "",
+            dsg_mapa_cod: row["Dia Sem."] || "",
+            pub_login: publicador ? publicador.pub_chave : row["Dirigente"] || "",
+            pub_nome: publicador ? publicador.pub_nome : row["Dirigente"] || "",
+            pub_obs: row["OBS Publicador"] || "",
+            dsg_tipo: row["Tipo"] || "2",
+            dsg_detalhes: row["Detalhes"] || "4",
+            dsg_conselh: row["Conselho"] || "00",
+            dsg_mapa_url: row["Url"] || "",
+            dsg_mapa_end: row["Endereço"] || "",
+            dsg_status: row["Status"] || "1",
+            dsg_obs: row["Observ"] || "",
+          };
+        });
+
+        console.log("Dados processados da planilha:", formattedData);
+
+        // Enviar os dados para a API
+        try {
+          const response = await api_service.post('/desiglot', formattedData);
+          if (response.status === 201) {
+            setDisplayMessage("Importação e envio concluídos com sucesso!");
+            setMessageColor("green");
+            setSelectedFile(null); // Limpar o arquivo selecionado
+          } else {
+            setDisplayMessage("Erro ao enviar os dados. Verifique e tente novamente.");
+            setMessageColor("red");
+          }
+        } catch (error) {
+          console.error("Erro ao enviar os dados:", error);
+          setDisplayMessage("Erro ao enviar os dados. Tente novamente.");
+          setMessageColor("red");
+        }
+      };
+
+      reader.readAsBinaryString(selectedFile);
+    } catch (error) {
+      console.error("Erro ao processar o arquivo:", error);
+      setDisplayMessage("Erro ao processar a planilha. Verifique o arquivo e tente novamente.");
+      setMessageColor("red");
+    } finally {
+      setIsLoading(false); // Desativa o estado de loading
+    }
+  };
+
+  const handleSubmitType3 = async () => {
+    if (!selectedRows || selectedRows.length === 0) {
+      setDisplayMessage("Por favor, processe o arquivo antes de importar.");
+      setMessageColor("red");
+      return;
+    }
+
+    const expandedData = selectedRows.flatMap((row) => {
+      // Lista de publicadores por linha
+      const publicadoresNaLinha = [
+        row["Publicador 01"] || "",
+        row["Publicador 02"] || "",
+        row["Publicador 03"] || "",
+        row["Publicador 04"] || "",
+      ].filter(Boolean); // Filtrar apenas valores não vazios
+
+      // Para cada publicador, cria uma linha separada
+      return publicadoresNaLinha.map((publicadorNome) => {
+        const publicadorEncontrado = publicadores.find((p) =>
+          p.pub_nome.includes(publicadorNome)
+        );
+
+        return {
+          data_inclu: row.data_inclu || new Date().toLocaleDateString("pt-BR"),
+          dsg_data: row.dsg_data || "",
+          dsg_mapa_cod: row.dsg_mapa_cod || "",
+          pub_login: publicadorEncontrado
+            ? publicadorEncontrado.pub_chave
+            : publicadorNome,
+          pub_nome: publicadorEncontrado
+            ? publicadorEncontrado.pub_nome
+            : publicadorNome,
+          dsg_tipo: "3", // Tipo específico para essa operação
+          dsg_detalhes: row.atividade || "",
+          dsg_conselh: "00",
+          dsg_mapa_url: "",
+          dsg_mapa_end: row.local || "",
+          dsg_status: "1",
+          dsg_obs: `Horário: ${row.horario}, Início: ${row.inicio}, Fim: ${row.fim}`,
+        };
+      });
+    });
+
+    
+    // Envio para a rota da API
+    try {
+      const response = await api_service.post('/desiglot', expandedData);
+      if (response.status === 201) {
+        setDisplayMessage("Importação concluída com sucesso!");
+        setMessageColor("green");
+        setSelectedRows([]); // Limpar os dados processados
+        setSelectedFile(null);
+      } else {
+        setDisplayMessage("Erro ao enviar os dados. Verifique e tente novamente.");
+        setMessageColor("red");
+      }
+    } catch (error) {
+      console.error("Erro ao enviar os dados:", error);
+      setDisplayMessage("Erro ao enviar os dados. Tente novamente.");
+      setMessageColor("red");
+    }
+  };
+
+  const handleFileUploadCombined = (event) => {
+    // Chama as duas handles com base na necessidade
+    handleFileUpload(event); // Handle para o Tipo padrão
+    handleFileUploadType3(event); // Handle para o Tipo 3
+  };
+
+  const handleSubmitCombined = async (event) => {
+    await handleSubmitType3();
+    await handleImportAndSubmit();
+  };
 
   const [newDesignC, setNewDesignC] = useState({
     nome_publica: '',
@@ -72,6 +446,18 @@ const DesigForm = () => {
       });
   }, []);
 
+  useEffect(() => {
+    const fetchPublicadores = async () => {
+      try {
+        const response = await api_service.get('/pubcallsint');
+        console.log('Publicadores carregados:', response.data);
+        setPublicadores(response.data);
+      } catch (error) {
+        console.error('Erro ao carregar os publicadores:', error);
+      }
+    };
+    fetchPublicadores();
+  }, []);
 
   const handleSelect = (idSg) => {
     setSelected((prevSelected) =>
@@ -143,12 +529,10 @@ const DesigForm = () => {
     e.preventDefault();
 
     const { pub_login, pub_nome, dsg_tipo, dsg_status } = newDesignC;
-
     if (!pub_login || !pub_nome || !dsg_tipo || !dsg_status) {
       setMessage('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
-
     try {
       const response = await api_service.post('/desig', newDesignC);
       setData([...data, response.data]); // Adiciona novo mapa aos dados
@@ -161,7 +545,7 @@ const DesigForm = () => {
   };
 
   const handleOpenImportCarrCampDlg = () => {
-    setOpenVisitDialog(true); // Abre o diálogo
+    setOpenImportCarrDialog(true); // Abre o diálogo
   };
 
   const buttonStyle = {
@@ -248,12 +632,12 @@ const DesigForm = () => {
     const cleanedData = selectedData.map((row) => ({
       dsg_data: new Date().toLocaleDateString("pt-BR"),  // Valor padrão para dsg_data
       data_inclu: new Date().toLocaleDateString("pt-BR"),  // Valor padrão para dsg_data
-      pub_login: '', 
-      pub_nome: '', 
-      pub_obs: '', 
+      pub_login: '',
+      pub_nome: '',
+      pub_obs: '',
       dsg_tipo: '0',  // 0 - Mapa, 1 - Indicação, 2 - Dirig. Campo, 3 - Carrinho ... 
-      dsg_detalhes: row.terr_tp_local || '',  
-      dsg_conselh: '00', 
+      dsg_detalhes: row.terr_tp_local || '',
+      dsg_conselh: '00',
       dsg_mapa_cod: row.terr_nome || '',  // Valor padrão para dsg_mapa_cod
       dsg_mapa_url: row.terr_link || '',  // Valor padrão para dsg_mapa_url
       dsg_mapa_end: row.terr_enderec || '',  // Valor padrão para dsg_mapa_end
@@ -262,10 +646,9 @@ const DesigForm = () => {
     }));
 
     console.log('Linhas selecionadas:', cleanedData);
-
     try {
       // Enviar os dados em lote para a API
-      const response = await api_service.post('/desiglot',cleanedData );
+      const response = await api_service.post('/desiglot', cleanedData);
 
       // Atualizar a interface com os resultados
       if (response.status === 201) {
@@ -278,60 +661,6 @@ const DesigForm = () => {
       console.error("Erro ao enviar os dados: ", error);
       setMessage('Erro ao enviar sugestões. Tente novamente.');
     }
-  };
-
-  const handleFileUpload = (event) => {
-    try {
-      setDisplayMessage("Arquivo importado com sucesso para a base de dados!");
-      setMessageColor("green");
-    } catch (error) {
-      setDisplayMessage("Erro ao importar o arquivo.");
-      setMessageColor("red");
-    }
-    const file = event.target.files[0];
-    if (!file) return;
-
-    setSelectedFileName(file.name); // Atualiza o nome do arquivo selecionado
-    setDisplayMessage(`Arquivo selecionado: ${file.name}`);
-    setMessageColor("black"); // Cor padrão para mensagem de seleção
-
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-      const data = e.target.result;
-      const workbook = XLSX.read(data, { type: 'binary' });
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-      const excelSerialToDate = (serial) => {
-        const excelStartDate = new Date(1899, 11, 30); // 30 de dezembro de 1899
-        const convertedDate = new Date(excelStartDate.getTime() + serial * 86400000); // Adiciona dias em milissegundos
-        return convertedDate.toISOString().split('T')[0]; // Retorna em formato "YYYY-MM-DD"
-
-      };
-
-      // Transforme os dados para o formato necessário para a API
-      const formattedData = jsonData.map((row) => ({
-        data_inclu: excelSerialToDate(row["Data Inclusão"] || ""),
-        dsg_data: excelSerialToDate(row["Data Visita"] || ""),
-        pub_login: row["Publicador Login"] || "",
-        pub_nome: row["Nome Publicador"] || "",
-        pub_obs: row["OBS Publicador"] || "",
-        dsg_tipo: row["Tipo"] || "2", // 0 - Mapa, 1 - Indicação, 2 - Dirig. Campo, 3 - Carrinho ... 
-        dsg_detalhes: row["Detalhes"] || "DC", 
-        dsg_conselh:  row["Conselho"] || "00", 
-        dsg_mapa_cod: row["Detalhes"] || "", 
-        dsg_mapa_url: row["Url"] || "", 
-        dsg_mapa_end: row["Endereço"] || "", 
-        dsg_status: row["Status"] || "1", // 0 - Não Designada, 1 - Pendente, 2 - Realizada.. 
-        dsg_obs: row["Observ"] || "", 
-      }));
-
-      setSelectedRows(formattedData); // Salva os dados processados
-    };
-
-    reader.readAsBinaryString(file);
   };
 
   const getStatusTipo = (dsg_tipo) => {
@@ -525,6 +854,8 @@ const DesigForm = () => {
         return 'Trabalho';
       case '3':
         return 'Prédio';
+      case '4':
+        return 'Atividades';
       default:
         return 'Outros';
     }
@@ -536,9 +867,11 @@ const DesigForm = () => {
       case 'Casa':
         return '#007FFF';
       case 'Trabalho':
-        return '#8B4513';
+        return '#FF2400';
       case 'Prédio':
         return '#42426F';
+      case 'Atividades':
+        return '#8E6B23';
       default:
         return 'transparent';
     }
@@ -576,7 +909,6 @@ const DesigForm = () => {
               >
                 <FaShareSquare /> Efetivar Sugestão dos Mapas
               </button>
-
             </Box>
             {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
 
@@ -584,10 +916,9 @@ const DesigForm = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-
                     <TableCell align="center" sx={{ fontWeight: 'bold' }} padding="checkbox">
                       <Checkbox
-                         indeterminate={
+                        indeterminate={
                           selected.length > 0 && selected.length < dataSugest.length
                         } // Exibe o estado "indeterminado" quando apenas algumas, mas não todas as linhas estão selecionadas
                         checked={isAllSelected}
@@ -692,6 +1023,7 @@ const DesigForm = () => {
                     )}
                   </Menu>
                 </TableHead>
+
                 <TableBody>
                   {currentDataSugest.map((row) => {
                     const statusmpcor = getStatusMapCor(row.terr_cor);
@@ -800,6 +1132,7 @@ const DesigForm = () => {
               }}
             />
           </Box>
+
           <Box>
             <h4 style={{ fontSize: '1.2rem', marginBottom: '16px', color: "#42426F" }}>Designações Efetivadas</h4>
             <Box sx={{ marginTop: '20px' }}>
@@ -838,11 +1171,11 @@ const DesigForm = () => {
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Nome Publicador</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Obs Publicador</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tipo</TableCell>
-                   <TableCell align="center" sx={{ fontWeight: 'bold' }}>Detalhes
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Detalhes
                       <FaChevronDown onClick={(event) => handleClick(event, 'dsg_detalhes')} />
                     </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Conselho</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cod. Mapa</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cod. Mapa / Dia</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>End. Mapa</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Url. Mapa</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
@@ -861,6 +1194,7 @@ const DesigForm = () => {
                         <MenuItem onClick={() => handleFilterSelect('1')}>Casa</MenuItem>
                         <MenuItem onClick={() => handleFilterSelect('2')}>Trabalho</MenuItem>
                         <MenuItem onClick={() => handleFilterSelect('3')}>Prédio</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('4')}>Atividades</MenuItem>
                       </>
                     )}
 
@@ -878,8 +1212,8 @@ const DesigForm = () => {
                         <TableCell align="center">{isEditing ? <TextField name="pub_login" value={editedRowData.pub_login || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_login}</TableCell>
                         <TableCell align="center">{isEditing ? <TextField name="pub_nome" value={editedRowData.pub_nome || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_nome}</TableCell>
                         <TableCell align="center">{isEditing ? <TextField name="pub_obs" value={editedRowData.pub_obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_obs}</TableCell>
-                      
-                       {/* Campo editável de status */}
+
+                        {/* Campo editável de status */}
                         <TableCell align="center">
                           {isEditing ? (
                             <FormControl fullWidth>
@@ -914,8 +1248,8 @@ const DesigForm = () => {
                             </div>
                           )}
                         </TableCell>
-                         {/* Campo editável de status */}
-                         <TableCell align="center">
+                        {/* Campo editável de status */}
+                        <TableCell align="center">
                           {isEditing ? (
                             <FormControl fullWidth>
                               <Select
@@ -926,7 +1260,7 @@ const DesigForm = () => {
                                 <MenuItem value="1">Casa</MenuItem>
                                 <MenuItem value="2">Trabalho</MenuItem>
                                 <MenuItem value="3">Prédio Campo</MenuItem>
-                              
+                                <MenuItem value="4">Atividades</MenuItem>
                               </Select>
                             </FormControl>
                           ) : (
@@ -981,9 +1315,7 @@ const DesigForm = () => {
                             </div>
                           )}
                         </TableCell>
-
                         <TableCell align="center">{isEditing ? <TextField name="dsg_obs" value={editedRowData.dsg_obs || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.cod_congreg}</TableCell>
-
                         <TableCell align="center">
                           {isEditing ? (
                             <Button variant="contained" color="primary" size="small" onClick={handleSave} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Salvar</Button>
@@ -1000,7 +1332,6 @@ const DesigForm = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-
             <TablePagination
               rowsPerPageOptions={[]}
               component="div"
@@ -1041,7 +1372,6 @@ const DesigForm = () => {
             <FaUserPlus /> Nova Designação
           </button>
         </Box>
-
       </Box>
       {/* Formulário de nova indicação */}
       <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewDesignCForm ? 'block' : 'none' }}>
@@ -1123,44 +1453,90 @@ const DesigForm = () => {
         </form>
         {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
       </Box>
-      <Dialog open={openVisitDialog} onClose={() => setOpenVisitDialog(false)}>
-        <DialogTitle variant="head">Importar Designações da Planilha</DialogTitle>
-        <DialogContent>
-        <Typography variant="body2"></Typography>
-        <Typography variant="body2"></Typography>
-          <Typography variant="body2" color="blue">Para escolher o arquivo clique no botão abaixo: </Typography>
+
+      <Dialog
+        open={openImportCarrDialog}
+        onClose={() => setOpenImportCarrDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            minHeight: '300px',
+            maxHeight: '400px',
+          },
+        }}
+      >
+        <DialogTitle>Importar Designações da Planilha</DialogTitle>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography variant="body2" sx={{ marginBottom: '16px' }}>
+            Selecione um arquivo Excel para importar as designações:
+          </Typography>
           {displayMessage && (
             <Typography
               variant="body2"
-              sx={{ 
-                color: messageColor, 
-                marginTop: '16px', 
-                fontStyle: 'italic', 
-                fontSize : "12px",
+              sx={{
+                color: messageColor,
+                marginBottom: '16px',
+                fontStyle: 'italic',
+                fontSize: '12px',
+                textAlign: 'center',
               }}
             >
               {displayMessage}
             </Typography>
           )}
-          <Button variant="contained" component="label"
+          <Button
+            variant="contained"
+            component="label"
             style={{
-              ...buttonStyle,
-              mr: 4,
-              padding: '4px 12px',
-              fontSize: '0.60rem',
-              marginTop: '10px',
+              backgroundColor: '#202038',
+              color: '#f1f1f1',
+              marginBottom: '16px',
             }}
           >
             <FaUpload style={{ marginRight: '6px' }} />
             Selecione a Planilha
-            <input type="file" accept=".xlsx, .xls" hidden onChange={handleFileUpload} />
+            <input
+              type="file"
+              accept=".xlsx, .xls"
+              hidden
+              onChange={handleFileUploadCombined}
+            />
           </Button>
+
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => handleBatchSubmit()} color="primary">Importar</Button>
-          <Button onClick={() => setOpenVisitDialog(false)} color="primary">Cancelar</Button>
+          <Button
+            onClick={handleSubmitCombined}
+            color="primary"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Processando...' : 'Importar'}
+          </Button>
+          <Button
+            onClick={() => setOpenImportCarrDialog(false)}
+            color="primary"
+            disabled={isLoading}
+          >
+            Cancelar
+          </Button>
         </DialogActions>
       </Dialog>
+
+      <Backdrop
+        sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+        open={isLoading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+
     </Box>
   );
 };

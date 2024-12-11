@@ -244,12 +244,12 @@ const FormUserEnsino = () => {
       <Box
         sx={{
           display: 'flex',
-          justifyItems:'center',
+          justifyItems: 'center',
           fontSize: '0.8rem',
           marginLeft: '110px',
           marginTop: '5px',
           marginBottom: '2px',
-          color: darkMode ? '#67e7eb' : '#333333' ,
+          color: darkMode ? '#67e7eb' : '#333333',
         }}
       >
         Total de Mapas: {totalMapas}
@@ -264,8 +264,17 @@ const FormUserEnsino = () => {
 
               {data.map((item, index) => (
                 <Box key={index} className="card-box-user">
-                  <Card className="card-user" sx={{ backgroundColor: darkMode ? '#2c2c4e' : '#ffffff', color: darkMode ? '#67e7eb' : '#333' }}>
-                    <CardContent>
+                  <Card
+                    className="card-user"
+                    sx={{
+                      backgroundColor: darkMode ? '#2c2c4e' : '#ffffff',
+                      color: darkMode ? '#67e7eb' : '#333',
+                      transition: 'transform 0.2s ease-in-out', // Adiciona transição suave
+                      '&:hover': {
+                        transform: 'translateY(-10px)', // Move o card para cima
+                      },
+                    }}
+                  >  <CardContent>
                       <Typography variant="body1" className="status-text-user">
                         <div className="status-badge-user" style={{ backgroundColor: getStatusColorDesig(getStatusDesig(item.dsg_status)) }}>
                           {getStatusDesig(item.dsg_status)}
@@ -322,15 +331,15 @@ const FormUserEnsino = () => {
                     </CardContent>
                     <CardActions disableSpacing sx={{ marginTop: '-25px', marginRight: '230px' }}>
                       <ExpandMore
-                        expand={expanded[item.id]}
-                        onClick={() => handleExpandClick(item.id)}
-                        aria-expanded={expanded[item.id]}
+                        expand={expanded[item.desig_id]}
+                        onClick={() => handleExpandClick(item.desig_id)}
+                        aria-expanded={expanded[item.desig_id]}
                         aria-label="Mostrar mais"
                       >
                         <FaAngleDoubleDown />
                       </ExpandMore>
                     </CardActions>
-                    <Collapse in={expanded[item.id]} timeout="auto" unmountOnExit>
+                    <Collapse in={expanded[item.desig_id]} timeout="auto" unmountOnExit>
                       <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
                         <Typography variant="body2" sx={{ fontSize: '0.85rem', marginTop: '-15px', backgroundColor: getColorMapCor(item.terr_cor), color: darkMode ? '#ffffff' : '#ffffff' }}>
                           Grau: {getStatusClassif(item.terr_classif) || 'Grau não informado'}

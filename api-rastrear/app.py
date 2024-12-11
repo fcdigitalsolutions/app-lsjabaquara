@@ -423,7 +423,6 @@ def delete_publi(pubc_id):
     except Exception as e:
         return jsonify({"message": "Erro ao excluir o Publicador", "error": str(e)}), 500
 
-
 ## Rotas da API para o cadastro de Designações 
 @app.route('/desigaall', methods=['GET'])
 def get_desigall():

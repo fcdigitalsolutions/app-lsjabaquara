@@ -49,7 +49,7 @@ const FormUserView = () => {
   const [openVisitDialog, setOpenVisitDialog] = useState(false);
   const [openTransfDialog, setOpenTransfDialog] = useState(false);
   const [publicadores, setPublicadores] = useState([]); // Estado para armazenar as opções de Publicadores
-  
+
   const [openReservMapDialog, setOpenReservMapDialog] = useState(false);
   const [formFields, setFormFields] = useState({
     visit_status: '',
@@ -376,7 +376,7 @@ const FormUserView = () => {
   };
 
 
-  const handleOpenTransfDialog= (item) => {
+  const handleOpenTransfDialog = (item) => {
     setSelectedItem({
       ...item,
       territor_id: item.territor_id, // Adicione o ID do território
@@ -472,16 +472,16 @@ const FormUserView = () => {
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
-   
+
       <Box
         sx={{
           display: 'flex',
-          justifyItems:'center',
+          justifyItems: 'center',
           fontSize: '0.8rem',
           marginLeft: '110px',
           marginTop: '5px',
           marginBottom: '2px',
-          color: darkMode ? '#67e7eb' : '#333333' ,
+          color: darkMode ? '#67e7eb' : '#333333',
         }}
       >
         Total de Mapas: {totalMapas}
@@ -496,8 +496,17 @@ const FormUserView = () => {
         <Box className="card-container-user">
           {data.map((item, index) => (
             <Box key={index} className="card-box-user">
-              <Card className="card-user" sx={{ backgroundColor: darkMode ? '#2c2c4e' : '#ffffff', color: darkMode ? '#67e7eb' : '#333' }}>
-                <CardContent>
+              <Card
+                className="card-user"
+                sx={{
+                  backgroundColor: darkMode ? '#2c2c4e' : '#ffffff',
+                  color: darkMode ? '#67e7eb' : '#333',
+                  transition: 'transform 0.2s ease-in-out', // Adiciona transição suave
+                  '&:hover': {
+                    transform: 'translateY(-10px)', // Move o card para cima
+                  },
+                }}
+              > <CardContent>
                   <Typography variant="body1" className="status-text-user">
                     <div className="status-badge-user" style={{ backgroundColor: getStatusColorDesig(getStatusDesig(item.dsg_status)) }}>
                       {getStatusDesig(item.dsg_status)}
@@ -571,36 +580,36 @@ const FormUserView = () => {
                 </CardContent>
                 <CardActions disableSpacing sx={{ marginTop: '-20px', marginRight: '230px' }}>
                   <ExpandMore
-                    expand={expanded[item.id]}
-                    onClick={() => handleExpandClick(item.id)}
-                    aria-expanded={expanded[item.id]}
+                    expand={expanded[item.desig_id]}
+                    onClick={() => handleExpandClick(item.desig_id)}
+                    aria-expanded={expanded[item.desig_id]}
                     aria-label="Mostrar mais"
                   >
                     <FaAngleDoubleDown />
                   </ExpandMore>
                 </CardActions>
-                <Collapse in={expanded[item.id]} timeout="auto" unmountOnExit>
+                <Collapse in={expanded[item.desig_id]} timeout="auto" unmountOnExit>
                   <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
-                  
-                  <Box
-                        onClick={() => handleOpenTransfDialog(item)}
-                        sx={{
-                          display: 'flex',
-                          cursor: 'pointer',
-                          fontSize: '0.95rem',
-                          marginLeft: '20px',
-                          marginTop: '-15px',
-                          marginBottom: '30px',
-                          color: darkMode ? '#E9C2A6' : '#871F78',
-                          '&:hover': {
-                            color: darkMode ? '#67e7eb' : '#333333',
-                            textDecoration: 'underline',
-                          },
-                        }}
-                      >
-                        <FaExchangeAlt style={{ marginRight: '4px' }} />
-                        Enviar Outro Responsável
-                      </Box>
+
+                    <Box
+                      onClick={() => handleOpenTransfDialog(item)}
+                      sx={{
+                        display: 'flex',
+                        cursor: 'pointer',
+                        fontSize: '0.95rem',
+                        marginLeft: '20px',
+                        marginTop: '-15px',
+                        marginBottom: '30px',
+                        color: darkMode ? '#E9C2A6' : '#871F78',
+                        '&:hover': {
+                          color: darkMode ? '#67e7eb' : '#333333',
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      <FaExchangeAlt style={{ marginRight: '4px' }} />
+                      Enviar Outro Responsável
+                    </Box>
 
                     <Typography variant="body2" sx={{ fontSize: '0.85rem', marginTop: '-15px', backgroundColor: getColorMapCor(item.terr_cor), color: darkMode ? '#ffffff' : '#ffffff' }}>
                       Grau: {getStatusClassif(item.terr_classif) || 'Grau não informado'}
@@ -633,13 +642,13 @@ const FormUserView = () => {
           ))}
         </Box>
       )}
-    
+
       <Dialog open={openTransfDialog} onClose={() => setOpenTransfDialog(false)}>
         <DialogTitle>Enviar Para Outro Responsável</DialogTitle>
         <DialogContent>
           <DialogContentText></DialogContentText>
           <Typography variant="body2">De Responsável: {selectedItem?.pub_nome}</Typography>
-         <Typography variant="body2">Última Visita: {selectedItem?.dt_ultvisit}</Typography>
+          <Typography variant="body2">Última Visita: {selectedItem?.dt_ultvisit}</Typography>
           <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
           <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
           <FormControl fullWidth margin="dense">
@@ -805,7 +814,6 @@ const FormUserView = () => {
           <Button onClick={handleReservTerrit} color="primary">Confirmar</Button>
         </DialogActions>
       </Dialog>
-
 
     </Box>
   );
