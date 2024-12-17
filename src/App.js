@@ -22,6 +22,7 @@ import FormUserViewEnsino from './pages/FormUserViewEnsino';
 import FormUserViewDesig from './pages/FormUserViewDesig';
 import FormUserViewOutras from './pages/FormUserViewOutras';
 import ConfigCampoForm from './pages/ConfigCampoForm';
+import FormUserViewAnota from './pages/FormUserViewAnota';
 
 import { ThemeProvider } from './components/ThemeContext';
 
@@ -55,10 +56,11 @@ const App = () => {
                 <ThemeProvider>
                 <SidebarUser>
                   <Routes> 
-                    <Route path="form-userview" element={<FormUserView />} />
-                    <Route path="formuserdesig" element={<FormUserViewDesig />} />
-                    <Route path="formuserensino" element={<FormUserViewEnsino />} />
                     <Route path="formuseroutras" element={<FormUserViewOutras />} />
+                    <Route path="form-userview" element={<FormUserView />} />
+                    <Route path="formuserensino" element={<FormUserViewEnsino />} />
+                    <Route path="formuseranota" element={<FormUserViewAnota />} />
+                    <Route path="formuserdesig" element={<FormUserViewDesig />} />
                     <Route path="relatoriocampo" element={<RelCampForm />} />
                     <Route path="/ls" element={<SelectTpUser />} />
                   </Routes>

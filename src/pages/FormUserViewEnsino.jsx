@@ -21,7 +21,7 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { FaAngleDoubleDown, FaCheckCircle, FaMapMarked, FaFileSignature } from 'react-icons/fa';
+import { FaAngleDoubleDown, FaCheckCircle, FaMapMarked, FaFileSignature, FaExchangeAlt } from 'react-icons/fa';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '../components/ThemeContext';
 
@@ -45,6 +45,8 @@ const FormUserEnsino = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [openVisitDialog, setOpenVisitDialog] = useState(false);
+  const [openTransfDialog, setOpenTransfDialog] = useState(false);
+  const [publicadores, setPublicadores] = useState([]); // Estado para armazenar as opções de Publicadores
   const [formFields, setFormFields] = useState({
     visit_status: '',
     num_pessoas: '',
@@ -131,6 +133,20 @@ const FormUserEnsino = () => {
         return 'transparent';
     }
   };
+
+   // Função para buscar os dados da API
+   useEffect(() => {
+    const fetchPublicadores = async () => {
+      try {
+        const response = await api_service.get('/pubcallsint'); // rota da API
+        setPublicadores(response.data); // a API retorna um array de dados
+      } catch (error) {
+        console.error('Erro ao carregar os dados:', error);
+      }
+    };
+
+    fetchPublicadores(); // Chama a função para carregar os dados
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -316,6 +332,71 @@ const FormUserEnsino = () => {
     }
   };
 
+  const handleOpenTransfDialog = (item) => {
+    setSelectedItem({
+      ...item,
+      territor_id: item.territor_id, // Adicione o ID do território
+    });
+
+    setFormFields({
+      visit_status: item.visit_status || '',
+      num_pessoas: item.num_pessoas || '',
+      melhor_dia: item.melhor_dia_hora || '',
+      melhor_hora: item.melhor_hora || '',
+      terr_obs: item.terr_obs || '',
+    });
+
+    setOpenTransfDialog(true); // Abre o diálogo
+  };
+
+  const handleDesignar = async () => {
+    if (!selectedItem || !selectedItem.desig_id || !formFields.pub_login) {
+      console.error("Por favor, selecione uma designação e um publicador.");
+      return;
+    }
+
+    const updatedTerritorio = {
+      dt_ultvisit: new Date().toLocaleDateString("pt-BR"), // Data da última visita
+      pub_ultvisi: formFields.pub_login, // Publicador responsável pela última visita
+      terr_respons: formFields.pub_login, // Publicador responsável pelo território
+      terr_status: formFields.terr_status, // Status da reserva (1 = Revisita, 2 = Estudo)
+      terr_desig: '2'
+    };
+
+    // Atualiza o status da designação
+    const updatedData = {
+      ...selectedItem,
+      dsg_status: '2', // Atualiza o status para "Já Visitei" ou "Reservado"
+      pub_login: formFields.pub_login, // Login do publicador selecionado
+      pub_nome: publicadores.find(p => p.pub_chave === formFields.pub_login)?.pub_nome || '', // Nome do publicador correspondente
+      dsg_data: new Date().toLocaleDateString("pt-BR"), // Data da designação
+    };
+
+    try {
+      // Faz a requisição PUT para atualizar a designação
+      await api_service.put(`/desig/${selectedItem.desig_id}`, updatedData);
+
+      // Atualiza o status do território
+      await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
+      console.log("Território liberado com sucesso.");
+
+      // Atualiza o estado local para refletir as mudanças
+      setData((prevData) =>
+        prevData.map((item) =>
+          item.desig_id === selectedItem.desig_id
+            ? { ...item, dsg_status: '1', terr_desig: '0' }
+            : item
+        )
+      );
+
+      setOpenTransfDialog(false); // Fecha o diálogo
+      console.log("Designação atualizada com sucesso.");
+      //Alert("Designação atualizada com sucesso.");
+    } catch (error) {
+      console.error("Erro ao designar a designação: ", error);
+    }
+  };
+
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
@@ -439,6 +520,26 @@ const FormUserEnsino = () => {
                 </CardActions>
                 <Collapse in={expanded[item.desig_id]} timeout="auto" unmountOnExit>
                   <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
+                    <Box
+                      onClick={() => handleOpenTransfDialog(item)}
+                      sx={{
+                        display: 'flex',
+                        cursor: 'pointer',
+                        fontSize: '0.95rem',
+                        marginLeft: '20px',
+                        marginTop: '-15px',
+                        marginBottom: '30px',
+                        color: darkMode ? '#E9C2A6' : '#871F78',
+                        '&:hover': {
+                          color: darkMode ? '#67e7eb' : '#333333',
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      <FaExchangeAlt style={{ marginRight: '4px' }} />
+                      Enviar Outro Responsável
+                    </Box>
+
                     <Typography variant="body2" sx={{ fontSize: '0.85rem', marginTop: '-15px', backgroundColor: getColorMapCor(item.terr_cor), color: darkMode ? '#ffffff' : '#ffffff' }}>
                       Grau: {getStatusClassif(item.terr_classif) || 'Grau não informado'}
                     </Typography>
@@ -452,6 +553,35 @@ const FormUserEnsino = () => {
           ))}
         </Box>
       )}
+      <Dialog open={openTransfDialog} onClose={() => setOpenTransfDialog(false)}>
+        <DialogTitle>Enviar Para Outro Responsável</DialogTitle>
+        <DialogContent>
+          <DialogContentText></DialogContentText>
+          <Typography variant="body2">De Responsável: {selectedItem?.pub_nome}</Typography>
+          <Typography variant="body2">Última Visita: {selectedItem?.dt_ultvisit}</Typography>
+          <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
+          <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Para o Responsável*</InputLabel>
+            <Select
+              labelId="publicadores-label"
+              id="publicadores"
+              value={formFields.pub_login || ''} // Valor atual do pub_login no formFields
+              onChange={(e) => handleFieldChange('pub_login', e.target.value)} // Atualiza pub_login no formFields
+            >
+              {publicadores.map((publicador) => (
+                <MenuItem key={publicador.id} value={publicador.pub_chave}>
+                  {publicador.pub_nome} {/* Exibe o nome no dropdown */}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenTransfDialog(false)} color="primary">Cancelar</Button>
+          <Button onClick={handleDesignar} color="primary">Confirmar</Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={openVisitDialog} onClose={() => setOpenVisitDialog(false)}>
         <DialogTitle>Registro de Visita</DialogTitle>

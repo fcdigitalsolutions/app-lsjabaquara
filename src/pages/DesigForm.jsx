@@ -122,12 +122,12 @@ const DesigForm = () => {
       const formattedData = jsonData.map((row) => {
         // Extrair o primeiro nome e a inicial do sobrenome da planilha
         const partialName = row["Dirigente"]?.split(" ")[0];
-        const initialLastName = row["Dirigente"]?.split(" ")[1]?.replace(".", "");
+        const initialLastName = row["Dirigente"]?.split(" ")[1];
 
         // Localizar o publicador correspondente
         const publicador = publicadores.find((pub) => {
           const pubFirstName = pub.pub_nome.split(" ")[0];
-          const pubLastNameInitial = pub.pub_nome.split(" ")[1]?.charAt(0);
+          const pubLastNameInitial = pub.pub_nome.split(" ")[1];
           return (
             pubFirstName === partialName &&
             (!initialLastName || pubLastNameInitial === initialLastName)
@@ -182,16 +182,16 @@ const DesigForm = () => {
       const processedData = jsonData.flatMap((row) => {
         // Localiza publicadores da rota
         const publicadores01 = publicadores.find(
-          (pub) => pub.pub_nome.split(' ')[0] === row["Publicador 01"]
+          (pub) => pub.pub_nome === row["Publicador 01"]
         );
         const publicadores02 = publicadores.find(
-          (pub) => pub.pub_nome.split(' ')[0] === row["Publicador 02"]
+          (pub) => pub.pub_nome === row["Publicador 02"]
         );
         const publicadores03 = publicadores.find(
-          (pub) => pub.pub_nome.split(' ')[0] === row["Publicador 03"]
+          (pub) => pub.pub_nome === row["Publicador 03"]
         );
         const publicadores04 = publicadores.find(
-          (pub) => pub.pub_nome.split(' ')[0] === row["Publicador 04"]
+          (pub) => pub.pub_nome === row["Publicador 04"]
         );
 
         const baseRow = {
@@ -276,12 +276,12 @@ const DesigForm = () => {
         const formattedData = jsonData.map((row) => {
           // Extrair o primeiro nome e a inicial do sobrenome da planilha
           const partialName = row["Dirigente"]?.split(" ")[0];
-          const initialLastName = row["Dirigente"]?.split(" ")[1]?.replace(".", "");
+          const initialLastName = row["Dirigente"]?.split(" ")[1];
 
           // Localizar o publicador correspondente
           const publicador = publicadores.find((pub) => {
             const pubFirstName = pub.pub_nome.split(" ")[0];
-            const pubLastNameInitial = pub.pub_nome.split(" ")[1]?.charAt(0);
+            const pubLastNameInitial = pub.pub_nome.split(" ")[1];
             return (
               pubFirstName === partialName &&
               (!initialLastName || pubLastNameInitial === initialLastName)
@@ -305,11 +305,12 @@ const DesigForm = () => {
           };
         });
 
-        console.log("Dados processados da planilha:", formattedData);
-
         // Enviar os dados para a API
         try {
           const response = await api_service.post('/desiglot', formattedData);
+  
+          console.log("Dados enviados enviados dos Dirigentes:", formattedData);
+  
           if (response.status === 201) {
             setDisplayMessage("Importação e envio concluídos com sucesso!");
             setMessageColor("green");
@@ -341,47 +342,12 @@ const DesigForm = () => {
       setMessageColor("red");
       return;
     }
-
-    const expandedData = selectedRows.flatMap((row) => {
-      // Lista de publicadores por linha
-      const publicadoresNaLinha = [
-        row["Publicador 01"] || "",
-        row["Publicador 02"] || "",
-        row["Publicador 03"] || "",
-        row["Publicador 04"] || "",
-      ].filter(Boolean); // Filtrar apenas valores não vazios
-
-      // Para cada publicador, cria uma linha separada
-      return publicadoresNaLinha.map((publicadorNome) => {
-        const publicadorEncontrado = publicadores.find((p) =>
-          p.pub_nome.includes(publicadorNome)
-        );
-
-        return {
-          data_inclu: row.data_inclu || new Date().toLocaleDateString("pt-BR"),
-          dsg_data: row.dsg_data || "",
-          dsg_mapa_cod: row.dsg_mapa_cod || "",
-          pub_login: publicadorEncontrado
-            ? publicadorEncontrado.pub_chave
-            : publicadorNome,
-          pub_nome: publicadorEncontrado
-            ? publicadorEncontrado.pub_nome
-            : publicadorNome,
-          dsg_tipo: "3", // Tipo específico para essa operação
-          dsg_detalhes: row.atividade || "",
-          dsg_conselh: "00",
-          dsg_mapa_url: "",
-          dsg_mapa_end: row.local || "",
-          dsg_status: "1",
-          dsg_obs: `Horário: ${row.horario}, Início: ${row.inicio}, Fim: ${row.fim}`,
-        };
-      });
-    });
-
-    
-    // Envio para a rota da API
+  
+    console.log("Dados enviados do Carrinho (já processados):", selectedRows);
+  
     try {
-      const response = await api_service.post('/desiglot', expandedData);
+      const response = await api_service.post('/desiglot', selectedRows);
+  
       if (response.status === 201) {
         setDisplayMessage("Importação concluída com sucesso!");
         setMessageColor("green");
@@ -397,6 +363,7 @@ const DesigForm = () => {
       setMessageColor("red");
     }
   };
+  
 
   const handleFileUploadCombined = (event) => {
     // Chama as duas handles com base na necessidade
@@ -669,10 +636,12 @@ const DesigForm = () => {
       case '1': return 'Indicação';
       case '2': return 'Dirigente Campo';
       case '3': return 'Carrinho';
-      case '4': return 'Mecânicas';
-      case '5': return 'Reunião RMWB';
-      case '6': return 'Reunião FDS';
-      case '7': return 'Discurso Publico';
+      case '4': return 'Mídias / Zoom';
+      case '5': return 'Câmera';
+      case '6': return 'Indicador';
+      case '7': return 'Reunião RMWB';
+      case '8': return 'Reunião FDS';
+      case '9': return 'Discurso Publico';
       default: return 'Outros';
     }
   };
@@ -683,7 +652,9 @@ const DesigForm = () => {
       case 'Indicação': return '#CC0000';
       case 'Dirigente Campo': return '#42426F';
       case 'Carrinho': return '#93DB70';
-      case 'Mecânicas': return '#000000';
+      case 'Mídias / Zoom': return '#000000';
+      case 'Câmera': return '#000000';
+      case 'Indicador': return '#000000';
       case 'Reunião RMWB': return '#000000';
       case 'Reunião FDS': return '#000000';
       case 'Discurso Publico': return '#000000';
@@ -1226,11 +1197,13 @@ const DesigForm = () => {
                                 <MenuItem value="1">Indicação</MenuItem>
                                 <MenuItem value="2">Dirigente Campo</MenuItem>
                                 <MenuItem value="3">Carrinho</MenuItem>
-                                <MenuItem value="4">Mecanicas</MenuItem>
-                                <MenuItem value="5">Reunião RMWB</MenuItem>
-                                <MenuItem value="6">Reunião FDS</MenuItem>
-                                <MenuItem value="7">Discurso Publico</MenuItem>
-                                <MenuItem value="8">Outros</MenuItem>
+                                <MenuItem value="4">Mídias / Zoom</MenuItem>
+                                <MenuItem value="5">Câmera</MenuItem>
+                                <MenuItem value="6">Indicador</MenuItem>
+                                <MenuItem value="7">Reunião RMWB</MenuItem>
+                                <MenuItem value="8">Reunião FDS</MenuItem>
+                                <MenuItem value="9">Discurso Publico</MenuItem>
+                                <MenuItem value="A">Outros</MenuItem>
                               </Select>
                             </FormControl>
                           ) : (

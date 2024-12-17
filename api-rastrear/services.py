@@ -435,7 +435,7 @@ class DesignService:
     def get_all_desig(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM cad_designacoes")
+        cursor.execute("SELECT * FROM cad_designacoes where 1 = 1 order by dsg_data desc")
         desig = cursor.fetchall()
         result = rows_to_dict(cursor, desig)
         conn.close()
@@ -937,6 +937,15 @@ class CfgCampoService:
         cursor.execute("SELECT * FROM cad_configcampo where 1 = 1 and cmp_tipo in ('3') order by cmp_seq ASC")
         cfgcampo = cursor.fetchall()
         result = rows_to_dict(cursor, cfgcampo)
+        conn.close()
+        return result
+    
+    def get_all_cfgreuniao(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM cad_configcampo where 1 = 1 and cmp_tipo in ('4') order by cmp_seq ASC")
+        cfgreuniao = cursor.fetchall()
+        result = rows_to_dict(cursor, cfgreuniao)
         conn.close()
         return result
 

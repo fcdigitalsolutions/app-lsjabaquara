@@ -811,6 +811,15 @@ def get_cfgcarrinh():
         **dict(cfgcampo),        
         'data_inclu': format_date(cfgcampo.get('data_inclu'))
     } for cfgcampo in cfgcampo])
+    
+
+@app.route('/cfgreuniall', methods=['GET'])
+def get_cfgreuniao():
+    cfgcampo = cfgcampo_service.get_all_cfgreuniao()
+    return jsonify([{
+        **dict(cfgcampo),        
+        'data_inclu': format_date(cfgcampo.get('data_inclu'))
+    } for cfgcampo in cfgcampo])
 
 @app.route('/cfgcampo', methods=['POST'])
 def add_cfgcampo():
