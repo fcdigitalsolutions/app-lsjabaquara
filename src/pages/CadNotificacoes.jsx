@@ -114,10 +114,12 @@ const CadNotificacoes = () => {
     // Função para excluir o registro
     const handleDelete = async (id) => {
         const confirmDelete = window.confirm("Você realmente deseja excluir este registro?");
+        console.error("Id da mensagem a ser excluída", id);
         if (confirmDelete) {
             try {
                 await api_service.delete(`/notif/${id}`); // Envia a solicitação de exclusão para a API
                 setData(data.filter(row => row.id !== id)); // Remove o registro excluído do estado local
+                
             } catch (error) {
                 console.error("Erro ao excluir os dados: ", error);
             }

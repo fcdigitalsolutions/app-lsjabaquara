@@ -956,7 +956,7 @@ def add_notif():
 @app.route('/notif/<int:notif_id>', methods=['DELETE'])
 def delete_notif(notif_id):
     try:
-        cfgcampo_service.delete_cfgcampo(notif_id)  # Chama o serviço para deletar o registro
+        notif_service.delete_notif(notif_id)  # Chama o serviço para deletar o registro
         return jsonify({"message": "Registro excluído com sucesso!"}), 200
     except ValueError:
         return jsonify({"message": "Registro não encontrado!"}), 404

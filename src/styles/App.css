@@ -207,7 +207,7 @@ body {
 .card-container-user {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 12px;
   justify-content: center;
 }
 
@@ -279,7 +279,19 @@ body {
 }
 
 .card-msg-user {
-  padding: 2px; /* Reduzido para diminuir a altura */
+  padding: 1px; /* Reduzido para diminuir a altura */
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  flex-direction: column;
+  flex-direction: column;  
+  justify-content: space-between;
+}
+
+.card-container-msg-user {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  min-width: 350px;
+  max-width: 350px;
+  min-height: 100px;
+
 }

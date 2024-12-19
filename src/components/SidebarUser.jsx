@@ -74,7 +74,7 @@ const SidebarUser = ({ children }) => {
             {darkMode ? 'Modo Claro' : 'Modo Escuro'}
           </Button>
         </Box>
-        <Box>   
+        <Box className="card-container-msg-user">  
           {dataMsg.map((item, index) => (
             <Box key={index} className="card-box-msg-user">
               <Card
@@ -99,8 +99,8 @@ const SidebarUser = ({ children }) => {
                     variant="body1" 
                     className="status-text-user" 
                     sx={{ 
-                      marginLeft: '-10px', 
-                      marginTop: '-10px', 
+                      marginLeft: '-8px', 
+                      marginTop: '-8px', 
                       marginBottom: '-20px', 
                       justifyItems:'center',
                       fontSize: '13px', 
@@ -108,7 +108,7 @@ const SidebarUser = ({ children }) => {
                       color: darkMode ? '#D9D919' : '#00009C',
                     }} 
                   >
-                   Informações: {item.noti_mensag}
+                   {item.noti_dtini}: {item.noti_mensag}
                   </Typography>
                 </CardContent>
               </Card>
