@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service'; // Importando serviço da API
-import {Box, Menu, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent, Paper, TablePagination, Button, TextField, Typography, Select, FormControl, Checkbox } from '@mui/material';
-import {FaFileExport, FaUserPlus, FaShareSquare } from 'react-icons/fa';
+import {
+    Box, Menu, MenuItem, Table, TableBody, TableCell, TableContainer,
+    TableHead, TableRow, Card, CardContent, Paper, TablePagination,
+    Button, TextField, Typography, Select, FormControl, Checkbox,
+    InputLabel,
+} from '@mui/material';
+import { FaFileExport, FaUserPlus, FaShareSquare } from 'react-icons/fa';
 import * as XLSX from 'xlsx'; // Importe a biblioteca XLSX
 
 const CadNotificacoes = () => {
@@ -14,7 +19,7 @@ const CadNotificacoes = () => {
     const [selected, setSelected] = useState([]);
     const [rowsPerPage, setRowsPerPage] = useState(10); // Limite de linhas por página
     const Data_Atual = new Date();
-  
+
     const formatDateTime = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
@@ -119,7 +124,7 @@ const CadNotificacoes = () => {
             try {
                 await api_service.delete(`/notif/${id}`); // Envia a solicitação de exclusão para a API
                 setData(data.filter(row => row.id !== id)); // Remove o registro excluído do estado local
-                
+
             } catch (error) {
                 console.error("Erro ao excluir os dados: ", error);
             }
@@ -232,77 +237,77 @@ const CadNotificacoes = () => {
     };
 
     // Função para determinar o status com base no número de visitas
-  const getStatusDesgServ = (noti_servic) => {
-    switch (noti_servic) {
-      case '0':
-        return 'Estudante';
-      case '1':
-        return 'Publicador Batizado';
-      case '2':
-        return 'Servo Ministerial';
-      case '3':
-        return 'Ancião';
-      case '4':
-            return 'Todos';
-      default:
-        return 'Outros';
-    }
-  };
+    const getStatusDesgServ = (noti_servic) => {
+        switch (noti_servic) {
+            case '0':
+                return 'Estudante';
+            case '1':
+                return 'Publicador Batizado';
+            case '2':
+                return 'Servo Ministerial';
+            case '3':
+                return 'Ancião';
+            case '4':
+                return 'Todos';
+            default:
+                return 'Outros';
+        }
+    };
 
-  // Função para determinar a cor de fundo da célula com base no status
-  const getStatusColorDesgServ = (status) => {
-    switch (status) {
-      case 'Estudante':
-        return '#FFA500';
-      case 'Publicador Batizado':
-        return '#32CD32';
-      case 'Servo Ministerial':
-        return '#6A5ACD';
-      case 'Ancião':
-        return '#8B4513';
-        case 'Todos':
-            return '#5C3317';
-      default:
-        return 'transparent';
-    }
-  };
+    // Função para determinar a cor de fundo da célula com base no status
+    const getStatusColorDesgServ = (status) => {
+        switch (status) {
+            case 'Estudante':
+                return '#FFA500';
+            case 'Publicador Batizado':
+                return '#32CD32';
+            case 'Servo Ministerial':
+                return '#6A5ACD';
+            case 'Ancião':
+                return '#8B4513';
+            case 'Todos':
+                return '#5C3317';
+            default:
+                return 'transparent';
+        }
+    };
 
 
-  // Função para determinar o status com base no número de visitas
-  const getStatusDesgCamp = (noti_campo) => {
-    switch (noti_campo) {
-      case '0':
-        return 'Publicador';
-      case '1':
-        return 'Pioneiro Auxiliar';
-      case '2':
-        return 'Pioneiro Regular';
-      case '3':
-        return 'Pioneiro Especial';
-        case '4':
-            return 'Todos';
-      default:
-        return 'Outros';
-    }
-  };
+    // Função para determinar o status com base no número de visitas
+    const getStatusDesgCamp = (noti_campo) => {
+        switch (noti_campo) {
+            case '0':
+                return 'Publicador';
+            case '1':
+                return 'Pioneiro Auxiliar';
+            case '2':
+                return 'Pioneiro Regular';
+            case '3':
+                return 'Pioneiro Especial';
+            case '4':
+                return 'Todos';
+            default:
+                return 'Outros';
+        }
+    };
 
-  // Função para determinar a cor de fundo da célula com base no status
-  const getStatusColorDesgCamp = (status) => {
-    switch (status) {
-      case 'Publicador':
-        return '#FFA500';
-      case 'Pioneiro Auxiliar':
-        return '#32CD32';
-      case 'Pioneiro Regular':
-        return '#6A5ACD';
-      case 'Pioneiro Especial':
-        return '#8B4513';
-        case 'Todos':
-            return '#5C3317';
-      default:
-        return 'transparent';
-    }
-  };
+    // Função para determinar a cor de fundo da célula com base no status
+    const getStatusColorDesgCamp = (status) => {
+        switch (status) {
+            case 'Publicador':
+                return '#FFA500';
+            case 'Pioneiro Auxiliar':
+                return '#32CD32';
+            case 'Pioneiro Regular':
+                return '#6A5ACD';
+            case 'Pioneiro Especial':
+                return '#8B4513';
+            case 'Todos':
+                return '#5C3317';
+            default:
+                return 'transparent';
+        }
+    };
 
     return (
         <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
@@ -359,7 +364,7 @@ const CadNotificacoes = () => {
                                     open={Boolean(anchorEl)}
                                     onClose={handleClose}
                                 >
-                                 
+
 
                                     {filterColumn === 'visit_status' && (
                                         <>
@@ -399,10 +404,10 @@ const CadNotificacoes = () => {
                                                     onChange={() => handleSelect(row.id)}
                                                 />
                                             </TableCell>
-                                            <TableCell align="center">{isEditing ? <TextField name="noti_dtini"    value={editedRowData.noti_dtini || ''}    onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.noti_dtini}</TableCell>
-                                            <TableCell align="center">{isEditing ? <TextField name="noti_dtexp"    value={editedRowData.noti_dtexp || ''}    onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.noti_dtexp}</TableCell>
-                                            <TableCell align="center">{isEditing ? <TextField name="noti_tipo"     value={editedRowData.noti_tipo || ''}     onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.noti_servic}</TableCell>
-                                           {/* Campo editável de noti_servic */}
+                                            <TableCell align="center">{isEditing ? <TextField name="noti_dtini" value={editedRowData.noti_dtini || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.noti_dtini}</TableCell>
+                                            <TableCell align="center">{isEditing ? <TextField name="noti_dtexp" value={editedRowData.noti_dtexp || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.noti_dtexp}</TableCell>
+                                            <TableCell align="center">{isEditing ? <TextField name="noti_tipo" value={editedRowData.noti_tipo || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.noti_servic}</TableCell>
+                                            {/* Campo editável de noti_servic */}
                                             <TableCell align="center">
                                                 {isEditing ? (
                                                     <FormControl fullWidth>
@@ -433,8 +438,8 @@ const CadNotificacoes = () => {
                                                     </div>
                                                 )}
                                             </TableCell>
-                                             {/* Campo editável de noti_servic */}
-                                             <TableCell align="center">
+                                            {/* Campo editável de noti_servic */}
+                                            <TableCell align="center">
                                                 {isEditing ? (
                                                     <FormControl fullWidth>
                                                         <Select
@@ -464,7 +469,7 @@ const CadNotificacoes = () => {
                                                     </div>
                                                 )}
                                             </TableCell>
-                                            <TableCell align="center">{isEditing ? <TextField name="noti_mensag"   value={editedRowData.noti_mensag || ''}   onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.noti_mensag}</TableCell>
+                                            <TableCell align="center">{isEditing ? <TextField name="noti_mensag" value={editedRowData.noti_mensag || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.noti_mensag}</TableCell>
                                             <TableCell align="center">{isEditing ? <TextField name="noti_detalhes" value={editedRowData.noti_detalhes || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.noti_detalhes}</TableCell>
                                             <TableCell align="center">
                                                 {isEditing ? (
@@ -544,22 +549,53 @@ const CadNotificacoes = () => {
             {/* Formulário de nova indicação */}
             <Box sx={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', display: showNewIndicationForm ? 'block' : 'none' }}>
                 <form onSubmit={handleNewIndicationSubmit}>
-                     <Box sx={formBoxStyle}>
+                    <Box sx={formBoxStyle}>
                         <Box sx={{ flex: 1, minWidth: '200px' }}>
                             <TextField label="Data Início *" variant="outlined" size="small" fullWidth value={newIndication.noti_dtini} onChange={(e) => setNewIndication({ ...newIndication, noti_dtini: e.target.value })} sx={inputStyle} />
                         </Box>
-                        
+
                         <Box sx={{ flex: 1, minWidth: '200px' }}>
                             <TextField label="Data Expiração *" variant="outlined" size="small" fullWidth value={newIndication.noti_dtexp} onChange={(e) => setNewIndication({ ...newIndication, noti_dtexp: e.target.value })} sx={inputStyle} />
                         </Box>
                         <Box sx={{ flex: 1, minWidth: '200px' }}>
                             <TextField label="Tipo de Mensagem*" variant="outlined" size="small" fullWidth value={newIndication.noti_tipo} onChange={(e) => setNewIndication({ ...newIndication, noti_tipo: e.target.value })} sx={inputStyle} />
                         </Box>
-                        <Box sx={{ flex: 1, minWidth: '200px' }}>
-                            <TextField label="Desig. Serviço*" variant="outlined" size="small" fullWidth value={newIndication.noti_servic} onChange={(e) => setNewIndication({ ...newIndication, noti_servic: e.target.value })} sx={inputStyle} />
+                        <Box sx={{ flex: 1, minWidth: '250px' }}>
+                            <FormControl fullWidth sx={inputStyle}>
+                                <InputLabel id="notiserv-label">Alvo - Dsg Serviço: </InputLabel>
+                                <Select
+                                    labelId="notiserv-label"
+                                    id="notiserv"
+                                    value={newIndication.noti_servic}
+                                    label="Alvo - Dsg Serviço *"
+                                    fullWidth
+                                    onChange={(e) => setNewIndication({ ...newIndication, noti_servic: e.target.value })}
+                                >
+                                    <MenuItem value="0">Estudante</MenuItem>
+                                    <MenuItem value="1">Publicador</MenuItem>
+                                    <MenuItem value="2">Servo Ministerial</MenuItem>
+                                    <MenuItem value="3">Ancião</MenuItem>
+                                    <MenuItem value="4">Todos</MenuItem>
+                                </Select>
+                            </FormControl>
                         </Box>
-                        <Box sx={{ flex: 1, minWidth: '200px' }}>
-                            <TextField label="Desig. Campo*" variant="outlined" size="small" fullWidth value={newIndication.noti_campo} onChange={(e) => setNewIndication({ ...newIndication, noti_campo: e.target.value })} sx={inputStyle} />
+                        <Box sx={{ flex: 1, minWidth: '250px' }}>
+                            <FormControl fullWidth sx={inputStyle}>
+                                <InputLabel id="noticampo-label">Alvo - Dsg Campo: </InputLabel>
+                                <Select
+                                    labelId="noticampo-label"
+                                    id="noticampo"
+                                    value={newIndication.noti_campo}
+                                    label="Alvo - Dsg Campo: *"
+                                    onChange={(e) => setNewIndication({ ...newIndication, noti_campo: e.target.value })}
+                                >
+                                    <MenuItem value="0">Publicador</MenuItem>
+                                    <MenuItem value="1">Pioneiro Auxiliar</MenuItem>
+                                    <MenuItem value="2">Pioneiro Regular</MenuItem>
+                                    <MenuItem value="3">Pioneiro Especial</MenuItem>
+                                    <MenuItem value="4">Todos</MenuItem>
+                                </Select>
+                            </FormControl>
                         </Box>
                         <Box sx={{ flex: 1, minWidth: '200px' }}>
                             <TextField label="Texto da Mensagem* " variant="outlined" size="small" fullWidth value={newIndication.noti_mensag} onChange={(e) => setNewIndication({ ...newIndication, noti_mensag: e.target.value })} sx={inputStyle} />

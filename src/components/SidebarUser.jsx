@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaMoon, FaSun } from 'react-icons/fa';
+import { FaMoon, FaSun, FaComments } from 'react-icons/fa';
 import { useTheme } from './ThemeContext'; // Importa o hook do contexto
 import api_service from '../services/api_service'; // Importando serviço da API
 
@@ -51,6 +51,12 @@ const SidebarUser = ({ children }) => {
     fetchMensagens(); // Chama a função para carregar os dados
   }, []);
 
+  // Função para iniciar a edição de uma linha
+  const handleAbreLink = () => {
+    const link_quadro = "https://sites.google.com/view/quadrodeanuncioslsjabaquara"
+    window.open(link_quadro, '_blank'); // Abre o link em uma nova aba
+  };
+
 
   return (
     <Box className="main-containerusers" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
@@ -62,19 +68,38 @@ const SidebarUser = ({ children }) => {
       }}>
         <Typography sx={{ fontSize: '10px', marginTop: '10px' }}>Seja bem-vindo(a), {userDados?.nome || 'Usuário'}!</Typography>
       </Box>
-      <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
-        <Box>
-          <Button onClick={toggleTheme}
+      <Box sx={{ flex: 1, minWidth: '380px', maxWidth: '380px', height: '110px' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Button
+            onClick={toggleTheme}
             sx={{
-              margin: '2px',
+              marginTop: '4px',
               fontSize: '9px',
+              marginBottom: '8px',
+              marginLeft: '5px', // Ajuste conforme necessário
               color: darkMode ? '#67e7eb' : '#23238E',
             }}
-            startIcon={darkMode ? <FaSun /> : <FaMoon />}>
+            startIcon={darkMode ? <FaSun /> : <FaMoon />}
+          >
             {darkMode ? 'Modo Claro' : 'Modo Escuro'}
           </Button>
+
+          <Button
+            onClick={() => handleAbreLink()}
+            sx={{
+              marginTop: '4px', // Ajuste conforme necessário
+              marginLeft: '45px', // Ajuste conforme necessário
+              fontSize: '9px',
+              marginBottom: '8px',
+              color: darkMode ? '#67e7eb' : '#23238E',
+            }}
+            startIcon={darkMode ? <FaComments /> : <FaComments />}
+          >
+            Quadro de Anúncios
+          </Button>
         </Box>
-        <Box className="card-container-msg-user">  
+
+        <Box className="card-container-msg-user">
           {dataMsg.map((item, index) => (
             <Box key={index} className="card-box-msg-user">
               <Card
@@ -85,30 +110,30 @@ const SidebarUser = ({ children }) => {
                   justifyItems: 'center',
                   transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
                   '&:hover': {
-                    transform: 'translateY(-10px) scale(1.03)', 
-                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+                    transform: 'translateY(-10px) scale(1.03)',
+                    boxShadow: '0px 6px 14px rgba(0,0,0,0.3)',
                   },
                   '&:active': {
-                    transform: 'translateY(-10px) scale(1.03)', 
-                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+                    transform: 'translateY(-10px) scale(1.03)',
+                    boxShadow: '0px 6px 14px rgba(0,0,0,0.3)',
                   },
                 }}
               >
                 <CardContent>
-                  <Typography 
-                    variant="body1" 
-                    className="status-text-user" 
-                    sx={{ 
-                      marginLeft: '-8px', 
-                      marginTop: '-8px', 
-                      marginBottom: '-20px', 
-                      justifyItems:'center',
-                      fontSize: '13px', 
-                  //    color: darkMode ? '#67e7eb' : '#00009C',
+                  <Typography
+                    variant="body1"
+                    className="status-text-user"
+                    sx={{
+                      marginLeft: '-8px',
+                      marginTop: '-8px',
+                      marginBottom: '-15px',
+                      justifyItems: 'center',
+                      fontSize: '13px',
+                      //    color: darkMode ? '#67e7eb' : '#00009C',
                       color: darkMode ? '#D9D919' : '#00009C',
-                    }} 
+                    }}
                   >
-                   {item.noti_dtini}: {item.noti_mensag}
+                    {item.noti_dtini}: {item.noti_mensag}
                   </Typography>
                 </CardContent>
               </Card>
@@ -122,10 +147,10 @@ const SidebarUser = ({ children }) => {
           transition: { duration: 0.8, type: 'spring', damping: 8 },
         }}
         style={{
-          justifyItems:'center',
-          fontSize: '13px', 
+          justifyItems: 'center',
+          fontSize: '13px',
           color: darkMode ? '#D9D919' : '#202038',
-          marginTop: '20px', 
+          marginTop: '20px',
         }}
       >
         <section style={{ display: 'Flex' }}>
@@ -133,7 +158,13 @@ const SidebarUser = ({ children }) => {
             <NavLink
               to={route.path}
               key={index}
-              className={({ isActive }) => isActive ? 'linkusers active' : 'linkusers'}
+              className={({ isActive }) =>
+                isActive
+                  ? 'linkusers active'
+                  : darkMode
+                    ? 'linkusers-dark'
+                    : 'linkusers'
+              }
               onClick={route.name === "Sair" ? (e) => { e.preventDefault(); handleLogout(); } : null}
             >
               <span>{route.name}</span>
