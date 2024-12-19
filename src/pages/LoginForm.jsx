@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api_service from '../services/api_service'; // Importando serviço da API
 import '../styles/LoginForm.css'; // Importe seu arquivo CSS
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import { Box } from '@mui/material';
 
 const LoginForm = () => {
     const [username, setUsername] = useState('');
@@ -80,6 +83,19 @@ const LoginForm = () => {
                             className="form-input"
                         />
                     </div>
+                    <Box sx={{ flex: 1, minWidth: '100px' }}>
+          {/* Exibe uma chave de escolha se o endereço é confirmado ou não */}
+          <FormControlLabel
+            control={
+              <Switch
+                color="primary"
+                checked={'2'}
+                onChange={(e) => (null)}
+              />
+            }
+            label="Acesso Publicador?"
+          />
+        </Box>
                     <button type="submit" className="login-button">Entrar</button>
                 </form>
                 {message && <p className="error-message">{message}</p>}

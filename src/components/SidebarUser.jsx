@@ -124,7 +124,7 @@ const SidebarUser = ({ children }) => {
                       color: darkMode ? '#D9D919' : '#00009C',
                     }}
                   >
-                   {item.noti_mensag}
+                  {item.noti_mensag}
                   </Typography>
                 </CardContent>
               </Card>
