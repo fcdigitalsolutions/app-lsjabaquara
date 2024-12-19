@@ -252,7 +252,7 @@ const FormUserEnsino = () => {
           color: darkMode ? '#67e7eb' : '#333333',
         }}
       >
-        Total de Mapas: {totalMapas}
+        Responsável Mapas Enviar: {totalMapas}
       </Box>
       {loading ?
         (

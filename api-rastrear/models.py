@@ -160,5 +160,32 @@ class ConfigCampo:
         self.cmp_horaini    = cmp_horaini
         self.cmp_horafim    = cmp_horafim
         self.cmp_detalhes   = cmp_detalhes
+        
+
+class RegPublicacoes: 
+    def __init__(self,data_inclu,rgp_data,rgp_pub,rgp_diadasem,rgp_local,rgp_url,rgp_tipoativ,rgp_publicac,rgp_qtd,rgp_detalhes ):
+        self.data_inclu	    = data_inclu
+        self.rgp_data       = rgp_data
+        self.rgp_pub        = rgp_pub
+        self.rgp_diadasem   = rgp_diadasem
+        self.rgp_local      = rgp_local
+        self.rgp_url        = rgp_url
+        self.rgp_tipoativ   = rgp_tipoativ
+        self.rgp_publicac   = rgp_publicac
+        self.rgp_qtd        = rgp_qtd
+        self.rgp_detalhes   = rgp_detalhes
+
+
+class CadNotificacoes: 
+    def __init__(self,data_inclu,noti_dtini,noti_dtexp,noti_tipo,noti_servic,noti_campo,noti_mensag,noti_detalhes ):
+        self.data_inclu	    = data_inclu
+        self.noti_dtini     = noti_dtini
+        self.noti_dtexp     = noti_dtexp
+        self.noti_tipo      = noti_tipo
+        self.noti_servic    = noti_servic
+        self.noti_campo     = noti_campo
+        self.noti_mensag    = noti_mensag
+        self.noti_detalhes  = noti_detalhes
+
 
 ## FIM DOS MODELS

@@ -1,6 +1,19 @@
 # services.py
 from database import get_db_connection
-from models import Region,Congregation,Indicacoes,Rastreamento,RegistroNC,Publicadores,Designacoes,Territorios,RelVisita,ConfigCampo
+from models import (
+    Region,
+    Congregation,
+    Indicacoes,
+    Rastreamento,
+    RegistroNC,
+    Publicadores,
+    Designacoes,
+    Territorios,
+    RelVisita,
+    ConfigCampo,
+    RegPublicacoes, 
+    CadNotificacoes,
+    )
 
 def rows_to_dict(cursor, rows):
     """Converte uma lista de tuplas em uma lista de dicionários usando os nomes das colunas."""
@@ -346,7 +359,7 @@ class PublicaService:
     def get_all_pubc(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM cad_publicador where 1 = 1 ')
+        cursor.execute('SELECT * FROM cad_publicador where 1 = 1 order by pub_nome asc')
         pubc = cursor.fetchall()
         result = rows_to_dict(cursor, pubc)
         conn.close()
@@ -355,7 +368,7 @@ class PublicaService:
     def get_all_pubc_sint(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT pub_nome,pub_login as 'pub_chave',pub_status,data_inclu  FROM cad_publicador where 1 = 1 ")
+        cursor.execute("SELECT pub_nome,pub_login as 'pub_chave',pub_status,data_inclu  FROM cad_publicador where 1 = 1 order by pub_nome asc")
         pubc = cursor.fetchall()
         result = rows_to_dict(cursor, pubc)
         conn.close()
@@ -619,33 +632,88 @@ class DesignService:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-   SELECT 
+            SELECT 
                 desg.id AS desig_id,     
                 camp.id AS camp_id,   
-                desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
-                desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
-                desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
-                desg.pub_obs, camp.data_inclu, camp.cmp_tipo,  
-                camp.cmp_diadasem, camp.cmp_seq, camp.cmp_local, 
-                camp.cmp_enderec, camp.cmp_url, camp.cmp_tipoativ, camp.cmp_horaini,
-                camp.cmp_horafim, camp.cmp_detalhes, 
-                (select 
-					desg2.pub_nome from cad_designacoes desg2 
-                    where 1 =1 
-						and desg2.dsg_mapa_cod = camp.cmp_diadasem 
-						and desg2.dsg_tipo = desg.dsg_tipo
-                        and desg2.dsg_data = desg.dsg_data
-                       and not(desg2.pub_login in (desg.pub_login))
-                    group by desg2.pub_nome limit 1) as 'cmp_publicador02'
+                desg.data_inclu,
+                desg.dsg_data,
+                desg.pub_login,
+                desg.pub_nome, 
+                desg.dsg_tipo,
+                desg.dsg_detalhes,
+                desg.dsg_conselh, 
+                desg.dsg_mapa_cod,
+                desg.dsg_mapa_url,
+                desg.dsg_mapa_end,
+                desg.dsg_status,
+                desg.dsg_obs, 
+                desg.pub_obs,
+                camp.data_inclu,
+                camp.cmp_tipo,  
+                camp.cmp_diadasem,
+                camp.cmp_seq,
+                camp.cmp_local, 
+                camp.cmp_enderec,
+                camp.cmp_url,
+                camp.cmp_tipoativ,
+                camp.cmp_horaini,
+                camp.cmp_horafim,
+                camp.cmp_detalhes,
+                /* Primeiro Publicador Auxiliar (OFFSET 0) */
+                (
+                    SELECT pub_nome 
+                    FROM (
+                        SELECT DISTINCT pub_nome
+                        FROM cad_designacoes desg_aux
+                        WHERE desg_aux.dsg_mapa_cod = camp.cmp_diadasem
+                        AND desg_aux.dsg_tipo = desg.dsg_tipo
+                        AND desg_aux.dsg_data = desg.dsg_data
+                        AND desg_aux.pub_login <> desg.pub_login
+                        ORDER BY pub_nome
+                        LIMIT 1 OFFSET 0
+                    ) t
+                ) AS cmp_publicador02,
+            
+                /* Segundo Publicador Auxiliar (OFFSET 1) */
+                (
+                    SELECT pub_nome 
+                    FROM (
+                        SELECT DISTINCT pub_nome
+                        FROM cad_designacoes desg_aux
+                        WHERE desg_aux.dsg_mapa_cod = camp.cmp_diadasem
+                        AND desg_aux.dsg_tipo = desg.dsg_tipo
+                        AND desg_aux.dsg_data = desg.dsg_data
+                        AND desg_aux.pub_login <> desg.pub_login
+                        ORDER BY pub_nome
+                        LIMIT 1 OFFSET 1
+                    ) t
+                ) AS cmp_publicador03,
+            
+                /* Terceiro Publicador Auxiliar (OFFSET 2) */
+                (
+                    SELECT pub_nome 
+                    FROM (
+                        SELECT DISTINCT pub_nome
+                        FROM cad_designacoes desg_aux
+                        WHERE desg_aux.dsg_mapa_cod = camp.cmp_diadasem
+                        AND desg_aux.dsg_tipo = desg.dsg_tipo
+                        AND desg_aux.dsg_data = desg.dsg_data
+                        AND desg_aux.pub_login <> desg.pub_login
+                        ORDER BY pub_nome
+                        LIMIT 1 OFFSET 2
+                    ) t
+                ) AS cmp_publicador04
+            
             FROM cad_designacoes desg
-            LEFT JOIN cad_configcampo camp ON desg.dsg_mapa_cod = camp.cmp_diadasem and desg.dsg_tipo = camp.cmp_tipo
+            LEFT JOIN cad_configcampo camp
+                ON desg.dsg_mapa_cod = camp.cmp_diadasem
+                AND desg.dsg_tipo = camp.cmp_tipo
             WHERE 
-                1 = 1 
-                and desg.dsg_status IN ('1', '2', '3') 
-                and desg.dsg_tipo IN  ('2', '3','4')                 
+                desg.dsg_status IN ('1', '2', '3') 
+                AND desg.dsg_tipo IN ('2', '3', '4') 
                 and trim(desg.pub_login) = %s
-             ORDER BY desg.dsg_data ASC
-            """, (desig_user,))
+                ORDER BY desg.dsg_data ASC
+                """, (desig_user,))
         
         desig = cursor.fetchall()
         result = rows_to_dict(cursor, desig)
@@ -955,9 +1023,9 @@ class CfgCampoService:
 
         # Verifica se o registro existe antes de tentar deletar
         cursor.execute('SELECT * FROM cad_configcampo WHERE id = %s', (cfgcampo_id,))
-        rastrear = cursor.fetchone()
+        cfgcampo = cursor.fetchone()
 
-        if not rastrear:
+        if not cfgcampo:
             conn.close()
             raise ValueError("Registro não encontrada")  # Lança erro se não encontrar
 
@@ -968,3 +1036,103 @@ class CfgCampoService:
         return cfgcampo_id
     
 ##
+## Serviços para registro de publicações 
+class RgPublicacService:
+    def add_rgpublic(self,rgpublic):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO mov_rgpublicacoes(data_inclu,rgp_data,rgp_pub,rgp_diadasem,rgp_local,rgp_url,rgp_tipoativ,rgp_publicac,rgp_qtd,rgp_detalhes) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (rgpublic.data_inclu,rgpublic.rgp_data,rgpublic.rgp_pub,rgpublic.rgp_diadasem,rgpublic.rgp_local,rgpublic.rgp_url,rgpublic.rgp_tipoativ,rgpublic.rgp_publicac,rgpublic.rgp_qtd,rgpublic.rgp_detalhes ))
+        conn.commit()
+        rgpublic_id = cursor.lastrowid
+        conn.close()
+        return rgpublic_id
+		
+    def update_rgpublic(self, rgpublic_id, rgpublic):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE mov_rgpublicacoes SET rgp_data = %s, rgp_pub = %s, rgp_diadasem = %s, rgp_local = %s,rgp_url = %s,rgp_tipoativ = %s,rgp_publicac = %s,rgp_qtd = %s,rgp_detalhes = %s WHERE id = %s',
+			(rgpublic.rgp_data,rgpublic.rgp_pub,rgpublic.rgp_diadasem,rgpublic.rgp_local,rgpublic.rgp_url,rgpublic.rgp_tipoativ,rgpublic.rgp_publicac,rgpublic.rgp_qtd,rgpublic.rgp_detalhes ))
+        conn.commit()
+        conn.close()
+        return rgpublic_id
+    
+    def get_all_rgpublic(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM mov_rgpublicacoes where 1 = 1 ORDER BY rgp_data DESC")
+        rgpublic = cursor.fetchall()
+        result = rows_to_dict(cursor, rgpublic)
+        conn.close()
+        return result
+    
+    def delete_rgpublic(self, rgpublic_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM mov_rgpublicacoes WHERE id = %s', (rgpublic_id,))
+        rgpublic = cursor.fetchone()
+
+        if not rgpublic:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM mov_rgpublicacoes WHERE id = %s', (rgpublic_id,))
+        conn.commit()
+        conn.close()
+        return rgpublic_id
+    
+##
+## Serviços para registro de Notificações 
+class NotificaService:
+    def add_notif(self,notif):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO cad_notificacoes(data_inclu,noti_dtini,noti_dtexp,noti_tipo,noti_servic,noti_campo,noti_mensag,noti_detalhes) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)',
+            (notif.data_inclu,notif.noti_dtini,notif.noti_dtexp,notif.noti_tipo,notif.noti_servic,notif.noti_campo,notif.noti_mensag,notif.noti_detalhes))
+        conn.commit()
+        notif_id = cursor.lastrowid
+        conn.close()
+        return notif_id
+		
+    def update_notif(self, notif_id, notif):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE cad_notificacoes SET noti_dtini = %s, noti_dtexp = %s, noti_tipo = %s,noti_servic = %s,noti_campo = %s,noti_mensag = %s,noti_detalhes = %s WHERE id = %s',
+	        (notif.noti_dtini,notif.noti_dtexp,notif.noti_tipo,notif.noti_servic,notif.noti_campo,notif.noti_mensag,notif.noti_detalhes))
+        conn.commit()
+        conn.close()
+        return notif_id
+    
+    def get_all_notif(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM cad_notificacoes where 1 = 1 order by noti_dtini DESC")
+        notif = cursor.fetchall()
+        result = rows_to_dict(cursor, notif)
+        conn.close()
+        return result
+    
+    def delete_notif(self, notif_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM cad_notificacoes WHERE id = %s', (notif_id,))
+        notif = cursor.fetchone()
+
+        if not notif:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM cad_notificacoes WHERE id = %s', (notif_id,))
+        conn.commit()
+        conn.close()
+        return notif_id
+  
+
+    
+##### FIM DOS SERVICES ##############

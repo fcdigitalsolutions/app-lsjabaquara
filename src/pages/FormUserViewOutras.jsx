@@ -7,7 +7,6 @@ import {
   CardContent,
   CardActions,
   Typography,
-  CircularProgress,
   IconButton,
   Collapse,
   Dialog,
@@ -38,7 +37,6 @@ const ExpandMore = styled((props) => {
 
 const FormUserViewOutras = () => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expanded, setExpanded] = useState({});
 
@@ -46,7 +44,6 @@ const FormUserViewOutras = () => {
   const [selectedItem, setSelectedItem] = useState(null);
 
   const [selectedItemId, setSelectedItemId] = useState(null);
-  const [openVisitDialog, setOpenVisitDialog] = useState(false);
   const [openRegPublicDialog, setOpenRegPublicDialog] = useState(false);
   const [formFields, setFormFields] = useState({
     visit_status: '',
@@ -122,7 +119,6 @@ const FormUserViewOutras = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
     api_service.get(`/desigoutras/${lginUser}`)
       .then((response) => {
         setData(response.data);
@@ -132,7 +128,6 @@ const FormUserViewOutras = () => {
         console.error("Erro ao buscar os dados: ", error);
         setError('Erro ao carregar as designações. Tente novamente mais tarde.');
       })
-      .finally(() => setLoading(false));
   }, [lginUser]);
 
   const handleOpenRegPublicDialog = (item) => {
@@ -190,8 +185,6 @@ const FormUserViewOutras = () => {
       dsg_status: '4', // Atualiza o status para "Encerrada"
     };
 
-
-
     try {
       // Atualiza o status da designação
       await api_service.put(`/desig/${selectedItem.desig_id}`, updatedDesignacao);
@@ -213,142 +206,39 @@ const FormUserViewOutras = () => {
     }
   };
 
-
-  const handleRealizar = async () => {
+  const handleRegPublicSubmit = async () => {
     if (!selectedItem || !selectedItem.desig_id) {
       return;
     }
 
-    // Atualiza o status da designação
-    const updatedData = {
-      ...selectedItem,
-      dsg_status: '2', // Atualiza o status para "Já Visitei"
+    // Atualiza os dados de Publicações
+    const updatedRegPublic = {
+      data_inclu: new Date().toLocaleDateString("pt-BR"), // Data da última visita
+      rgp_data: new Date().toLocaleDateString("pt-BR"), // Data da última visita
+      rgp_pub: selectedItem.pub_login, // Publicador responsável pela última visita
+      rgp_diadasem: selectedItem.dsg_mapa_cod,
+      rgp_local: selectedItem.cmp_local,
+      rgp_url: selectedItem.cmp_url,
+      rgp_tipoativ: selectedItem.cmp_tipoativ,
+      rgp_publicac: formFields.rgp_publicac,
+      rgp_qtd: formFields.rgp_qtd,
+      rgp_detalhes: formFields.rgp_detalhes,
     };
 
+
+    // Atualiza os DAdos
     try {
-      // Faz a requisição PUT para atualizar a designação
-      await api_service.put(`/desig/${selectedItem.desig_id}`, updatedData);
+      await api_service.post(`/rgpublic`, updatedRegPublic); // Insere a visita
+      setOpenRegPublicDialog(false);
 
-      // Atualiza o estado local para refletir a mudança
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.desig_id === selectedItem.desig_id ? { ...item, dsg_status: '2' } : item
-        )
-      );
 
-      console.log("Designação atualizada com sucesso.");
-    } catch (error) {
-      console.error("Erro ao realizar a designação: ", error);
-    }
-  };
-
-  const handleUpdTerrit = async () => {
-    if (!selectedItem || !selectedItem.territor_id) {
-
-      return;
-    }
-
-    const updatedTerrit = {
-      num_pessoas: formFields.num_pessoas || selectedItem.num_pessoas || '',
-      melhor_dia_hora: formFields.melhor_dia || selectedItem.melhor_dia_hora || '',
-      melhor_hora: formFields.melhor_hora || selectedItem.melhor_hora || '',
-      terr_obs: formFields.terr_obs || selectedItem.terr_obs || '',
-      dt_ultvisit: new Date().toLocaleDateString("pt-BR"), // Data da última visita
-      pub_ultvisi: selectedItem.pub_login, // Publicador responsável pela última visita
-    };
-
-    try {
-      const response = await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerrit);
-      console.log("Resposta do servidor:", response.data);
-
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.territor_id === selectedItem.territor_id ? { ...item, ...updatedTerrit } : item
-        )
-      );
-
-      console.log("Território atualizado com sucesso.");
-    } catch (error) {
-      console.error("Erro ao atualizar o território:", error);
-    }
-  };
-
-  const handleReservTerrit = async () => {
-    if (!selectedItem || !selectedItem.territor_id) {
-      return;
-    }
-
-    // Atualiza os dados do Território
-    const updatedTerrit = {
-      dt_ultvisit: new Date().toLocaleDateString("pt-BR"), // Data da última visita
-      pub_ultvisi: selectedItem.pub_login, // Publicador responsável pela última visita
-      terr_respons: selectedItem.pub_login, // Publicador responsável pelo território
-      terr_status: formFields.terr_status, // Status da reserva (1 = Revisita, 2 = Estudo)
-      terr_desig: '2'
-    };
-
-    // Atualiza o status da Designação correspondente
-    const updatedDesignacao = {
-      ...selectedItem,
-      dsg_status: '2', // Atualiza o status para "Já Visitei" ou "Reservado"
-    };
-
-    try {
-      // Atualiza o Território
-      const responseTerrit = await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerrit);
-      console.log("Resposta do servidor para Território:", responseTerrit.data);
-
-      // Atualiza a tabela de Designações
-      const responseDesignacao = await api_service.put(`/desig/${selectedItem.desig_id}`, updatedDesignacao);
-      console.log("Resposta do servidor para Designação:", responseDesignacao.data);
-
-      // Atualiza os estados locais
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.territor_id === selectedItem.territor_id
-            ? { ...item, ...updatedTerrit, dsg_status: updatedDesignacao.dsg_status }
-            : item
-        )
-      );
-
-      console.log("Território e Designação atualizados com sucesso.");
+      console.log("Dados atualizados com sucesso.");
     } catch (error) {
       console.error("Erro ao atualizar os dados:", error);
     }
 
     setOpenRegPublicDialog(false); // Fecha o diálogo
   };
-
-  const handleVisitSubmit = async () => {
-    if (!selectedItem) return;
-    const visitData = {
-      data_inclu: new Date().toLocaleDateString("pt-BR"),
-      visit_data: new Date().toLocaleDateString("pt-BR"),
-      pub_login: selectedItem.pub_login,
-      pub_nome: selectedItem.pub_nome,
-      visit_cod: selectedItem.dsg_mapa_cod,
-      visit_url: selectedItem.terr_link,
-      visit_ender: selectedItem.terr_enderec,
-      visit_status: formFields.visit_status,
-      num_pessoas: formFields.num_pessoas,
-      melhor_dia: formFields.melhor_dia,
-      melhor_hora: formFields.melhor_hora,
-      terr_obs: formFields.terr_obs,
-    };
-
-    try {
-      await api_service.post(`/rvisitas`, visitData); // Insere a visita
-      await handleRealizar(); // Atualiza o status da designação
-      await handleUpdTerrit(); // Atualiza os dados do território
-      setOpenVisitDialog(false); // Fecha o modal de visita
-
-
-      console.log("Registro de Visita atualizado com sucesso.");
-    } catch (error) {
-      console.error("Erro ao registrar visita e atualizar os dados: ", error);
-    }
-  };
-
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
@@ -364,115 +254,162 @@ const FormUserViewOutras = () => {
           color: darkMode ? '#67e7eb' : '#333333',
         }}
       >
-        Total de Designações: {totalCards}
+        Suas Atividades Pendentes: {totalCards} {error}
       </Box>
-      {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <Typography variant="body1" color="error" align="center">{error}</Typography>
-      ) : (
-        <Box className="card-container-user">
-          {data.map((item, index) => (
-            <Box key={index} className="card-box-user">
-              <Card
-                className="card-user"
-                sx={{
-                  backgroundColor: darkMode ? '#2c2c4e' : '#ffffff',
-                  color: darkMode ? '#67e7eb' : '#333',
-                  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-10px) scale(1.03)', // Efeito para navegadores desktop
-                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
-                  },
-                  '&:active': {
-                    transform: 'translateY(-10px) scale(1.03)', // Efeito para dispositivos móveis (toque)
-                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
-                  },
-                }}
-                onClick={() => console.log("Card clicado!")} // Ação do toque
+      <Box className="card-container-user">
+        {data.map((item, index) => (
+          <Box key={index} className="card-box-user">
+            <Card
+              className="card-user"
+              sx={{
+                backgroundColor: darkMode ? '#2c2c4e' : '#ffffff',
+                color: darkMode ? '#67e7eb' : '#333',
+                transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-10px) scale(1.03)', // Efeito para navegadores desktop
+                  boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+                },
+                '&:active': {
+                  transform: 'translateY(-10px) scale(1.03)', // Efeito para dispositivos móveis (toque)
+                  boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+                },
+              }}
+              onClick={() => console.log("Card clicado!")} // Ação do toque
+            >
+              <CardContent>
+                <Typography variant="body1" className="status-text-user">
+                  <div
+                    className="status-badge-user"
+                    style={{
+                      backgroundColor: getStatusColorDesig(getStatusDesig(item.dsg_status)),
+                    }}
+                  >
+                    {getStatusDesig(item.dsg_status)}
+                  </div>
+                </Typography>
+                <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-5px' }}>
+                  Responsável: {item.pub_nome}
+                </Typography>
+
+                {/* Botão Registrar Publicações exibido apenas se dsg_tipo for "3" */}
+                {(item.dsg_tipo) === '3' && (
+                  <Box>
+                    <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                      Resp. 02: {item.cmp_publicador02}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                      Resp. 03: {item.cmp_publicador03}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                      Resp. 04: {item.cmp_publicador04}
+                    </Typography>
+
+                  </Box>
+                )}
+
+                <Typography
+                  variant="body1"
+                  className="status-text-user"
+                  sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}
+                >
+                  <div
+                    className="status-badge-user-body"
+                    style={{
+                      backgroundColor: getStatusColorDsgTipo(getStatusDesigTipo(item.dsg_tipo)),
+                    }}
+                  >
+                    {getStatusDesigTipo(item.dsg_tipo)}
+                  </div>
+                </Typography>
+                <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>
+                  Será Realizada: {item.dsg_data}
+                </Typography>
+                <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                  Dia: {item.dsg_mapa_cod} 
+                </Typography>
+                <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                  Horário: {item.cmp_horaini}
+                </Typography>
+                <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                  Local: {item.cmp_local}
+                </Typography>
+                <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
+                  Endereço: {item.cmp_enderec}
+                </Typography>
+
+                <Box sx={{ display: 'flex', gap: 3, marginTop: '8px' }}>
+                  <Box
+                    onClick={() => handleAbreMapa(item.cmp_url)}
+                    sx={{
+                      display: 'flex',
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      marginLeft: '27px',
+                      color: darkMode ? '#ffffff' : '#2c2c4e',
+                      '&:hover': {
+                        color: darkMode ? '#67e7eb' : '#333333',
+                        textDecoration: 'underline',
+                      },
+                    }}
+                  >
+                    <FaMapMarked style={{ marginRight: '4px' }} />
+                    Abrir Mapa
+                  </Box>
+                  <Box
+                    onClick={() => handleOpenDialog(item)}
+                    sx={{
+                      display: 'flex',
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      color: darkMode ? '#ffffff' : '#2c2c4e',
+                      '&:hover': {
+                        color: darkMode ? '#67e7eb' : '#333333',
+                        textDecoration: 'underline',
+                      },
+                    }}
+                  >
+                    <FaCheckCircle style={{ marginRight: '4px' }} />
+                    Encerrar
+                  </Box>
+                </Box>
+              </CardContent>
+              <CardActions
+                disableSpacing
+                sx={{ marginTop: '-20px', marginRight: '230px' }}
               >
+                <ExpandMore
+                  expand={expanded[item.desig_id]}
+                  onClick={() => handleExpandClick(item.desig_id)}
+                  aria-expanded={expanded[item.desig_id]}
+                  aria-label="Mostrar mais"
+                >
+                  <FaAngleDoubleDown />
+                </ExpandMore>
+              </CardActions>
+              <Collapse in={expanded[item.desig_id]} timeout="auto" unmountOnExit>
                 <CardContent>
-                  <Typography variant="body1" className="status-text-user">
-                    <div
-                      className="status-badge-user"
-                      style={{
-                        backgroundColor: getStatusColorDesig(getStatusDesig(item.dsg_status)),
-                      }}
-                    >
-                      {getStatusDesig(item.dsg_status)}
-                    </div>
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>
-                    Responsável: {item.pub_nome}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontSize: '0.8rem',
+                      marginTop: '2px',
+                      color: darkMode ? '#67e7eb' : '#333',
+                    }}
+                  >
+                    Observações: {item.dsg_obs || 'Nenhuma observação disponível.'}
                   </Typography>
 
                   {/* Botão Registrar Publicações exibido apenas se dsg_tipo for "3" */}
                   {(item.dsg_tipo) === '3' && (
-                    <Box>
-                      <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
-                        Apoio: {item.cmp_publicador02}
-                      </Typography>
-
-                    </Box>
-                  )}
-
-                  <Typography
-                    variant="body1"
-                    className="status-text-user"
-                    sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}
-                  >
-                    <div
-                      className="status-badge-user-body"
-                      style={{
-                        backgroundColor: getStatusColorDsgTipo(getStatusDesigTipo(item.dsg_tipo)),
-                      }}
-                    >
-                      {getStatusDesigTipo(item.dsg_tipo)}
-                    </div>
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>
-                    Será Realizada: {item.dsg_data}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
-                    Dia: {item.dsg_mapa_cod}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
-                    Horário: {item.cmp_horaini}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
-                    Local: {item.cmp_local}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
-                    Endereço: {item.cmp_enderec}
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', gap: 3, marginTop: '8px' }}>
                     <Box
-                      onClick={() => handleAbreMapa(item.cmp_url)}
+                      onClick={() => handleOpenRegPublicDialog(item)}
                       sx={{
                         display: 'flex',
                         cursor: 'pointer',
                         fontSize: '0.95rem',
-                        marginLeft: '27px',
-                        color: darkMode ? '#ffffff' : '#2c2c4e',
-                        '&:hover': {
-                          color: darkMode ? '#67e7eb' : '#333333',
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      <FaMapMarked style={{ marginRight: '4px' }} />
-                      Abrir Mapa
-                    </Box>
-                    <Box
-                      onClick={() => handleOpenDialog(item)}
-                      sx={{
-                        display: 'flex',
-                        cursor: 'pointer',
-                        fontSize: '0.95rem',
-                        color: darkMode ? '#ffffff' : '#2c2c4e',
+                        marginLeft: '36px',
+                        marginTop: '12px',
+                        color: darkMode ? '#7FFF00' : '#2c2c4e',
                         '&:hover': {
                           color: darkMode ? '#67e7eb' : '#333333',
                           textDecoration: 'underline',
@@ -480,146 +417,17 @@ const FormUserViewOutras = () => {
                       }}
                     >
                       <FaCheckCircle style={{ marginRight: '4px' }} />
-                      Encerrar
+                      Registrar Publicações
                     </Box>
-                  </Box>
+                  )}
                 </CardContent>
-                <CardActions
-                  disableSpacing
-                  sx={{ marginTop: '-20px', marginRight: '230px' }}
-                >
-                  <ExpandMore
-                    expand={expanded[item.desig_id]}
-                    onClick={() => handleExpandClick(item.desig_id)}
-                    aria-expanded={expanded[item.desig_id]}
-                    aria-label="Mostrar mais"
-                  >
-                    <FaAngleDoubleDown />
-                  </ExpandMore>
-                </CardActions>
-                <Collapse in={expanded[item.desig_id]} timeout="auto" unmountOnExit>
-                  <CardContent>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontSize: '0.8rem',
-                        marginTop: '2px',
-                        color: darkMode ? '#67e7eb' : '#333',
-                      }}
-                    >
-                      Observações: {item.dsg_obs || 'Nenhuma observação disponível.'}
-                    </Typography>
+              </Collapse>
 
-                    {/* Botão Registrar Publicações exibido apenas se dsg_tipo for "3" */}
-                    {(item.dsg_tipo) === '3' && (
-                      <Box
-                        onClick={() => handleOpenRegPublicDialog(item)}
-                        sx={{
-                          display: 'flex',
-                          cursor: 'pointer',
-                          fontSize: '0.95rem',
-                          marginLeft: '36px',
-                          marginTop: '12px',
-                          color: darkMode ? '#7FFF00' : '#2c2c4e',
-                          '&:hover': {
-                            color: darkMode ? '#67e7eb' : '#333333',
-                            textDecoration: 'underline',
-                          },
-                        }}
-                      >
-                        <FaCheckCircle style={{ marginRight: '4px' }} />
-                        Registrar Publicações
-                      </Box>
-                    )}
-                  </CardContent>
-                </Collapse>
+            </Card>
+          </Box>
+        ))}
+      </Box>
 
-              </Card>
-            </Box>
-          ))}
-        </Box>
-      )}
-
-      <Dialog open={openVisitDialog} onClose={() => setOpenVisitDialog(false)}>
-        <DialogTitle>Registro de Visita</DialogTitle>
-        <DialogContent>
-          <DialogContentText></DialogContentText>
-          <Typography variant="body2">Responsável: {selectedItem?.pub_nome}</Typography>
-          <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
-          <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
-
-          <FormControl fullWidth margin="dense"
-            sx={{
-              fontSize: '0.85rem',
-              marginTop: '15px',
-            }}>
-            <InputLabel>Encontrou? *</InputLabel>
-            <Select
-              value={formFields.visit_status}
-              onChange={(e) => handleFieldChange('visit_status', e.target.value)}
-            >
-              <MenuItem value="Sim">Sim</MenuItem>
-              <MenuItem value="Não">Não</MenuItem>
-              <MenuItem value="Carta">Carta</MenuItem>
-              <MenuItem value="Família">Família</MenuItem>
-              <MenuItem value="Outros">Outros</MenuItem>
-            </Select>
-          </FormControl>
-
-          <TextField
-
-            margin="dense"
-            label="QTD Surdos *"
-            type="number"
-            fullWidth
-            value={formFields.num_pessoas}
-            onChange={(e) => handleFieldChange('num_pessoas', e.target.value)}
-          />
-
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Melhor dia *</InputLabel>
-            <Select
-              value={formFields.melhor_dia}
-              onChange={(e) => handleFieldChange('melhor_dia', e.target.value)}
-            >
-              <MenuItem value="Livre">Livre</MenuItem>
-              <MenuItem value="Segunda">Segunda</MenuItem>
-              <MenuItem value="Terça">Terça</MenuItem>
-              <MenuItem value="Quarta">Quarta</MenuItem>
-              <MenuItem value="Quinta">Quinta</MenuItem>
-              <MenuItem value="Sexta">Sexta</MenuItem>
-              <MenuItem value="Sábado">Sábado</MenuItem>
-              <MenuItem value="Domingo">Domingo</MenuItem>
-              <MenuItem value="Sab-Dom">Sab-Dom</MenuItem>
-              <MenuItem value="Feriados">Feriados</MenuItem>
-            </Select>
-          </FormControl>
-
-          <TextField
-            margin="dense"
-            label="Melhor Hora"
-            type="text"
-            fullWidth
-            value={formFields.melhor_hora}
-            onChange={(e) => handleFieldChange('melhor_hora', e.target.value)}
-          />
-
-          <TextField
-            margin="dense"
-            label="Observação"
-            type="text"
-            fullWidth
-            multiline
-            rows={3}
-            value={formFields.terr_obs}
-            onChange={(e) => handleFieldChange('terr_obs', e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenVisitDialog(false)} color="primary">Cancelar</Button>
-          <Button onClick={handleVisitSubmit} color="primary">Confirmar</Button>
-        </DialogActions>
-      </Dialog>
 
       {/* Caixa de diálogo de confirmação */}
       <Dialog
@@ -668,8 +476,8 @@ const FormUserViewOutras = () => {
           >
             <InputLabel>Tipo de Publicação? *</InputLabel>
             <Select
-              value={formFields.terr_status}
-              onChange={(e) => handleFieldChange('terr_status', e.target.value)}
+              value={formFields.rgp_publicac}
+              onChange={(e) => handleFieldChange('rgp_publicac', e.target.value)}
             >
               <MenuItem value="1">Folheto</MenuItem>
               <MenuItem value="2">Revista</MenuItem>
@@ -685,14 +493,24 @@ const FormUserViewOutras = () => {
               label="Quantidade? *"
               type="number"
               fullWidth
-              value={formFields.num_pessoas}
-              onChange={(e) => handleFieldChange('num_pessoas', e.target.value)}
+              value={formFields.rgp_qtd}
+              onChange={(e) => handleFieldChange('rgp_qtd', e.target.value)}
+            />
+            <TextField
+              margin="dense"
+              label="Detalhes? "
+              type="text"
+              fullWidth
+              multiline
+              rows={3}
+              value={formFields.rgp_detalhes}
+              onChange={(e) => handleFieldChange('rgp_detalhes', e.target.value)}
             />
           </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenRegPublicDialog(false)} color="primary">Cancelar</Button>
-          <Button onClick={handleReservTerrit} color="primary">Confirmar</Button>
+          <Button onClick={handleRegPublicSubmit} color="primary">Confirmar</Button>
         </DialogActions>
       </Dialog>
 

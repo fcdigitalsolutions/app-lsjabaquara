@@ -9,7 +9,9 @@ import {
     FaUserTie,
     FaExchangeAlt,
     FaFileSignature,
-    FaCalendarAlt
+    FaCalendarAlt, 
+    FaBookReader,
+    FaComments,
   } from 'react-icons/fa';
 import { FaPeopleGroup, FaPersonCirclePlus, FaUserGear } from 'react-icons/fa6';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -21,7 +23,12 @@ const routes = [
   { path: "/home/form-enderec", name: "Territórios", icon: <FaMapMarkedAlt /> },
   { path: "/home/form-cfgcamp", name: "Programação", icon: <FaCalendarAlt /> },
   { path: "/home/form-desig", name: "Designações", icon: <FaChalkboardTeacher /> },
-  { path: "/home/form-visit", name: "Reg. Visitas", icon: <FaFileSignature /> },         // Caminhos atualizados
+  { path: "/home/form-visit", name: "Reg. Visitas", icon: <FaFileSignature /> },  
+  { path: "/home/form-regpub", name: "Reg. Publicações", icon: <FaBookReader /> },  
+  { path: "/home/form-notific", name: "Notificações", icon: <FaComments /> },  
+  
+  
+  // Caminhos atualizados
   { path: "/home/form-pubc", name: "Publicadores", icon: <FaUserTie /> },
   { path: "/home/form-users", name: "Usuários", icon: <FaUserGear /> },         // Caminhos atualizados
   { path: "/ls", name: "Trocar Visão", icon: <FaExchangeAlt /> },         // Caminhos atualizado

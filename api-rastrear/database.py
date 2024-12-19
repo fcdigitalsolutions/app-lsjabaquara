@@ -216,6 +216,37 @@ def init_db():
             )
         ''')    
 
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS mov_rgpublicacoes (
+	            id INT AUTO_INCREMENT PRIMARY KEY,
+	            data_inclu	   datetime NULL,
+				rgp_data       datetime NULL,
+                rgp_pub        varchar(255) NULL,
+                rgp_diadasem   varchar(255) NULL,
+            	rgp_local      varchar(255) NULL,
+				rgp_url        varchar(255) NULL,
+				rgp_tipoativ   varchar(255) NULL,
+				rgp_publicac   varchar(255) NULL,
+				rgp_qtd        int,
+				rgp_detalhes   text         
+            )
+        ''')    
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cad_notificacoes (
+	            id INT AUTO_INCREMENT PRIMARY KEY,
+	            data_inclu	   datetime NULL,
+				noti_dtini     datetime NULL,
+				noti_dtexp     datetime NULL,
+            	noti_tipo      varchar(255) NULL,
+				noti_servic    varchar(255) NULL,
+				noti_campo     varchar(255) NULL,
+				noti_mensag    text,
+				noti_detalhes  text         
+            )
+        ''')    
+
+
         conn.commit()
         cursor.close()
         conn.close()

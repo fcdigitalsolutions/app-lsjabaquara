@@ -484,7 +484,7 @@ const FormUserView = () => {
           color: darkMode ? '#67e7eb' : '#333333',
         }}
       >
-        Total de Mapas: {totalMapas}
+        Seus Mapas - Pregação: {totalMapas}
       </Box>
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">

@@ -62,6 +62,7 @@ const EnderecForm = () => {
   // Dados filtrados com base nos filtros das colunas
   const filteredData = data.filter((row) => {
     return (
+      (!filters.terr_nome || row.terr_nome === filters.terr_nome) &&
       (!filters.terr_status || row.terr_status === filters.terr_status) &&
       (!filters.terr_regiao || row.terr_regiao === filters.terr_regiao) &&
       (!filters.terr_desig || row.terr_desig === filters.terr_desig) &&
@@ -94,7 +95,7 @@ const EnderecForm = () => {
     terr_status: '0',
     num_pessoas: 1,
     terr_desig: '1',
-    melhor_dia_hora: 'Livre',   
+    melhor_dia_hora: 'Livre',
     terr_classif: '0',
     terr_tp_local: '1',
     terr_obs: '',
@@ -468,6 +469,12 @@ const EnderecForm = () => {
     fetchPublicadores(); // Chama a função para carregar os dados
   }, []);
 
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniqueMapaCod = () => {
+    const MapasUnicos = [...new Set(data.map(row => row.terr_nome))];
+    return MapasUnicos;
+  };
+
   // -- // 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038', minWidth: '160px', maxWidth: '1420px', height: '500px' }}>
@@ -580,7 +587,9 @@ const EnderecForm = () => {
                       inputProps={{ 'aria-label': 'select all items' }}
                     />
                   </TableCell>
-                  <TableCell align="center" sx={TableCellTHStyle}>Código Mapa</TableCell>
+                  <TableCell align="center" sx={TableCellTHStyle}>Código Mapa
+                    <FaChevronDown onClick={(event) => handleClick(event, 'terr_nome')} />
+                  </TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Morador</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Num. Pessoas</TableCell>
                   <TableCell align="center" sx={TableCellTHStyle}>Endereço</TableCell>
@@ -629,6 +638,17 @@ const EnderecForm = () => {
                       {getUniqueBairro().map((terr_regiao) => (
                         <MenuItem key={terr_regiao} onClick={() => handleFilterSelect(terr_regiao)}>
                           {terr_regiao}
+                        </MenuItem>
+                      ))}
+                    </>
+                  )}
+                  {filterColumn === 'terr_nome' && (
+                    <>
+                      <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                      {/* Gerar dinamicamente as congregações únicos */}
+                      {getUniqueMapaCod().map((terr_nome) => (
+                        <MenuItem key={terr_nome} onClick={() => handleFilterSelect(terr_nome)}>
+                          {terr_nome}
                         </MenuItem>
                       ))}
                     </>
@@ -917,27 +937,27 @@ const EnderecForm = () => {
                       {/* Campo editável de reponsável */}
                       <TableCell align="center" sx={TableCellBDStyle}>
                         {isEditing ? (
-                         <FormControl fullWidth>
-                         <InputLabel id="publicadores-label">Publicador Responsável</InputLabel>
-                         <Select
-                           labelId="publicadores-label"
-                           id="publicadores"
-                           value={editedRowData.terr_respons || ''} // Certifique-se de que o valor é passado corretamente
-                           onChange={(e) =>
-                             setEditedRowData({
-                               ...editedRowData,
-                               terr_respons: e.target.value, // Atualiza o campo no estado
-                             })
-                           }
-                           name="terr_respons" // Garante que o campo seja identificado corretamente
-                         >
-                           {publicadores.map((publicador) => (
-                             <MenuItem key={publicador.id} value={publicador.pub_chave}>
-                               {publicador.pub_nome}
-                             </MenuItem>
-                           ))}
-                         </Select>
-                       </FormControl>
+                          <FormControl fullWidth>
+                            <InputLabel id="publicadores-label">Publicador Responsável</InputLabel>
+                            <Select
+                              labelId="publicadores-label"
+                              id="publicadores"
+                              value={editedRowData.terr_respons || ''} // Certifique-se de que o valor é passado corretamente
+                              onChange={(e) =>
+                                setEditedRowData({
+                                  ...editedRowData,
+                                  terr_respons: e.target.value, // Atualiza o campo no estado
+                                })
+                              }
+                              name="terr_respons" // Garante que o campo seja identificado corretamente
+                            >
+                              {publicadores.map((publicador) => (
+                                <MenuItem key={publicador.id} value={publicador.pub_chave}>
+                                  {publicador.pub_nome}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
                         ) : (row.terr_respons)}
                       </TableCell>
 

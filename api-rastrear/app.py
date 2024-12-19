@@ -1,7 +1,35 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import Region,Congregation,Indicacoes,Rastreamento,AuthLogin,RegistroNC,Publicadores,Designacoes,Territorios,RelVisita,ConfigCampo
-from services import RegionService,CongregacaoService,IndicaService,RastrearService,AuthService,RegistroNCService,PublicaService,DesignService,TerritService,VisitaService,CfgCampoService
+from models import (
+    Region,
+    Congregation,
+    Indicacoes,
+    Rastreamento,
+    AuthLogin,
+    RegistroNC,
+    Publicadores,
+    Designacoes,
+    Territorios,
+    RelVisita,
+    ConfigCampo,    
+    RegPublicacoes, 
+    CadNotificacoes,
+    )
+from services import (
+    RegionService,
+    CongregacaoService,
+    IndicaService,
+    RastrearService,
+    AuthService,
+    RegistroNCService,
+    PublicaService,
+    DesignService,
+    TerritService,
+    VisitaService,
+    CfgCampoService,
+    RgPublicacService,
+    NotificaService, 
+    )
 from database import init_db
 from datetime import datetime,timedelta
 import config_env
@@ -19,6 +47,10 @@ desig_service = DesignService()
 territ_service = TerritService()
 rvisita_service = VisitaService()
 cfgcampo_service = CfgCampoService()
+rgpublic_service = RgPublicacService()
+
+notif_service = NotificaService()
+
 
 # Inicializa o banco de dados
 init_db()
@@ -852,6 +884,85 @@ def delete_cfgcampo(cfgcampo_id):
         return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
     
 
+##                                              #########
+## Rotas da API para o cadastro de Registro de Publicações
+
+@app.route('/rgpublicall', methods=['GET'])
+def get_rgpublic():
+    rgpublic = rgpublic_service.get_all_rgpublic()
+    return jsonify([{
+        **dict(rgpublic),        
+		'rgp_data'  : format_date(rgpublic.get('rgp_data')),
+        'data_inclu': format_date(rgpublic.get('data_inclu'))
+    } for rgpublic in rgpublic])
+
+@app.route('/rgpublic', methods=['POST'])
+def add_rgpublic():
+    data = request.json
+    rgpublic = RegPublicacoes(data_inclu=parse_date(data.get('data_inclu')),
+                        rgp_data=parse_date(data.get('rgp_data')),
+                        rgp_pub=data.get('rgp_pub'),
+                        rgp_diadasem=data.get('rgp_diadasem'),
+                        rgp_local=data.get('rgp_local'),
+                        rgp_url=data.get('rgp_url'),
+                        rgp_tipoativ=data.get('rgp_tipoativ'),
+                        rgp_publicac=data.get('rgp_publicac'),                        
+                        rgp_qtd=data.get('rgp_qtd'),
+                        rgp_detalhes=data.get('rgp_detalhes')                      
+                        )     
+    rgpublic_id = rgpublic_service.add_rgpublic(rgpublic)
+    return jsonify({"id": rgpublic_id, "message": "Registro add com sucesso!"}), 201
+
+# Rota DELETE para de Configurações de Campo
+@app.route('/rgpublic/<int:rgpublic_id>', methods=['DELETE'])
+def delete_rgpublic(rgpublic_id):
+    try:
+        rgpublic_service.delete_rgpublic(rgpublic_id)  # Chama o serviço para deletar o registro
+        return jsonify({"message": "Registro excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Registro não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
+    
+##                                              #########
+## Rotas da API para o cadastro de Registro de Notificações
+
+@app.route('/notifall', methods=['GET'])
+def get_notif():
+    notif = notif_service.get_all_notif()
+    return jsonify([{
+        **dict(notif),        
+		'data_inclu': format_date(notif.get('data_inclu')),
+		'noti_dtini'  : format_date(notif.get('noti_dtini')),
+		'noti_dtexp'  : format_date(notif.get('noti_dtexp'))        
+    } for notif in notif])
+
+@app.route('/notif', methods=['POST'])
+def add_notif():
+    data = request.json
+    notif = CadNotificacoes(data_inclu=parse_date(data.get('data_inclu')),
+                        noti_dtini=parse_date(data.get('noti_dtini')),
+						noti_dtexp=parse_date(data.get('noti_dtexp')),
+                        noti_tipo=data.get('noti_tipo'),
+                        noti_servic=data.get('noti_servic'),
+                        noti_campo=data.get('noti_campo'),
+                        noti_mensag=data.get('noti_mensag'),
+                        noti_detalhes=data.get('noti_detalhes')                   
+                        )     
+    notif_id = notif_service.add_notif(notif)
+    return jsonify({"id": notif_id, "message": "Registro add com sucesso!"}), 201
+
+# Rota DELETE para de Configurações de Campo
+@app.route('/notif/<int:notif_id>', methods=['DELETE'])
+def delete_notif(notif_id):
+    try:
+        cfgcampo_service.delete_cfgcampo(notif_id)  # Chama o serviço para deletar o registro
+        return jsonify({"message": "Registro excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Registro não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
+    
 
 ### FIM DAS ROTAS 
 

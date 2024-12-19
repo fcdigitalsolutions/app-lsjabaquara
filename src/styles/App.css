@@ -127,7 +127,7 @@ body {
 .linkusers {
   padding: 6px;
   text-decoration: none;
-  color: #67e7eb;
+  color: #9932CD;
   border-bottom: 2px solid transparent; /* Inicialmente sem borda */
   transition: border-bottom 0.1s cubic-bezier(0.4, -0.28, 0.735, 0.045);
   font-size: '10px';
@@ -267,3 +267,19 @@ body {
   position: relative; /* Necessário para centralizar */
 }
 
+/* Estilo dos Cards de Designação */
+.card-box-msg-user {
+  flex: 1 1 100px;
+  min-width: 350px;
+  max-width: 350px;
+  max-height: 100px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  margin-left: 10px;
+}
+
+.card-msg-user {
+  padding: 2px; /* Reduzido para diminuir a altura */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  flex-direction: column;
+}

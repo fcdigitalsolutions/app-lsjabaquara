@@ -23,6 +23,10 @@ import FormUserViewDesig from './pages/FormUserViewDesig';
 import FormUserViewOutras from './pages/FormUserViewOutras';
 import ConfigCampoForm from './pages/ConfigCampoForm';
 import FormUserViewAnota from './pages/FormUserViewAnota';
+import FormUserViewHoras from './pages/FormUserViewHoras';
+
+import RegPublicacoes from './pages/RegPublicacoes';
+import CadNotificacoes from './pages/CadNotificacoes';
 
 import { ThemeProvider } from './components/ThemeContext';
 
@@ -61,6 +65,7 @@ const App = () => {
                     <Route path="formuserensino" element={<FormUserViewEnsino />} />
                     <Route path="formuseranota" element={<FormUserViewAnota />} />
                     <Route path="formuserdesig" element={<FormUserViewDesig />} />
+                    <Route path="formuserhoras" element={<FormUserViewHoras />} />
                     <Route path="relatoriocampo" element={<RelCampForm />} />
                     <Route path="/ls" element={<SelectTpUser />} />
                   </Routes>
@@ -88,6 +93,8 @@ const App = () => {
                     <Route path="form-cfgcamp" element={<ConfigCampoForm />} />
                     <Route path="form-desig" element={<DesigForm />} />
                     <Route path="form-visit" element={<RelVisitForm />} />
+                    <Route path="form-regpub" element={<RegPublicacoes />} />
+                    <Route path="form-notific" element={<CadNotificacoes />} />
                     <Route path="form-users" element={<UsersForm />} />
                     <Route path="/ls" element={<SelectTpUser />} />
                   </Routes>

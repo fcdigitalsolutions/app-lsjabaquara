@@ -21,7 +21,7 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { FaAngleDoubleDown, FaCheckCircle, FaMapMarked, FaFileSignature, FaExchangeAlt } from 'react-icons/fa';
+import { FaAngleDoubleDown, FaCheckCircle, FaMapMarked, FaFileSignature } from 'react-icons/fa';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '../components/ThemeContext';
 
@@ -36,7 +36,7 @@ const ExpandMore = styled((props) => {
   }),
 }));
 
-const FormUserEnsino = () => {
+const FormUserViewHoras = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,8 +45,6 @@ const FormUserEnsino = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [openVisitDialog, setOpenVisitDialog] = useState(false);
-  const [openTransfDialog, setOpenTransfDialog] = useState(false);
-  const [publicadores, setPublicadores] = useState([]); // Estado para armazenar as opções de Publicadores
   const [formFields, setFormFields] = useState({
     visit_status: '',
     num_pessoas: '',
@@ -134,20 +132,6 @@ const FormUserEnsino = () => {
     }
   };
 
-   // Função para buscar os dados da API
-   useEffect(() => {
-    const fetchPublicadores = async () => {
-      try {
-        const response = await api_service.get('/pubcallsint'); // rota da API
-        setPublicadores(response.data); // a API retorna um array de dados
-      } catch (error) {
-        console.error('Erro ao carregar os dados:', error);
-      }
-    };
-
-    fetchPublicadores(); // Chama a função para carregar os dados
-  }, []);
-
   useEffect(() => {
     setLoading(true);
     api_service.get(`/desigensin/${lginUser}`)
@@ -162,34 +146,10 @@ const FormUserEnsino = () => {
       .finally(() => setLoading(false));
   }, [lginUser]);
 
-  const handleOpenVisitDialog = (item) => {
-    setSelectedItem({
-      ...item,
-      territor_id: item.territor_id, // Adicione o ID do território
-    });
 
-    setFormFields({
-      visit_status: item.visit_status || '',
-      num_pessoas: item.num_pessoas || '',
-      melhor_dia: item.melhor_dia_hora || '',
-      melhor_hora: item.melhor_hora || '',
-      terr_obs: item.terr_obs || '',
-    });
-
-    setOpenVisitDialog(true); // Abre o diálogo
-  };
 
   const handleFieldChange = (field, value) => {
     setFormFields((prevState) => ({ ...prevState, [field]: value }));
-  };
-
-  const handleOpenDialog = (item) => {
-    if (!item) {
-      return;
-    }
-    setSelectedItem(item); // Configura o item completo
-    setSelectedItemId(item.desig_id); // Configura o ID
-    setOpenDialog(true);
   };
 
 
@@ -332,86 +292,21 @@ const FormUserEnsino = () => {
     }
   };
 
-  const handleOpenTransfDialog = (item) => {
-    setSelectedItem({
-      ...item,
-      territor_id: item.territor_id, // Adicione o ID do território
-    });
-
-    setFormFields({
-      visit_status: item.visit_status || '',
-      num_pessoas: item.num_pessoas || '',
-      melhor_dia: item.melhor_dia_hora || '',
-      melhor_hora: item.melhor_hora || '',
-      terr_obs: item.terr_obs || '',
-    });
-
-    setOpenTransfDialog(true); // Abre o diálogo
-  };
-
-  const handleDesignar = async () => {
-    if (!selectedItem || !selectedItem.desig_id || !formFields.pub_login) {
-      console.error("Por favor, selecione uma designação e um publicador.");
-      return;
-    }
-
-    const updatedTerritorio = {
-      dt_ultvisit: new Date().toLocaleDateString("pt-BR"), // Data da última visita
-      pub_ultvisi: formFields.pub_login, // Publicador responsável pela última visita
-      terr_respons: formFields.pub_login, // Publicador responsável pelo território
-      terr_status: formFields.terr_status, // Status da reserva (1 = Revisita, 2 = Estudo)
-      terr_desig: '2'
-    };
-
-    // Atualiza o status da designação
-    const updatedData = {
-      ...selectedItem,
-      dsg_status: '2', // Atualiza o status para "Já Visitei" ou "Reservado"
-      pub_login: formFields.pub_login, // Login do publicador selecionado
-      pub_nome: publicadores.find(p => p.pub_chave === formFields.pub_login)?.pub_nome || '', // Nome do publicador correspondente
-      dsg_data: new Date().toLocaleDateString("pt-BR"), // Data da designação
-    };
-
-    try {
-      // Faz a requisição PUT para atualizar a designação
-      await api_service.put(`/desig/${selectedItem.desig_id}`, updatedData);
-
-      // Atualiza o status do território
-      await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
-      console.log("Território liberado com sucesso.");
-
-      // Atualiza o estado local para refletir as mudanças
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.desig_id === selectedItem.desig_id
-            ? { ...item, dsg_status: '1', terr_desig: '0' }
-            : item
-        )
-      );
-
-      setOpenTransfDialog(false); // Fecha o diálogo
-      console.log("Designação atualizada com sucesso.");
-      //Alert("Designação atualizada com sucesso.");
-    } catch (error) {
-      console.error("Erro ao designar a designação: ", error);
-    }
-  };
-
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
       <Box
         sx={{
           display: 'flex',
-          justifyItems: 'center',
+          justifyItems:'center',
           fontSize: '0.8rem',
           marginLeft: '110px',
           marginTop: '5px',
           marginBottom: '2px',
-          color: darkMode ? '#67e7eb' : '#333333',
+          color: darkMode ? '#67e7eb' : '#333333' ,
         }}
       >
-      Seus Mapas - Ensino: {totalMapas}
+        Seus Apontamentos de Horas: 0
       </Box>
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
@@ -423,165 +318,11 @@ const FormUserEnsino = () => {
         <Box className="card-container-user">
           {data.map((item, index) => (
             <Box key={index} className="card-box-user">
-              <Card
-                className="card-user"
-                sx={{
-                  backgroundColor: darkMode ? '#2c2c4e' : '#ffffff',
-                  color: darkMode ? '#67e7eb' : '#333',
-                  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-10px) scale(1.03)', // Efeito para navegadores desktop
-                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
-                  },
-                  '&:active': {
-                    transform: 'translateY(-10px) scale(1.03)', // Efeito para dispositivos móveis (toque)
-                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
-                  },
-                }}
-              >  <CardContent>
-                  <Typography variant="body1" className="status-text-user">
-                    <div className="status-badge-user" style={{ backgroundColor: getStatusColorDesig(getStatusDesig(item.dsg_status)) }}>
-                      {getStatusDesig(item.dsg_status)}
-                    </div>
-                  </Typography>
-                  <Box
-                    onClick={() => handleOpenVisitDialog(item)}
-                    sx={{
-                      display: 'flex',
-                      cursor: 'pointer',
-                      fontSize: '0.95rem',
-                      marginLeft: '55px',
-                      marginTop: '-4px',
-                      color: darkMode ? '#ffffff' : '#2c2c4e',
-                      '&:hover': {
-                        color: darkMode ? '#67e7eb' : '#333333',
-                        textDecoration: 'underline',
-                      },
-                    }}
-                  >
-                    <FaFileSignature style={{ marginRight: '4px' }} />
-                    Registro de Visita
-                  </Box>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Responsável: {item.pub_nome}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Última visita: {item.dt_ultvisit}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Mapa: {item.dsg_mapa_cod}</Typography>
-                  <Typography variant="body1" className="status-text-user" sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }} >
-                    Local: {getStatusTpLocal(item.terr_tp_local)}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Bairro: {item.terr_regiao} </Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Endereço: {item.terr_enderec}</Typography>
-                  <Box
-                    sx={{ display: 'flex', gap: 3, marginTop: '8px' }}
-                  >
-                    <Box
-                      onClick={() => handleAbreMapa(item.terr_link)}
-                      sx={{
-                        display: 'flex',
-                        cursor: 'pointer',
-                        fontSize: '0.95rem',
-                        marginLeft: '27px',
-                        color: darkMode ? '#ffffff' : '#2c2c4e',
-                        '&:hover': {
-                          color: darkMode ? '#67e7eb' : '#333333',
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      <FaMapMarked style={{ marginRight: '4px' }} />
-                      Abrir Mapa
-                    </Box>
-                    <Box
-                      onClick={() => handleOpenDialog(item)}
-                      sx={{
-                        display: 'flex',
-                        cursor: 'pointer',
-                        fontSize: '0.95rem',
-                        color: darkMode ? '#ffffff' : '#2c2c4e',
-                        '&:hover': {
-                          color: darkMode ? '#67e7eb' : '#333333',
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      <FaCheckCircle style={{ marginRight: '4px' }} />
-                      Encerrar
-                    </Box>
-                  </Box>
-                </CardContent>
-                <CardActions disableSpacing sx={{ marginTop: '-20px', marginRight: '230px' }}>
-                  <ExpandMore
-                    expand={expanded[item.desig_id]}
-                    onClick={() => handleExpandClick(item.desig_id)}
-                    aria-expanded={expanded[item.desig_id]}
-                    aria-label="Mostrar mais"
-                  >
-                    <FaAngleDoubleDown />
-                  </ExpandMore>
-                </CardActions>
-                <Collapse in={expanded[item.desig_id]} timeout="auto" unmountOnExit>
-                  <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
-                    <Box
-                      onClick={() => handleOpenTransfDialog(item)}
-                      sx={{
-                        display: 'flex',
-                        cursor: 'pointer',
-                        fontSize: '0.95rem',
-                        marginLeft: '20px',
-                        marginTop: '-15px',
-                        marginBottom: '30px',
-                        color: darkMode ? '#E9C2A6' : '#871F78',
-                        '&:hover': {
-                          color: darkMode ? '#67e7eb' : '#333333',
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      <FaExchangeAlt style={{ marginRight: '4px' }} />
-                      Enviar Outro Responsável
-                    </Box>
-
-                    <Typography variant="body2" sx={{ fontSize: '0.85rem', marginTop: '-15px', backgroundColor: getColorMapCor(item.terr_cor), color: darkMode ? '#ffffff' : '#ffffff' }}>
-                      Grau: {getStatusClassif(item.terr_classif) || 'Grau não informado'}
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '2px', color: darkMode ? '#67e7eb' : '#333' }}>
-                      Observações: {item.terr_obs || 'Nenhuma observação disponível.'}
-                    </Typography>
-                  </CardContent>
-                </Collapse>
-              </Card>
+             
             </Box>
           ))}
         </Box>
       )}
-      <Dialog open={openTransfDialog} onClose={() => setOpenTransfDialog(false)}>
-        <DialogTitle>Enviar Para Outro Responsável</DialogTitle>
-        <DialogContent>
-          <DialogContentText></DialogContentText>
-          <Typography variant="body2">De Responsável: {selectedItem?.pub_nome}</Typography>
-          <Typography variant="body2">Última Visita: {selectedItem?.dt_ultvisit}</Typography>
-          <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
-          <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Para o Responsável*</InputLabel>
-            <Select
-              labelId="publicadores-label"
-              id="publicadores"
-              value={formFields.pub_login || ''} // Valor atual do pub_login no formFields
-              onChange={(e) => handleFieldChange('pub_login', e.target.value)} // Atualiza pub_login no formFields
-            >
-              {publicadores.map((publicador) => (
-                <MenuItem key={publicador.id} value={publicador.pub_chave}>
-                  {publicador.pub_nome} {/* Exibe o nome no dropdown */}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenTransfDialog(false)} color="primary">Cancelar</Button>
-          <Button onClick={handleDesignar} color="primary">Confirmar</Button>
-        </DialogActions>
-      </Dialog>
 
       <Dialog open={openVisitDialog} onClose={() => setOpenVisitDialog(false)}>
         <DialogTitle>Registro de Visita</DialogTitle>
@@ -686,4 +427,4 @@ const FormUserEnsino = () => {
   );
 };
 
-export default FormUserEnsino;
+export default FormUserViewHoras;
