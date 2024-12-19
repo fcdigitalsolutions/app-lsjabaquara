@@ -59,8 +59,17 @@ const SidebarUser = ({ children }) => {
 
 
   return (
-    <Box className="main-containerusers" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
-      <Box style={{
+    <Box className="main-containerusers" 
+    sx={{ 
+        backgroundColor: darkMode ? '#202038' : '#f0f0f0', 
+        color: darkMode ? '#67e7eb' : '#333',
+        alignItems: 'center', 
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start', 
+        padding: '1px',
+    }}>
+      <Box sx={{
         fontSize: '11px',
         backgroundColor: darkMode ? '#202038' : '#f0f0f0',
         color: darkMode ? '#D9D919' : '#23238E',
@@ -68,7 +77,7 @@ const SidebarUser = ({ children }) => {
       }}>
         <Typography sx={{ fontSize: '10px', marginTop: '10px' }}>Seja bem-vindo(a), {userDados?.nome || 'Usuário'}!</Typography>
       </Box>
-      <Box sx={{ flex: 1, minWidth: '380px', maxWidth: '380px', height: '110px' }}>
+      <Box sx={{ flex: 1, minWidth: '350px', maxWidth: '350px', height: '110px' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Button
             onClick={toggleTheme}
@@ -88,7 +97,7 @@ const SidebarUser = ({ children }) => {
             onClick={() => handleAbreLink()}
             sx={{
               marginTop: '4px', // Ajuste conforme necessário
-              marginLeft: '45px', // Ajuste conforme necessário
+              marginLeft: '35px', // Ajuste conforme necessário
               fontSize: '9px',
               marginBottom: '8px',
               color: darkMode ? '#67e7eb' : '#23238E',
@@ -139,12 +148,13 @@ const SidebarUser = ({ children }) => {
         }}
         style={{
           justifyItems: 'center',
-          fontSize: '13px',
+          fontSize: '12px',
           color: darkMode ? '#D9D919' : '#202038',
           marginTop: '20px',
         }}
       >
-        <section style={{ display: 'Flex' }}>
+        <section style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1px' }}>
+      
           {routes.map((route, index) => (
             <NavLink
               to={route.path}

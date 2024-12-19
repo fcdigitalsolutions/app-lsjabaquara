@@ -290,21 +290,23 @@ body {
   max-width: 350px;
   max-height: 100px;
   border-radius: 12px;
-  margin-left: 20px;
+  justify-content: center;
 }
 
 .card-msg-user {
   padding: 1px; /* Reduzido para diminuir a altura */
   flex-direction: column;  
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .card-container-msg-user {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 2px;
   justify-content: center;
   min-width: 350px;
   max-width: 350px;
   min-height: 100px;
+  justify-content: center;
+  align-items: center;
 }
