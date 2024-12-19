@@ -286,12 +286,12 @@ body {
 /* Estilo dos Cards de Designação */
 .card-box-msg-user {
   flex: 1 1 100px;
-  min-width: 350px;
-  max-width: 350px;
+  min-width: 380px;
+  max-width: 380px;
   max-height: 100px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
   border-radius: 12px;
-  margin-left: 15px;
+  margin-left: 20px;
 }
 
 .card-msg-user {
@@ -306,7 +306,7 @@ body {
   flex-wrap: wrap;
   gap: 4px;
   justify-content: center;
-  min-width: 350px;
-  max-width: 350px;
+  min-width: 380px;
+  max-width: 380px;
   min-height: 100px;
 }

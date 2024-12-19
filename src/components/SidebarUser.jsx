@@ -108,15 +108,6 @@ const SidebarUser = ({ children }) => {
                   backgroundColor: darkMode ? '#2c2c4e' : '#ffffff',
                   color: darkMode ? '#67e7eb' : '#333',
                   justifyItems: 'center',
-                  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-10px) scale(1.03)',
-                    boxShadow: '0px 6px 14px rgba(0,0,0,0.3)',
-                  },
-                  '&:active': {
-                    transform: 'translateY(-10px) scale(1.03)',
-                    boxShadow: '0px 6px 14px rgba(0,0,0,0.3)',
-                  },
                 }}
               >
                 <CardContent>
@@ -133,7 +124,7 @@ const SidebarUser = ({ children }) => {
                       color: darkMode ? '#D9D919' : '#00009C',
                     }}
                   >
-                    {item.noti_dtini}: {item.noti_mensag}
+                   {item.noti_mensag}
                   </Typography>
                 </CardContent>
               </Card>
