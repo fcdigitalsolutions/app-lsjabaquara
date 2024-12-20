@@ -86,7 +86,7 @@ const FormUserViewAnota = () => {
   // Função para determinar a cor de fundo da célula com base no status
   const getColorNotaCor = (status) => {
     switch (status) {
-      case 'Tema Atual': return darkMode ? ' #202038' : ' #f0f0f0';
+      case 'Tema Atual': return darkMode ? ' #2c2c4e' : ' #ffffff';
       case 'Azul': return ' #00009C';
       case 'Vermelho': return ' #FF0000';
       case 'Verde': return ' #238E23';
@@ -280,7 +280,7 @@ const FormUserViewAnota = () => {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-start',
-          padding: '1px',
+          padding: '1.8px',
         }}
       >
         <Box
@@ -343,9 +343,9 @@ const FormUserViewAnota = () => {
                         display: 'flex',
                         cursor: 'pointer',
                         fontSize: '35px',
-                        marginLeft: '200px',
-                        marginTop: '-10px',
-                        marginBottom: '10px',
+                        marginLeft: '220px',
+                        marginTop: '-5px',
+                        marginBottom: '8px',
                         color: darkMode ? ' #D9D919' : ' #67e7eb',
                         '&:hover': {
                           color: darkMode ? ' #67e7eb' : ' #333333',
@@ -357,28 +357,28 @@ const FormUserViewAnota = () => {
                     </Typography>
                     <Typography
                       sx={{
-                        fontSize: '0.8rem',
-                        marginLeft: '-10px',
-                        marginTop: '-5px',
+                        fontSize: '1.0rem',
+                        marginLeft: '2px',
+                        marginTop: '-10px',
                       }}
                     >
-                      Título: {item.uanot_titul}
+                    {item.uanot_titul}
                     </Typography>
 
                     <Typography
                       sx={{
-                        fontSize: '0.8rem',
-                        marginLeft: '-10px',
-                        marginTop: '-5px',
+                        fontSize: '0.78rem',
+                        marginLeft: '2px',
+                        marginTop: '-3px',
                       }}
                     >
                       Data: {item.data_inclu}
                     </Typography>
                     <Typography
                       sx={{
-                        fontSize: '0.8rem',
-                        marginLeft: '-10px',
-                        marginTop: '-5px',
+                        fontSize: '0.78rem',
+                        marginLeft: '2px',
+                        marginTop: '-3px',
                       }}
                     >
                       Prioridade: {getStatusNotaLeged(item.uanot_legend)}
@@ -387,11 +387,12 @@ const FormUserViewAnota = () => {
                     <Box
                       onClick={() => handleOpenDialogEditAnot(item)}
                       sx={{
+                        alignItems: 'center', 
                         display: 'flex',
+                        flexDirection: 'column',
                         cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        marginLeft: '58px',
-                        marginTop: '25px',
+                        fontSize: '0.80rem',
+                        marginTop: '10px',
                         color: darkMode ? '#ffffff' : '#2c2c4e',
                         '&:hover': {
                           color: darkMode ? '#67e7eb' : '#333333',
@@ -400,7 +401,7 @@ const FormUserViewAnota = () => {
                       }}
                     >
                       <FaFileSignature style={{ marginRight: '4px' }} />
-                      Editar Anotação
+                      Editar Nota
                     </Box>
                   </CardContent>
                   <CardActions disableSpacing sx={{ marginTop: '-30px', marginRight: '230px' }}>
@@ -415,17 +416,18 @@ const FormUserViewAnota = () => {
                   </CardActions>
                   <Collapse in={expanded[item.uanot_id]} timeout="auto" unmountOnExit>
                     <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
-                      <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '5px', color: darkMode ? '#67e7eb' : '#333' }}>
+                      <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '-20px', color: darkMode ? '#67e7eb' : '#333' }}>
                         {item.uanot_mensag || 'Nenhuma nota disponível.'}
                       </Typography>
                       <Box
                       onClick={() => handleOpenDialogDeleteAnot(item)}
                       sx={{
+                        alignItems: 'center', 
                         display: 'flex',
+                        flexDirection: 'column',
                         cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        marginLeft: '58px',
-                        marginTop: '25px',
+                        fontSize: '0.80rem',
+                        marginTop: '20px',
                         color: darkMode ? '#ffffff' : '#2c2c4e',
                         '&:hover': {
                           color: darkMode ? '#67e7eb' : '#333333',
@@ -434,7 +436,7 @@ const FormUserViewAnota = () => {
                       }}
                     >
                       <FaTrashAlt style={{ marginRight: '4px' }} />
-                      Excluir Anotação
+                      Excluir Nota
                     </Box>
                     </CardContent>
                   </Collapse>

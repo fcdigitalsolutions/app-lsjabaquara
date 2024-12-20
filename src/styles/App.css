@@ -230,8 +230,8 @@ body {
 .card-container-user-nota {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
+  gap: 84px;
+  justify-content: center;  
 }
 
 /* Estilo dos Cards de Designação */
@@ -243,15 +243,6 @@ body {
 }
 
 .card-user {
-  padding: 9.5px; /* Reduzido para diminuir a altura */
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: right;
-  justify-content: space-between;
-}
-
-.card-user-nota {
   padding: 9.5px; /* Reduzido para diminuir a altura */
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   display: flex;
@@ -319,7 +310,7 @@ body {
 .card-container-msg-user {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 0.2px;
   justify-content: center;
   min-width: 350px;
   max-width: 350px;
@@ -335,4 +326,5 @@ body {
   max-height: 100px;
   border-radius: 12px;
   justify-content: center;
+
 }
