@@ -245,16 +245,15 @@ const FormUserViewOutras = () => {
 
       <Box
         sx={{
-          display: 'flex',
-          justifyItems: 'center',
-          fontSize: '0.8rem',
-          marginLeft: '110px',
-          marginTop: '5px',
-          marginBottom: '4px',
           color: darkMode ? '#67e7eb' : '#333333',
+          alignItems: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+          padding: '1px',
         }}
       >
-        Suas Atividades Pendentes: {totalCards} {error}
+        <Typography sx={{ fontSize: '0.8rem', marginLeft: '5px', marginTop: '10px' }}>Suas Atividades Pendentes: {totalCards} {error} </Typography>
       </Box>
       <Box className="card-container-user">
         {data.map((item, index) => (
@@ -325,7 +324,7 @@ const FormUserViewOutras = () => {
                   Será Realizada: {item.dsg_data}
                 </Typography>
                 <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
-                  Dia: {item.dsg_mapa_cod} 
+                  Dia: {item.dsg_mapa_cod}
                 </Typography>
                 <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>
                   Horário: {item.cmp_horaini}

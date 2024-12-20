@@ -295,19 +295,20 @@ const FormUserViewHoras = () => {
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
+
       <Box
         sx={{
+          color: darkMode ? '#67e7eb' : '#333333',
+          alignItems: 'center',
           display: 'flex',
-          justifyItems:'center',
-          fontSize: '0.8rem',
-          marginLeft: '110px',
-          marginTop: '5px',
-          marginBottom: '2px',
-          color: darkMode ? '#67e7eb' : '#333333' ,
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+          padding: '1px',
         }}
       >
-        Seus Apontamentos de Horas: 0
+        <Typography sx={{ fontSize: '0.8rem', marginLeft: '5px', marginTop: '10px' }}>Seus Apontamentos de Horas: {totalMapas} </Typography>
       </Box>
+
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
           <CircularProgress />
@@ -318,7 +319,7 @@ const FormUserViewHoras = () => {
         <Box className="card-container-user">
           {data.map((item, index) => (
             <Box key={index} className="card-box-user">
-             
+
             </Box>
           ))}
         </Box>

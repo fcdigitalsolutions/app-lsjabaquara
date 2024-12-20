@@ -14,6 +14,7 @@ from models import (
     ConfigCampo,    
     RegPublicacoes, 
     CadNotificacoes,
+    CaduAnotacoes,
     )
 from services import (
     RegionService,
@@ -28,7 +29,8 @@ from services import (
     VisitaService,
     CfgCampoService,
     RgPublicacService,
-    NotificaService, 
+    NotificaService,
+    UanotacService, 
     )
 from database import init_db
 from datetime import datetime,timedelta
@@ -48,8 +50,8 @@ territ_service = TerritService()
 rvisita_service = VisitaService()
 cfgcampo_service = CfgCampoService()
 rgpublic_service = RgPublicacService()
-
 notif_service = NotificaService()
+uanotac_service   = UanotacService()
 
 
 # Inicializa o banco de dados
@@ -80,6 +82,9 @@ def excel_serial_to_date(serial):
     return converted_date.strftime('%Y-%m-%d')
 
 
+########## ######### ######### ######### #########  #####
+## Rotas da API cadastro de Usuários / Autenticação
+######### ######### ######### ######### #########  #####
 @app.route('/authxall', methods=['GET'])
 def get_authxall():
     authlogin = auth_service.get_all_logins()
@@ -168,7 +173,10 @@ def delete_authlogin(authlogin_id):
     except Exception as e:
         return jsonify({"message": "Erro ao excluir o Usuário", "error": str(e)}), 500
 
-## 
+
+########## ######### ######### ######### #########  #####
+## Rotas da API para o cadastro de REgiões / Bairros 
+######### ######### ######### ######### #########  #####
 @app.route('/regionsall', methods=['GET'])
 def get_regionsall():
     regions = region_service.get_all_regions()
@@ -193,7 +201,10 @@ def update_region(region_id):
     updated_region_id = region_service.update_region(region_id, region)
     return jsonify({"message": "Região atualizada com sucesso!", "id": updated_region_id}), 200
 
+
+########## ######### ######### ######### #########  #####
 ## Rotas da API para o cadastro de indicações 
+######### ######### ######### ######### #########  #####
 @app.route('/indicaall', methods=['GET'])
 def get_indicaall():
     indica = indica_service.get_all_indica()
@@ -249,8 +260,10 @@ def delete_indica(indica_id):
     except Exception as e:
         return jsonify({"message": "Erro ao excluir a indicação", "error": str(e)}), 500
 
-## 
-## Rotas da API para o Registros NC  
+
+########## ######### ######### ######### #########  #####
+## Rotas da API para o Registros NC   
+######### ######### ######### ######### #########  #####
 @app.route('/registncall', methods=['GET'])
 def get_registncall():
     registnc = registnc_service.get_all_registnc()
@@ -295,8 +308,10 @@ def delete_registnc(registnc_id):
     except Exception as e:
         return jsonify({"message": "Erro ao excluir o Registro NC", "error": str(e)}), 500
 
-## 
+
+######### ######### ######### ######### #########  #####
 ## Rotas da API para cadastro de Rastreamentos  
+######### ######### ######### ######### #########  #####
 @app.route('/rastrearall', methods=['GET'])
 def get_rastrear():
     rastrear = rastrear_service.get_all_rastrear()
@@ -342,6 +357,9 @@ def delete_rastrear(rastrear_id):
         return jsonify({"message": "Erro ao excluir o Rastreamentos", "error": str(e)}), 500
 
 
+######### ######### ######### ######### #########  #####
+## Rotas da API para o cadastro de Congregações 
+######### ######### ######### ######### #########  #####
 @app.route('/congregs/<int:congregation_id>', methods=['PUT'])
 def update_congregation(congregation_id):
     data = request.json
@@ -380,7 +398,10 @@ def delete_congregation(congregation_id):
         return jsonify({"message": "Erro ao excluir o Rastreamentos", "error": str(e)}), 500
 
 
-## Rotas da API para o cadastro de puiblicadores 
+
+######### ######### ######### ######### #########  #####
+## Rotas da API para o cadastro de publicadores 
+######### ######### ######### ######### #########  #####
 @app.route('/pubcall', methods=['GET'])
 def get_pubcall():
     pubc = pubc_service.get_all_pubc()
@@ -455,7 +476,10 @@ def delete_publi(pubc_id):
     except Exception as e:
         return jsonify({"message": "Erro ao excluir o Publicador", "error": str(e)}), 500
 
-## Rotas da API para o cadastro de Designações 
+
+######### ######### ######### ######### #########  #####
+## Rotas da API para o cadastro de Designações
+######### ######### ######### ######### #########  #####
 @app.route('/desigaall', methods=['GET'])
 def get_desigall():
     desig = desig_service.get_all_desig()
@@ -465,7 +489,7 @@ def get_desigall():
         'data_inclu': format_date(desig.get('data_inclu'))
     } for desig in desig])
 
-## Rotas da API para o cadastro de Designações 
+
 @app.route('/desig/<string:desig_user>', methods=['GET'])
 def get_desiguser(desig_user):
     desig = desig_service.get_desig_user(desig_user)
@@ -476,7 +500,7 @@ def get_desiguser(desig_user):
         'data_inclu': format_date(desig_item.get('data_inclu'))
     } for desig_item in desig])
 
-## Rotas da API para o cadastro de Designações 
+
 @app.route('/desigpend', methods=['GET'])
 def get_desigpendente():
     desig = desig_service.get_desig_transf()
@@ -487,7 +511,7 @@ def get_desigpendente():
         'data_inclu': format_date(desig.get('data_inclu'))
     } for desig in desig])
 
-## Rotas da API para o cadastro de Designações 
+
 @app.route('/desigensin/<string:desig_user>', methods=['GET'])
 def get_desigensino(desig_user):
     desig = desig_service.get_desig_ensino(desig_user)
@@ -499,7 +523,6 @@ def get_desigensino(desig_user):
     } for desig_item in desig])
 
 
-## Rotas da API para o cadastro de Designações 
 @app.route('/desigsuges', methods=['GET'])
 def get_desigsugest():
     desig = desig_service.get_desig_sugest()
@@ -510,7 +533,7 @@ def get_desigsugest():
         'data_inclu': format_date(desig.get('data_inclu'))
     } for desig in desig])
 
-## Rotas da API para o cadastro de Designações 
+
 @app.route('/desigoutras/<string:desig_user>', methods=['GET'])
 def get_desigoutras(desig_user):
     desig = desig_service.get_desig_user_outras(desig_user)
@@ -615,7 +638,9 @@ def delete_desig(desig_id):
         return jsonify({"message": "Erro ao excluir a Designação", "error": str(e)}), 500
 
 
+######### ######### ######### ######### #########  #####
 ## Rotas da API para o cadastro de Territórios 
+######### ######### ######### ######### #########  #####
 @app.route('/territall', methods=['GET'])
 def get_territall():
     territ = territ_service.get_all_territ()
@@ -737,8 +762,9 @@ def update_specific_territ_fields(territ_id):
         return jsonify({"error": str(e)}), 500
 
 
-## ## ## ## ##  ##  ##  ##  ## 
-## Rotas da API para relatorio de visitas   
+######### ######### ######### ######### #########  #####
+## Rotas da API para relatorio de visitas 
+######### ######### ######### ######### #########  #####
 @app.route('/rvisitall', methods=['GET'])
 def get_rvisitall():
     rvisitas = rvisita_service.get_all_visit()
@@ -825,9 +851,10 @@ def add_batch_rvisitas():
     except Exception as e:
         return jsonify({"error": f"Erro ao inserir registros: {str(e)}"}), 500
 
-##                                              #########
-##                                              #########
-## Rotas da API para o cadastro de Configurações de Campo
+
+######### ######### ######### ######### #########  #####
+## Rotas da API para as Configurações de Campo
+######### ######### ######### ######### #########  #####
 @app.route('/cfgcampoall', methods=['GET'])
 def get_cfgcampo():
     cfgcampo = cfgcampo_service.get_all_cfgcampo()
@@ -882,11 +909,11 @@ def delete_cfgcampo(cfgcampo_id):
         return jsonify({"message": "Registro não encontrado!"}), 404
     except Exception as e:
         return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
-    
 
-##                                              #########
-## Rotas da API para o cadastro de Registro de Publicações
 
+######### ######### ######### ######### #########  #####
+## Rotas da API para o Registro de Publicações
+######### ######### ######### ######### #########  #####
 @app.route('/rgpublicall', methods=['GET'])
 def get_rgpublic():
     rgpublic = rgpublic_service.get_all_rgpublic()
@@ -924,9 +951,10 @@ def delete_rgpublic(rgpublic_id):
     except Exception as e:
         return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
     
-##                                              #########
-## Rotas da API para o cadastro de Registro de Notificações
 
+######### ######### ######### ######### #########  #####
+## Rotas da API para o Registro de Notificações
+######### ######### ######### ######### #########  #####
 @app.route('/notifall', methods=['GET'])
 def get_notif():
     notif = notif_service.get_all_notif()
@@ -963,6 +991,68 @@ def delete_notif(notif_id):
     except Exception as e:
         return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
     
+
+######### ######### ######### ######### #########  #####
+## Rotas da API para o cadastro de Registro de Anotações
+######### ######### ######### ######### #########  #####
+@app.route('/uanotacall', methods=['GET'])
+def get_uanotac():
+    uanotac = uanotac_service.get_all_uanotac()
+    return jsonify([{
+        **dict(uanotac),        
+		'data_inclu': format_date(uanotac.get('data_inclu'))       
+    } for uanotac in uanotac])
+
+
+@app.route('/uanotpub/<string:uanotac_user>', methods=['GET'])
+def get_anotauser(uanotac_user):
+    uanotac = uanotac_service.get_anotac_user(uanotac_user)
+    return jsonify([{
+        **dict(uanotac_item),        
+		'data_inclu': format_date(uanotac_item.get('data_inclu'))       
+    } for uanotac_item in uanotac])
+
+
+@app.route('/uanotac', methods=['POST'])
+def add_uanotac():
+    data = request.json
+    uanotac = CaduAnotacoes(data_inclu=parse_date(data.get('data_inclu')),
+                        uanot_pub=data.get('uanot_pub'),
+                        uanot_titul=data.get('uanot_titul'),
+                        uanot_legend=data.get('uanot_legend'),
+                        uanot_cor=data.get('uanot_cor'),
+                        uanot_mensag=data.get('uanot_mensag')                   
+                        )     
+    uanotac_id = uanotac_service.add_uanotac(uanotac)
+    return jsonify({"id": uanotac_id, "message": "Registro add com sucesso!"}), 201
+
+
+@app.route('/uanotac/<int:uanotac_id>', methods=['PUT'])
+def update_uanotac(uanotac_id):
+    data = request.json
+    uanotac = CaduAnotacoes(data_inclu=parse_date(data.get('data_inclu')),
+                        uanot_pub=data.get('uanot_pub'),
+                        uanot_titul=data.get('uanot_titul'),
+                        uanot_legend=data.get('uanot_legend'),
+                        uanot_cor=data.get('uanot_cor'),
+                        uanot_mensag=data.get('uanot_mensag')                 
+                        )     
+    updated_uanotac_id = uanotac_service.update_uanotac(uanotac_id, uanotac)
+    return jsonify({"message": "Registro atualizado com sucesso!", "id": updated_uanotac_id}), 200
+	   
+	   
+# Rota DELETE para os registros da rota 
+@app.route('/uanotac/<int:uanotac_id>', methods=['DELETE'])
+def delete_uanotac(uanotac_id):
+    try:
+        uanotac_service.delete_uanotac(uanotac_id)  # Chama o serviço para deletar o registro
+        return jsonify({"message": "Registro excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Registro não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
+    
+
 
 ### FIM DAS ROTAS 
 

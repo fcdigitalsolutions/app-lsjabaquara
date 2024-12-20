@@ -475,16 +475,15 @@ const FormUserView = () => {
 
       <Box
         sx={{
-          display: 'flex',
-          justifyItems: 'center',
-          fontSize: '0.8rem',
-          marginLeft: '110px',
-          marginTop: '5px',
-          marginBottom: '2px',
           color: darkMode ? '#67e7eb' : '#333333',
+          alignItems: 'center', 
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start', 
+          padding: '1px',
         }}
       >
-        Seus Mapas - Pregação: {totalMapas}
+      <Typography sx={{ fontSize: '0.8rem', marginLeft: '5px', marginTop: '10px' }}>Seus Mapas - Pregação: {totalMapas} </Typography>  
       </Box>
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">

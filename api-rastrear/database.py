@@ -245,6 +245,18 @@ def init_db():
 				noti_detalhes  text         
             )
         ''')    
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cad_user_anotacoes (
+	            id INT AUTO_INCREMENT PRIMARY KEY,
+	            data_inclu	   datetime NULL,
+				uanot_pub	   varchar(255) NULL,
+				uanot_titul    varchar(255) NULL,   
+				uanot_legend   varchar(255) NULL,		
+                uanot_cor      varchar(255) NULL,			
+				uanot_mensag   text
+            )
+        ''')    
 
 
         conn.commit()

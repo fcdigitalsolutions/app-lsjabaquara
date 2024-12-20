@@ -13,6 +13,7 @@ from models import (
     ConfigCampo,
     RegPublicacoes, 
     CadNotificacoes,
+    CaduAnotacoes,
     )
 
 def rows_to_dict(cursor, rows):
@@ -520,7 +521,7 @@ class DesignService:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-              SELECT 
+            SELECT 
                 desg.id AS desig_id,         -- ID da designação
                 terr.id AS territor_id,      -- ID do território
                 desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
@@ -547,6 +548,7 @@ class DesignService:
         result = rows_to_dict(cursor, desig)
         conn.close()
         return result
+
 
     def get_desig_sugest(self):
         conn = get_db_connection()
@@ -1132,7 +1134,80 @@ class NotificaService:
         conn.commit()
         conn.close()
         return notif_id
-  
+
+##
+## Serviços para registro de Notificações 
+class UanotacService:
+    def add_uanotac(self,uanotac):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO cad_user_anotacoes(data_inclu,uanot_pub,uanot_titul,uanot_legend,uanot_cor,uanot_mensag) VALUES (%s,%s,%s,%s,%s,%s)',
+            (uanotac.data_inclu,uanotac.uanot_pub,uanotac.uanot_titul,uanotac.uanot_legend,uanotac.uanot_cor,uanotac.uanot_mensag))
+        conn.commit()
+        uanotac_id = cursor.lastrowid
+        conn.close()
+        return uanotac_id
+    
+
+    def update_uanotac(self, uanotac_id, uanotac):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE cad_user_anotacoes SET uanot_pub = %s, uanot_titul = %s, uanot_legend = %s,uanot_cor = %s,uanot_mensag = %s WHERE id = %s',
+	        (uanotac.uanot_pub,uanotac.uanot_titul,uanotac.uanot_legend,uanotac.uanot_cor,uanotac.uanot_mensag, uanotac_id ))
+        conn.commit()
+        conn.close()
+        return uanotac_id
+    
+    def get_all_uanotac(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM cad_user_anotacoes where 1 = 1 order by uanot_pub, data_inclu ASC")
+        uanotac = cursor.fetchall()
+        result = rows_to_dict(cursor, uanotac)
+        conn.close()
+        return result
+    
+    def get_anotac_user(self, uanotac_user):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+	            id as uanot_id,
+	            data_inclu,	
+	            uanot_pub,	
+	            uanot_titul, 
+	            uanot_legend,
+	            uanot_cor,  		
+	            uanot_mensag
+            FROM cad_user_anotacoes as tanot
+            WHERE 1 = 1 
+	            and trim(tanot.uanot_pub) = %s
+            ORDER BY tanot.data_inclu ASC
+            """, (uanotac_user,))
+        
+        uanotac = cursor.fetchall()
+        result = rows_to_dict(cursor, uanotac)
+        conn.close()
+        return result
 
     
-##### FIM DOS SERVICES ##############
+    def delete_uanotac(self, uanotac_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM cad_user_anotacoes WHERE id = %s', (uanotac_id,))
+        uanotac = cursor.fetchone()
+
+        if not uanotac:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM cad_user_anotacoes WHERE id = %s', (uanotac_id,))
+        conn.commit()
+        conn.close()
+        return uanotac_id
+  
+##### ##### ##### ##### ######
+###### FIM DOS SERVICES ###### 

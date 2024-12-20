@@ -130,7 +130,7 @@ const SidebarUser = ({ children }) => {
                       justifyItems: 'center',
                       fontSize: '13px',
                       //    color: darkMode ? '#67e7eb' : '#00009C',
-                      color: darkMode ? '#D9D919' : '#00009C',
+                      color: darkMode ? '#D9D919' : ' #00009C',
                     }}
                   >
                   {item.noti_mensag}

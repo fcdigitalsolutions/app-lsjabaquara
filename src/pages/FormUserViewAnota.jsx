@@ -21,7 +21,16 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { FaAngleDoubleDown, FaCheckCircle, FaMapMarked, FaFileSignature } from 'react-icons/fa';
+import {
+  FaAngleDoubleDown,
+  FaCommentDots,
+  FaFileSignature,
+  FaGrin,
+  FaGrimace,
+  FaSadTear,
+  FaSadCry,
+  FaTrashAlt,
+} from 'react-icons/fa';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '../components/ThemeContext';
 
@@ -37,106 +46,87 @@ const ExpandMore = styled((props) => {
 }));
 
 const FormUserViewAnota = () => {
-  const [data, setData] = useState([]);
+  const [dataUAnota, setDataUAnota] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expanded, setExpanded] = useState({});
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [openVisitDialog, setOpenVisitDialog] = useState(false);
+  const [openuAnotacDialogEdit, setOpenuAnotacDialogEdit] = useState(false);
+  const [openuAnotacDialogNew, setOpenuAnotacDialogNew] = useState(false);
+  const [openuAnotacDialogDelete, setOpenuAnotacDialogDelete] = useState(false);
   const [formFields, setFormFields] = useState({
-    visit_status: '',
-    num_pessoas: '',
-    melhor_dia: '',
-    melhor_hora: '',
-    terr_obs: ''
+    uanot_titul: '',
+    uanot_legend: '',
+    uanot_cor: '',
+    uanot_mensag: '',
   });
 
   const userDados = JSON.parse(sessionStorage.getItem('userData'));
   const lginUser = userDados?.iduser;
-  const totalMapas = new Set(data.map(item => item.desig_id)).size;
-
-  const handleExpandClick = (id) => {
-    setExpanded((prevExpanded) => ({ ...prevExpanded, [id]: !prevExpanded[id] }));
-  };
-
-  const handleAbreMapa = (row) => {
-    window.open(row, '_blank');
-  };
+  const totalMapas = new Set(dataUAnota.map(item => item.uanot_id)).size;
 
   const { darkMode } = useTheme();
 
-  const getStatusDesig = (dsg_status) => {
-    switch (dsg_status) {
-      case '0': return 'NÃO DESIGNADA';
-      case '1': return 'PENDENTE';
-      case '2': return 'VISITANDO';
-      case '3': return 'VENCIDA';
-      case '4': return 'ENCERRADA';
+  // Função para determinar o status com base no número de visitas
+  const getStatusNotaCor = (uanot_cor) => {
+    switch (uanot_cor) {
+      case '0': return 'Tema Atual';
+      case '1': return 'Azul';
+      case '2': return 'Vermelho';
+      case '3': return 'Verde';
+      case '4': return 'Pink';
+      case '5': return 'Spicy Pink';
+      case '6': return 'Dark Orchid';
+      case '7': return 'Chocolate';
+      case '8': return 'Cinza';
       default: return 'Outros';
     }
   };
 
-  const getStatusColorDesig = (status) => {
+  // Função para determinar a cor de fundo da célula com base no status
+  const getColorNotaCor = (status) => {
     switch (status) {
-      case 'NÃO DESIGNADA': return darkMode ? '#666666' : '#666666';
-      case 'PENDENTE': return darkMode ? '#CC0000' : '#CC0000';
-      case 'VISITANDO': return darkMode ? '#00009C' : '#00009C';
-      case 'VENCIDA': return darkMode ? '#5C4033' : '#5C4033';
-      case 'ENCERRADA': return darkMode ? '#000000' : '#000000';
+      case 'Tema Atual': return darkMode ? ' #202038' : ' #f0f0f0';
+      case 'Azul': return ' #00009C';
+      case 'Vermelho': return ' #FF0000';
+      case 'Verde': return ' #238E23';
+      case 'Pink': return ' #BC8F8F';
+      case 'Spicy Pink': return ' #FF1CAE';
+      case 'Dark Orchid': return ' #9932CD';
+      case 'Chocolate': return ' #5C3317';
+      case 'Cinza': return ' #A8A8A8';
       default: return 'transparent';
     }
   };
 
-  // Função para determinar o status com base na confirmação do endereço
-  const getStatusTpLocal = (terr_tp_local) => {
-    switch (terr_tp_local) {
-      case '1':
-        return 'CASA';
-      case '2':
-        return 'TRABALHO';
-      case '3':
-        return 'PRÉDIO';
-      default:
-        return 'OUTROS';
-    }
-  };
-  // Função para determinar o status com base na confirmação do endereço
-  const getStatusClassif = (terr_classif) => {
-    switch (terr_classif) {
-      case '0':
-        return 'SURDO';
-      case '1':
-        return 'D/A';
-      case '2':
-        return 'TRADUTOR';
-      case '3':
-        return 'OUVINTE';
-      default:
-        return 'OUTROS';
+
+  // Função para determinar o status com base no número de visitas
+  const getStatusNotaLeged = (uanot_legend) => {
+    switch (uanot_legend) {
+      case '0': return 'Normal';
+      case '1': return 'Importante';
+      case '2': return 'Urgente';
+      case '3': return 'Alta Prioridade';
+      default: return 'Outros';
     }
   };
 
   // Função para determinar a cor de fundo da célula com base no status
-  const getColorMapCor = (terr_cor) => {
-    switch (terr_cor) {
-      case '0':
-        return '#00009C';
-      case '1':
-        return '#CC0000';
-      case '2':
-        return '#238E23';
-      default:
-        return 'transparent';
+  const getEmotionrNotaLeged = (status) => {
+    switch (status) {
+      case 'Normal': return <FaGrin />;
+      case 'Importante': return <FaGrimace />;
+      case 'Urgente': return <FaSadTear />;
+      case 'Alta Prioridade': return <FaSadCry />;
+      default: return <FaGrin />;;
     }
   };
 
   useEffect(() => {
     setLoading(true);
-    api_service.get(`/desigensin/${lginUser}`)
+    api_service.get(`/uanotpub/${lginUser}`)
       .then((response) => {
-        setData(response.data);
+        setDataUAnota(response.data);
         setError(null);
       })
       .catch((error) => {
@@ -146,168 +136,176 @@ const FormUserViewAnota = () => {
       .finally(() => setLoading(false));
   }, [lginUser]);
 
-
-
   const handleFieldChange = (field, value) => {
     setFormFields((prevState) => ({ ...prevState, [field]: value }));
   };
 
-
-  const handleEncerrar = async () => {
-    setOpenDialog(false);
-
-    // Verifica se o item está selecionado ou busca pelo ID
-    if (!selectedItem && selectedItemId) {
-      const itemToUpdate = data.find((item) => item.desig_id === selectedItemId);
-      if (itemToUpdate) {
-        setSelectedItem(itemToUpdate);
-      } else {
-        console.error("Nenhum item correspondente encontrado na lista.");
-        return;
-      }
-    }
-
-    if (!selectedItem || !selectedItem.desig_id) {
-      return;
-    }
-
-    const updatedDesignacao = {
-      ...selectedItem,
-      dsg_status: '4', // Atualiza o status para "Encerrada"
-    };
-
-    const updatedTerritorio = {
-      terr_desig: '1', // 1 - Não designado, 2 - Designado - Atualiza para indicar que o território está livre
-      terr_respons: '',
-      terr_status: '0', // 0 - ativo, 1 - revisita, 2 - estudante
-    };
-
-    try {
-      // Atualiza o status da designação
-      await api_service.put(`/desig/${selectedItem.desig_id}`, updatedDesignacao);
-      console.log("Designação encerrada com sucesso.");
-
-      // Atualiza o status do território
-      await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
-      console.log("Território liberado com sucesso.");
-
-      // Atualiza o estado local para refletir as mudanças
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.desig_id === selectedItem.desig_id
-            ? { ...item, dsg_status: '4', terr_desig: '0' }
-            : item
-        )
-      );
-
-      setSelectedItem(null);
-      setSelectedItemId(null);
-    } catch (error) {
-      console.error("Erro ao encerrar a designação ou liberar o território: ", error);
-    }
-  };
-
-  const handleRealizar = async () => {
-    if (!selectedItem || !selectedItem.id) {
-      return;
-    }
-
-    // Atualiza o status da designação
-    const updatedData = {
-      ...selectedItem,
-      dsg_status: '2', // Atualiza o status para "Já Visitei"
-    };
-
-    try {
-      // Faz a requisição PUT para atualizar a designação
-      await api_service.put(`/desig/${selectedItem.id}`, updatedData);
-
-      // Atualiza o estado local para refletir a mudança
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.id === selectedItem.id ? { ...item, dsg_status: '2' } : item
-        )
-      );
-
-      console.log("Designação atualizada com sucesso.");
-    } catch (error) {
-      console.error("Erro ao realizar a designação: ", error);
-    }
-  };
-
-  const handleUpdTerrit = async () => {
-    if (!selectedItem || !selectedItem.territor_id) {
-      return;
-    }
-
-    const updatedTerrit = {
-      num_pessoas: formFields.num_pessoas || selectedItem.num_pessoas || '',
-      melhor_dia_hora: formFields.melhor_dia || selectedItem.melhor_dia_hora || '',
-      melhor_hora: formFields.melhor_hora || selectedItem.melhor_hora || '',
-      terr_obs: formFields.terr_obs || selectedItem.terr_obs || '',
-      dt_ultvisit: new Date().toLocaleDateString("pt-BR"), // Data da última visita
-      pub_ultvisi: selectedItem.pub_login, // Publicador responsável pela última visita
-    };
-
-    try {
-      const response = await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerrit);
-      console.log("Resposta do servidor:", response.data);
-
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.territor_id === selectedItem.territor_id ? { ...item, ...updatedTerrit } : item
-        )
-      );
-
-      console.log("Território atualizado com sucesso.");
-    } catch (error) {
-      console.error("Erro ao atualizar o território:", error);
-    }
-  };
-
-  const handleVisitSubmit = async () => {
-    if (!selectedItem) return;
-    const visitData = {
+  const handleAnotacSubmit = async () => {
+    const uAnotacDataNew = {
       data_inclu: new Date().toLocaleDateString("pt-BR"),
-      visit_data: new Date().toLocaleDateString("pt-BR"),
-      pub_login: selectedItem.pub_login,
-      pub_nome: selectedItem.pub_nome,
-      visit_cod: selectedItem.dsg_mapa_cod,
-      visit_url: selectedItem.terr_link,
-      visit_ender: selectedItem.terr_enderec,
-      visit_status: formFields.visit_status,
-      num_pessoas: formFields.num_pessoas,
-      melhor_dia: formFields.melhor_dia,
-      melhor_hora: formFields.melhor_hora,
-      terr_obs: formFields.terr_obs,
+      uanot_pub: lginUser,
+      uanot_titul: formFields.uanot_titul,
+      uanot_legend: formFields.uanot_legend,
+      uanot_cor: formFields.uanot_cor,
+      uanot_mensag: formFields.uanot_mensag,
     };
 
     try {
-      await api_service.post(`/rvisitas`, visitData); // Insere a visita
-      await handleRealizar(); // Atualiza o status da designação
-      await handleUpdTerrit(); // Atualiza os dados do território
-      setOpenVisitDialog(false); // Fecha o modal de visita
+      await api_service.post(`/uanotac`, uAnotacDataNew); // Insere a visita
+      setOpenuAnotacDialogNew(false); // Fecha o modal de visita
     } catch (error) {
       console.error("Erro ao registrar visita e atualizar os dados: ", error);
     }
   };
 
+  const handleAnotacUpdate = async () => {
+    if (!selectedItem) return;
+    const uAnotacDataEdit = {
+      uanot_pub: selectedItem.uanot_pub,
+      uanot_titul: formFields.uanot_titul,
+      uanot_legend: formFields.uanot_legend,
+      uanot_cor: formFields.uanot_cor,
+      uanot_mensag: formFields.uanot_mensag,
+    };
+
+    try {
+      await api_service.put(`/uanotac/${selectedItem.uanot_id}`, uAnotacDataEdit); // edita anotação
+      // Atualiza os dados da anotação
+      console.log("Registro alterado com sucesso.");
+
+           // Atualiza o estado local para refletir as mudanças
+           setDataUAnota((prevData) =>
+            prevData.map((item) =>
+              item.uanot_id === selectedItem.uanot_id
+                ? { ...item, uanot_legend: selectedItem.uanot_legend, uanot_cor: selectedItem.uanot_cor }
+                : item
+            )
+          );
+
+      setOpenuAnotacDialogEdit(false); // Fecha o modal de visita
+    } catch (error) {
+      console.error("Erro ao atualizar os dados: ", error);
+    }
+  };
+
+  const handleAnotacDelete = async () => {
+    if (!selectedItem) return;
+    const uAnotacDataDelete = {
+      uanot_pub: selectedItem.uanot_pub,
+      uanot_titul: formFields.uanot_titul,
+      uanot_legend: formFields.uanot_legend,
+      uanot_cor: formFields.uanot_cor,
+      uanot_mensag: formFields.uanot_mensag,
+    };
+
+    try {
+      await api_service.delete(`/uanotac/${selectedItem.uanot_id}`, uAnotacDataDelete); // edita anotação
+      // Atualiza os dados da anotação
+      console.log("Registro excluído com sucesso.");
+
+           // Atualiza o estado local para refletir as mudanças
+           setDataUAnota((prevData) =>
+            prevData.map((item) =>
+              item.uanot_id === selectedItem.uanot_id
+                ? { ...item, uanot_legend: selectedItem.uanot_legend, uanot_cor: selectedItem.uanot_cor }
+                : item
+            )
+          );
+
+      setOpenuAnotacDialogDelete(false); // Fecha o modal de visita
+    } catch (error) {
+      console.error("Erro ao atualizar os dados: ", error);
+    }
+  };
+
+
+
+  const handleOpenDialogNewAnot = () => {
+    setFormFields({
+      data_inclu: new Date().toLocaleDateString("pt-BR"),
+      uanot_titul: '',
+      uanot_legend: '',
+      uanot_cor: '',
+      uanot_mensag: '',
+    });
+
+    setOpenuAnotacDialogNew(true); // Abre o diálogo
+  };
+
+
+  const handleOpenDialogEditAnot = (item) => {
+    setSelectedItem({
+      ...item,
+      uanot_id: item.uanot_id,
+    });
+
+    setFormFields({
+      uanot_titul: item.uanot_titul || '',
+      uanot_legend: item.uanot_legend || '',
+      uanot_cor: item.uanot_cor || '',
+      uanot_mensag: item.uanot_mensag || '',
+    });
+
+    setOpenuAnotacDialogEdit(true); // Abre o diálogo
+  };
+
+  const handleOpenDialogDeleteAnot = (item) => {
+    setSelectedItem({
+      ...item,
+      uanot_id: item.uanot_id,
+    });
+
+    setFormFields({
+      uanot_titul: item.uanot_titul || '',
+      uanot_legend: item.uanot_legend || '',
+      uanot_cor: item.uanot_cor || '',
+      uanot_mensag: item.uanot_mensag || '',
+    });
+
+    setOpenuAnotacDialogDelete(true); // Abre o diálogo
+  };
+
+
+  const handleExpandClick = (id) => {
+    setExpanded((prevExpanded) => ({ ...prevExpanded, [id]: !prevExpanded[id] }));
+  };
+
 
   return (
-    <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
+    <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333333' }}>
       <Box
         sx={{
+          color: darkMode ? ' #67e7eb' : ' #333333',
+          alignItems: 'center',
           display: 'flex',
-          justifyItems:'center',
-          fontSize: '0.8rem',
-          marginLeft: '110px',
-          marginTop: '5px',
-          marginBottom: '2px',
-          color: darkMode ? '#67e7eb' : '#333333' ,
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+          padding: '1px',
         }}
       >
-        Suas Anotações: 0
+        <Box
+          onClick={() => handleOpenDialogNewAnot(null)}
+          sx={{
+            display: 'flex',
+            cursor: 'pointer',
+            fontSize: '14px',
+            marginLeft: '195px',
+            marginTop: '5px',
+            color: darkMode ? ' #ffffff' : '#00009C',
+            '&:hover': {
+              color: darkMode ? '#67e7eb' : '#7F00FF',
+              textDecoration: 'underline',
+            },
+          }}
+        >
+          <FaCommentDots style={{ marginRight: '4px' }} />
+          Nova Nota
+        </Box>
+        <Typography sx={{ fontSize: '0.8rem', marginLeft: '5px', marginTop: '10px' }}>
+          Suas Anotações: {totalMapas}
+        </Typography>
       </Box>
+
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
           <CircularProgress />
@@ -315,113 +313,297 @@ const FormUserViewAnota = () => {
       ) : error ? (
         <Typography variant="body1" color="error" align="center">{error}</Typography>
       ) : (
-        <Box className="card-container-user">
-          {data.map((item, index) => (
-            <Box key={index} className="card-box-user">
-             
-            </Box>
-          ))}
+        <Box className="card-container-user-nota">
+          {/* Removi um Box duplicado */}
+          {dataUAnota.map((item, index) => {
+            const statusnotacor = getStatusNotaCor(item.uanot_cor);
+            const statusnotaLegend = getStatusNotaLeged(item.uanot_legend);
+
+            return (
+              <Box key={index} className="card-box-nota-user">
+                <Card
+                  className="card-user-nota"
+                  sx={{
+                    backgroundColor: getColorNotaCor(statusnotacor),
+                    color: darkMode ? '#67e7eb' : '#333',
+                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-10px) scale(1.03)',
+                      boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+                    },
+                    '&:active': {
+                      transform: 'translateY(-10px) scale(1.03)',
+                      boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+                    },
+                  }}
+                >
+                  <CardContent>
+                    <Typography
+                      sx={{
+                        display: 'flex',
+                        cursor: 'pointer',
+                        fontSize: '35px',
+                        marginLeft: '200px',
+                        marginTop: '-10px',
+                        marginBottom: '10px',
+                        color: darkMode ? ' #D9D919' : ' #67e7eb',
+                        '&:hover': {
+                          color: darkMode ? ' #67e7eb' : ' #333333',
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      {getEmotionrNotaLeged(statusnotaLegend)}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: '0.8rem',
+                        marginLeft: '-10px',
+                        marginTop: '-5px',
+                      }}
+                    >
+                      Título: {item.uanot_titul}
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        fontSize: '0.8rem',
+                        marginLeft: '-10px',
+                        marginTop: '-5px',
+                      }}
+                    >
+                      Data: {item.data_inclu}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: '0.8rem',
+                        marginLeft: '-10px',
+                        marginTop: '-5px',
+                      }}
+                    >
+                      Prioridade: {getStatusNotaLeged(item.uanot_legend)}
+                    </Typography>
+
+                    <Box
+                      onClick={() => handleOpenDialogEditAnot(item)}
+                      sx={{
+                        display: 'flex',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        marginLeft: '58px',
+                        marginTop: '25px',
+                        color: darkMode ? '#ffffff' : '#2c2c4e',
+                        '&:hover': {
+                          color: darkMode ? '#67e7eb' : '#333333',
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      <FaFileSignature style={{ marginRight: '4px' }} />
+                      Editar Anotação
+                    </Box>
+                  </CardContent>
+                  <CardActions disableSpacing sx={{ marginTop: '-30px', marginRight: '230px' }}>
+                    <ExpandMore
+                      expand={expanded[item.uanot_id]}
+                      onClick={() => handleExpandClick(item.uanot_id)}
+                      aria-expanded={expanded[item.desig_id]}
+                      aria-label="Mostrar mais"
+                    >
+                      <FaAngleDoubleDown />
+                    </ExpandMore>
+                  </CardActions>
+                  <Collapse in={expanded[item.uanot_id]} timeout="auto" unmountOnExit>
+                    <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
+                      <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '5px', color: darkMode ? '#67e7eb' : '#333' }}>
+                        {item.uanot_mensag || 'Nenhuma nota disponível.'}
+                      </Typography>
+                      <Box
+                      onClick={() => handleOpenDialogDeleteAnot(item)}
+                      sx={{
+                        display: 'flex',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        marginLeft: '58px',
+                        marginTop: '25px',
+                        color: darkMode ? '#ffffff' : '#2c2c4e',
+                        '&:hover': {
+                          color: darkMode ? '#67e7eb' : '#333333',
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      <FaTrashAlt style={{ marginRight: '4px' }} />
+                      Excluir Anotação
+                    </Box>
+                    </CardContent>
+                  </Collapse>
+                </Card>
+              </Box>
+            );
+          })}
         </Box>
       )}
 
-      <Dialog open={openVisitDialog} onClose={() => setOpenVisitDialog(false)}>
-        <DialogTitle>Registro de Visita</DialogTitle>
+      <Dialog open={openuAnotacDialogEdit} onClose={() => setOpenuAnotacDialogEdit(false)}>
+        <DialogTitle>Título: {selectedItem?.uanot_titul}</DialogTitle>
         <DialogContent>
           <DialogContentText></DialogContentText>
-          <Typography variant="body2">Responsável: {selectedItem?.pub_nome}</Typography>
-          <Typography variant="body2">Código do Mapa: {selectedItem?.dsg_mapa_cod}</Typography>
-          <Typography variant="body2">Endereço: {selectedItem?.terr_enderec}</Typography>
-
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Encontrou? *</InputLabel>
-            <Select
-              value={formFields.visit_status}
-              onChange={(e) => handleFieldChange('visit_status', e.target.value)}
-            >
-              <MenuItem value="Sim">Sim</MenuItem>
-              <MenuItem value="Não">Não</MenuItem>
-              <MenuItem value="Carta">Carta</MenuItem>
-              <MenuItem value="Família">Família</MenuItem>
-              <MenuItem value="Outros">Outros</MenuItem>
-            </Select>
-          </FormControl>
-
           <TextField
             margin="dense"
-            label="QTD Surdos *"
-            type="number"
-            fullWidth
-            value={formFields.num_pessoas}
-            onChange={(e) => handleFieldChange('num_pessoas', e.target.value)}
-          />
-
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Melhor dia *</InputLabel>
-            <Select
-              value={formFields.melhor_dia}
-              onChange={(e) => handleFieldChange('melhor_dia', e.target.value)}
-            >
-              <MenuItem value="Livre">Livre</MenuItem>
-              <MenuItem value="Segunda">Segunda</MenuItem>
-              <MenuItem value="Terça">Terça</MenuItem>
-              <MenuItem value="Quarta">Quarta</MenuItem>
-              <MenuItem value="Quinta">Quinta</MenuItem>
-              <MenuItem value="Sexta">Sexta</MenuItem>
-              <MenuItem value="Sábado">Sábado</MenuItem>
-              <MenuItem value="Domingo">Domingo</MenuItem>
-              <MenuItem value="Sab-Dom">Sab-Dom</MenuItem>
-              <MenuItem value="Feriados">Feriados</MenuItem>
-            </Select>
-          </FormControl>
-
-          <TextField
-            margin="dense"
-            label="Melhor Hora"
+            label="Alterar Título *"
             type="text"
             fullWidth
-            value={formFields.melhor_hora}
-            onChange={(e) => handleFieldChange('melhor_hora', e.target.value)}
+            value={formFields.uanot_titul}
+            onChange={(e) => handleFieldChange('uanot_titul', e.target.value)}
           />
+
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Cor do Cartão *</InputLabel>
+            <Select
+              value={formFields.uanot_cor}
+              onChange={(e) => handleFieldChange('uanot_cor', e.target.value)}
+            >
+              <MenuItem value="0">Tema Atual</MenuItem>
+              <MenuItem value="1">Azul</MenuItem>
+              <MenuItem value="2">Vermelho</MenuItem>
+              <MenuItem value="3">Verde</MenuItem>
+              <MenuItem value="4">Pink</MenuItem>
+              <MenuItem value="5">Spicy Pink</MenuItem>
+              <MenuItem value="6">Dark Orchid</MenuItem>
+              <MenuItem value="7">Chocolate</MenuItem>
+              <MenuItem value="8">Cinza</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Legenda *</InputLabel>
+            <Select
+              value={formFields.uanot_legend}
+              onChange={(e) => handleFieldChange('uanot_legend', e.target.value)}
+            >
+              <MenuItem value="0">Normal</MenuItem>
+              <MenuItem value="1">Importante</MenuItem>
+              <MenuItem value="2">Urgente</MenuItem>
+              <MenuItem value="3">Alta Prioridade</MenuItem>
+            </Select>
+          </FormControl>
 
           <TextField
             margin="dense"
-            label="Observação"
+            label="Anotação"
             type="text"
             fullWidth
             multiline
-            rows={3}
-            value={formFields.terr_obs}
-            onChange={(e) => handleFieldChange('terr_obs', e.target.value)}
+            rows={8}
+            value={formFields.uanot_mensag}
+            onChange={(e) => handleFieldChange('uanot_mensag', e.target.value)}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenVisitDialog(false)} color="primary">Cancelar</Button>
-          <Button onClick={handleVisitSubmit} color="primary">Confirmar</Button>
+          <Button onClick={() => setOpenuAnotacDialogEdit(false)} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleAnotacUpdate} color="primary">
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openuAnotacDialogNew} onClose={() => setOpenuAnotacDialogNew(false)}>
+
+        <DialogContent>
+          <DialogContentText></DialogContentText>
+          <TextField
+            margin="dense"
+            label="Título da Anotação*"
+            type="text"
+            fullWidth
+            value={formFields.uanot_titul}
+            onChange={(e) => handleFieldChange('uanot_titul', e.target.value)}
+          />
+
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Cor do Cartão *</InputLabel>
+            <Select
+              value={formFields.uanot_cor}
+              onChange={(e) => handleFieldChange('uanot_cor', e.target.value)}
+            >
+              <MenuItem value="0">Tema Atual</MenuItem>
+              <MenuItem value="1">Azul</MenuItem>
+              <MenuItem value="2">Vermelho</MenuItem>
+              <MenuItem value="3">Verde</MenuItem>
+              <MenuItem value="4">Rosa</MenuItem>
+              <MenuItem value="5">Spicy Pink</MenuItem>
+              <MenuItem value="6">Dark Orchid</MenuItem>
+              <MenuItem value="7">Chocolate</MenuItem>
+              <MenuItem value="8">Cinza</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Legenda *</InputLabel>
+            <Select
+              value={formFields.uanot_legend}
+              onChange={(e) => handleFieldChange('uanot_legend', e.target.value)}
+            >
+              <MenuItem value="0">Normal</MenuItem>
+              <MenuItem value="1">Importante</MenuItem>
+              <MenuItem value="2">Urgente</MenuItem>
+              <MenuItem value="3">Alta Prioridade</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            margin="dense"
+            label="Anotação"
+            type="text"
+            fullWidth
+            multiline
+            rows={8}
+            value={formFields.uanot_mensag}
+            onChange={(e) => handleFieldChange('uanot_mensag', e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenuAnotacDialogNew(false)} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleAnotacSubmit} color="primary">
+            Confirmar
+          </Button>
         </DialogActions>
       </Dialog>
 
       {/* Caixa de diálogo de confirmação */}
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">Confirmar Ação</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Deseja enviar as informações, encerrando e devolvendo a designação ?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="primary">
-            Não
-          </Button>
-          <Button onClick={handleEncerrar} color="primary" autoFocus>
-            Sim
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Dialog
+              open={openuAnotacDialogDelete}
+              onClose={() => setOpenuAnotacDialogDelete(false)}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+            >
+              <DialogTitle id="alert-dialog-title">Confirmar Ação</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  Deseja excluir as informações da sua anotação ?
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setOpenuAnotacDialogDelete(false)} color="primary">
+                  Não
+                </Button>
+                <Button
+                  onClick={async () => {
+                    setOpenuAnotacDialogDelete(false);
+                    await handleAnotacDelete();
+                  }}
+                  color="primary"
+                  autoFocus
+                >
+                  Sim
+                </Button>
+              </DialogActions>
+            </Dialog>
 
     </Box>
   );

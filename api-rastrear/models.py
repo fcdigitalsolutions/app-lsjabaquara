@@ -132,6 +132,7 @@ class Territorios:
         self.terr_respons  = terr_respons     
         self.terr_obs      = terr_obs         
 
+
 class RelVisita: 
     def __init__(self, data_inclu, visit_data,pub_login,pub_nome,visit_cod,visit_url,visit_ender,visit_status,num_pessoas,melhor_dia,melhor_hora,terr_obs ):
         self.data_inclu	    = data_inclu
@@ -146,6 +147,7 @@ class RelVisita:
         self.melhor_dia     = melhor_dia
         self.melhor_hora	= melhor_hora
         self.terr_obs       = terr_obs
+
 
 class ConfigCampo: 
     def __init__(self, data_inclu,cmp_tipo,cmp_diadasem,cmp_seq,cmp_local,cmp_enderec,cmp_url,cmp_tipoativ,cmp_horaini,cmp_horafim,cmp_detalhes ):
@@ -188,4 +190,15 @@ class CadNotificacoes:
         self.noti_detalhes  = noti_detalhes
 
 
-## FIM DOS MODELS
+class CaduAnotacoes: 
+    def __init__(self,data_inclu,uanot_pub,uanot_titul,uanot_legend,uanot_cor,uanot_mensag ):
+        self.data_inclu	     = data_inclu
+        self.uanot_pub       = uanot_pub
+        self.uanot_titul     = uanot_titul
+        self.uanot_legend    = uanot_legend
+        self.uanot_cor       = uanot_cor
+        self.uanot_mensag    = uanot_mensag
+    
+
+##########################
+##### FIM DOS MODELS #####
