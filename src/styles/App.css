@@ -77,7 +77,6 @@ body {
   width: 100%;
   background-color: #202038; /* Cor de fundo */
   color: white;
-  padding: 2px 16px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Sombra para destacar o topo */
   display: flex;
   justify-content: center; /* Centraliza o menu */
@@ -95,7 +94,7 @@ body {
 }
 
 .sidebaruser ul li {
-  padding: 2px 2px;
+  padding: 1px 1px;
   display: flex;
   align-items: center;
 }
@@ -125,7 +124,7 @@ body {
 
 
 .linkusers {
-  padding: 6px;
+  padding: 4px;
   text-decoration: none;
   color: #9932CD;
   border-bottom: 2px solid transparent; /* Inicialmente sem borda */
@@ -134,7 +133,7 @@ body {
 }
 
 .linkusers-dark {
-  padding: 6px;
+  padding: 4px;
   text-decoration: none;
   color: #67e7eb;
   border-bottom: 2px solid transparent; /* Inicialmente sem borda */
@@ -223,23 +222,15 @@ body {
 .card-container-user {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 6px;
   justify-content: center;
-}
-
-.card-container-user-nota {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 84px;
-  justify-content: center;  
 }
 
 /* Estilo dos Cards de Designação */
 .card-box-user {
   flex: 1 1 300px;
   max-width: 300px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
+  border-radius: 18px;
 }
 
 .card-user {
@@ -297,7 +288,7 @@ body {
   min-width: 350px;
   max-width: 350px;
   max-height: 100px;
-  border-radius: 12px;
+  border-radius: 18px;
   justify-content: center;
 }
 
@@ -319,12 +310,35 @@ body {
   align-items: center;
 }
 
+
+.card-container-user-nota {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 85px;
+  justify-content: center;  
+}
+
 .card-box-nota-user {
   flex: 1 1 100px;
   min-width: 300px;
   max-width: 300px;
   max-height: 100px;
-  border-radius: 12px;
+  border-radius: 18px;
   justify-content: center;
+}
 
+.card-container-user-horas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 60px;
+  justify-content: center;  
+}
+
+.card-box-horas-user {
+  flex: 1 1 100px;
+  min-width: 300px;
+  max-width: 300px;
+  max-height: 100px;
+  border-radius: 18px;
+  justify-content: center;
 }

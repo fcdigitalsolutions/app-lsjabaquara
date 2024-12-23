@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaMoon, FaSun, FaComments } from 'react-icons/fa';
+import { 
+  FaMoon, 
+  FaSun, 
+  FaComments,
+  FaCommentDots,
+  FaMapMarked,
+  FaClock,
+  FaClipboardList,
+  FaSignLanguage,
+  FaChartArea,
+  FaSignInAlt,
+ } from 'react-icons/fa';
 import { useTheme } from './ThemeContext'; // Importa o hook do contexto
 import api_service from '../services/api_service'; // Importando serviço da API
 
@@ -14,13 +25,13 @@ import {
 } from '@mui/material';
 
 const routes = [
-  { path: "/huser/formuseroutras", name: "Atividades" },
-  { path: "/huser/form-userview", name: "Mapas" },
-  { path: "/huser/formuserensino", name: "Ensino" },
-  { path: "/huser/formuseranota", name: "Notas" },
-  { path: "/huser/formuserdesig", name: "Designar" },
-  { path: "/huser/formuserhoras", name: "Horas" },
-  { path: "/", name: "Sair" },
+  { path: "/huser/formuseroutras", name: "Atividades", icon: FaClipboardList },
+  { path: "/huser/form-userview", name: "Mapas", icon: FaMapMarked },
+  { path: "/huser/formuserensino", name: "Ensino", icon: FaSignLanguage },
+  { path: "/huser/formuseranota", name: "Notas", icon: FaCommentDots },
+  { path: "/huser/formuserdesig", name: "Designar", icon: FaChartArea },
+  { path: "/huser/formuserhoras", name: "Horas", icon: FaClock },
+  { path: "/", name: "Sair", icon: FaSignInAlt },
 ];
 
 const SidebarUser = ({ children }) => {
@@ -59,16 +70,16 @@ const SidebarUser = ({ children }) => {
 
 
   return (
-    <Box className="main-containerusers" 
-    sx={{ 
-        backgroundColor: darkMode ? '#202038' : '#f0f0f0', 
+    <Box className="main-containerusers"
+      sx={{
+        backgroundColor: darkMode ? '#202038' : '#f0f0f0',
         color: darkMode ? '#67e7eb' : '#333',
-        alignItems: 'center', 
+        alignItems: 'center',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'flex-start', 
-        padding: '1px',
-    }}>
+        justifyContent: 'flex-start',
+        padding: '0.5px',
+      }}>
       <Box sx={{
         fontSize: '11px',
         backgroundColor: darkMode ? '#202038' : '#f0f0f0',
@@ -133,7 +144,7 @@ const SidebarUser = ({ children }) => {
                       color: darkMode ? '#D9D919' : ' #00009C',
                     }}
                   >
-                  {item.noti_mensag}
+                    {item.noti_mensag}
                   </Typography>
                 </CardContent>
               </Card>
@@ -148,13 +159,13 @@ const SidebarUser = ({ children }) => {
         }}
         style={{
           justifyItems: 'center',
-          fontSize: '12px',
+          fontSize: '13px',
           color: darkMode ? '#D9D919' : '#202038',
           marginTop: '20px',
         }}
       >
         <section style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1px' }}>
-      
+
           {routes.map((route, index) => (
             <NavLink
               to={route.path}
@@ -168,7 +179,20 @@ const SidebarUser = ({ children }) => {
               }
               onClick={route.name === "Sair" ? (e) => { e.preventDefault(); handleLogout(); } : null}
             >
-              <span>{route.name}</span>
+                {route.icon && (
+                  <Box sx={{ 
+                      marginTop: '-2px',
+                      marginBottom: '6px',
+                      fontSize: '26px',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      flexDirection: 'column',
+                      }}>
+                    {React.createElement(route.icon)}
+                  </Box>
+                )}
+                <span>{route.name}</span>
+    
             </NavLink>
           ))}
         </section>
