@@ -21,7 +21,7 @@ const DesigForm = () => {
   const [dataSugest, setDataSugest] = useState([]);
   const [pageSugest, setPageSugest] = useState(0);
   const [page, setPage] = useState(0);
-  const [rowsPerPage] = useState(10); // Limite de linhas por página
+  const [rowsPerPage] = useState(15); // Limite de linhas por página
   const [editRowId, setEditRowId] = useState(null); // ID da linha sendo editada
   const [editedRowData, setEditedRowData] = useState({}); // Dados da linha sendo editada
   const [showNewDesignCForm, setShowNewDesignCForm] = useState(false); // Controla a exibição do formulário de nova indicação
@@ -37,11 +37,12 @@ const DesigForm = () => {
 
   const [displayMessage, setDisplayMessage] = useState(""); // Armazena a mensagem atual
   const [messageColor, setMessageColor] = useState("black"); // Armazena a cor da mensagem
-
   const [isLoading, setIsLoading] = useState(false); // Estado para controlar o loading
   const [value, setValue] = useState(0); // Estado para o progresso
-
   const [publicadores, setPublicadores] = useState([]);
+
+  const [tipoTerr, setTipoTerr] = useState('1');  // Valor padrão
+
   const excelSerialToDate = (value) => {
     if (!value) return ""; // Se o valor for nulo ou vazio, retorna vazio.
 
@@ -308,9 +309,9 @@ const DesigForm = () => {
         // Enviar os dados para a API
         try {
           const response = await api_service.post('/desiglot', formattedData);
-  
+
           console.log("Dados enviados enviados dos Dirigentes:", formattedData);
-  
+
           if (response.status === 201) {
             setDisplayMessage("Importação e envio concluídos com sucesso!");
             setMessageColor("green");
@@ -342,12 +343,12 @@ const DesigForm = () => {
       setMessageColor("red");
       return;
     }
-  
+
     console.log("Dados enviados do Carrinho (já processados):", selectedRows);
-  
+
     try {
       const response = await api_service.post('/desiglot', selectedRows);
-  
+
       if (response.status === 201) {
         setDisplayMessage("Importação concluída com sucesso!");
         setMessageColor("green");
@@ -363,7 +364,7 @@ const DesigForm = () => {
       setMessageColor("red");
     }
   };
-  
+
 
   const handleFileUploadCombined = (event) => {
     // Chama as duas handles com base na necessidade
@@ -404,14 +405,21 @@ const DesigForm = () => {
 
   // seleciona sugestões de designações baseado no cadastro de territórios / mapas ativos
   useEffect(() => {
-    api_service.get('/desigsuges')
+    // Requisição à API sempre que `tipoTerr` mudar
+    api_service.get(`/desigsuges/${tipoTerr}`)
       .then((response) => {
         setDataSugest(response.data);
       })
       .catch((error) => {
         console.error("Erro ao buscar os dados: ", error);
       });
-  }, []);
+  }, [tipoTerr]);
+
+  // Função de handle para mudança do tipo de território
+  const handleTipoTerrChange = (e) => {
+    setTipoTerr(e.target.value);
+  };
+
 
   useEffect(() => {
     const fetchPublicadores = async () => {
@@ -426,26 +434,25 @@ const DesigForm = () => {
     fetchPublicadores();
   }, []);
 
-  const handleSelect = (idSg) => {
+  const handleSelect = (id) => {
     setSelected((prevSelected) =>
-      prevSelected.includes(idSg)
-        ? prevSelected.filter((itemSg) => itemSg !== idSg) // Desmarca se já estiver selecionado
-        : [...prevSelected, idSg] // Marca se não estiver
+      prevSelected.includes(id)
+        ? prevSelected.filter((item) => item !== id) // Desmarca se já estiver selecionado
+        : [...prevSelected, id] // Marca se não estiver
     );
   };
+  // Verifica se uma linha específica está selecionada
+  const isSelected = (id) => selected.includes(id);
 
   // Função para controlar a seleção de todas as linhas das designações
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = dataSugest.map((row) => row.idSg);
+      const newSelected = dataSugest.map((row) => row.id);
       setSelected(newSelected);
     } else {
       setSelected([]);
     }
   };
-
-  // Verifica se uma linha específica está selecionada
-  const isSelected = (idSg) => selected.includes(idSg);
 
   // Verifica se todas as linhas estão selecionadas
   const isAllSelected = selected.length === dataSugest.length;
@@ -851,35 +858,67 @@ const DesigForm = () => {
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
       <h2 style={{ fontSize: '1.6rem', marginBottom: '16px' }}>Manutenção das Designações</h2>
-
       {/* Box separado para a tabela */}
       <Box sx={{ marginBottom: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
         <Box sx={{ backgroundColor: 'rgb(255, 255, 255)', borderRadius: '16px' }}>
           <Box>
             <h4 style={{ fontSize: '1.2rem', marginBottom: '16px', color: "#42426F" }}>Sugestão de Designações - Efetivar</h4>
-            <Box sx={{ marginTop: '20px' }}>
-              <button
-                type="button"
-                style={{
-                  ...buttonStyle,
-                  backgroundColor: '#202038',
-                  color: '#f1f1f1',
-                  transition: 'background-color 0.2s ease',
-                  align: 'right',
-                  borderRadius: '4px',
+            <Box sx={formBoxStyle}>
+              <Box sx={{ flex: 1, minWidth: '200px' }}>
+                <button
+                  type="button"
+                  style={{
+                    ...buttonStyle,
+                    backgroundColor: '#202038',
+                    color: '#f1f1f1',
+                    transition: 'background-color 0.2s ease',
+                    align: 'right',
+                    borderRadius: '4px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#67e7eb';
+                    e.currentTarget.style.color = '#202038';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#202038';
+                    e.currentTarget.style.color = '#f1f1f1';
+                  }}
+                  onClick={handleBatchSubmit} // Chama a nova função
+                >
+                  <FaShareSquare /> Efetivar Sugestão dos Mapas
+                </button>
+              </Box>
+              <Box
+                sx={{
+                  flex: 1,
+                  backgroundColor: '#00009C',
+                  color: 'white',    // cor do texto para contraste
+                  padding: '8px',   // espaçamento interno
+                  borderRadius: '6px', // bordas arredondadas, se desejar
+                  minWidth: '250px',
+                  maxWidth: '250px',
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#67e7eb';
-                  e.currentTarget.style.color = '#202038';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#202038';
-                  e.currentTarget.style.color = '#f1f1f1';
-                }}
-                onClick={handleBatchSubmit} // Chama a nova função
               >
-                <FaShareSquare /> Efetivar Sugestão dos Mapas
-              </button>
+                <Typography variant="body1">
+                  Escolha o tipo de Campanha:
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1, minWidth: '200px' }}>
+                <FormControl>
+                  <Select
+                    value={tipoTerr}
+                    variant="outlined"
+                    margin="dense"
+                    size="small"
+                    sx={{ minWidth: '200px' }}
+                    onChange={handleTipoTerrChange}
+                  >
+                    <MenuItem value="1">Pregação: Casa em Casa</MenuItem>
+                    <MenuItem value="2">Campanha: Trabalho</MenuItem>
+                    <MenuItem value="3">Campanha: Prédio</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
             </Box>
             {message && <Typography variant="body1" sx={{ color: message.includes('Erro') ? 'red' : 'green', marginTop: '10px' }}>{message}</Typography>}
 
@@ -889,9 +928,7 @@ const DesigForm = () => {
                   <TableRow>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }} padding="checkbox">
                       <Checkbox
-                        indeterminate={
-                          selected.length > 0 && selected.length < dataSugest.length
-                        } // Exibe o estado "indeterminado" quando apenas algumas, mas não todas as linhas estão selecionadas
+                        indeterminate={selected.length > 0 && selected.length < dataSugest.length}
                         checked={isAllSelected}
                         onChange={handleSelectAllClick}
                         inputProps={{ 'aria-label': 'select all items' }}
@@ -1002,11 +1039,11 @@ const DesigForm = () => {
                     const statusTploc = getStatusTpLocal(row.terr_tp_local);
                     const statusClassif = getStatusClassif(row.terr_classif);
                     return (
-                      <TableRow key={row.idSg} selected={isSelected(row.idSg)}>
+                      <TableRow key={row.id}>
                         <TableCell TableCell align="center">
                           <Checkbox
-                            checked={isSelected(row.idSg)}
-                            onChange={() => handleSelect(row.idSg)}
+                            checked={isSelected(row.id)}
+                            onChange={() => handleSelect(row.id)}
                           />
                         </TableCell>
 

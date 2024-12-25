@@ -15,6 +15,7 @@ from models import (
     RegPublicacoes, 
     CadNotificacoes,
     CaduAnotacoes,
+    MovHorasCampo,
     )
 from services import (
     RegionService,
@@ -31,6 +32,7 @@ from services import (
     RgPublicacService,
     NotificaService,
     UanotacService, 
+    HorasCampService,
     )
 from database import init_db
 from datetime import datetime,timedelta
@@ -52,6 +54,7 @@ cfgcampo_service = CfgCampoService()
 rgpublic_service = RgPublicacService()
 notif_service = NotificaService()
 uanotac_service   = UanotacService()
+hrsprg_service   = HorasCampService()
 
 
 # Inicializa o banco de dados
@@ -523,15 +526,26 @@ def get_desigensino(desig_user):
     } for desig_item in desig])
 
 
+
+@app.route('/desigsuges/<string:desig_tpmapa>', methods=['GET'])
+def get_desigsugest2(desig_tpmapa):
+    desig = desig_service.get_desig_sugest2(desig_tpmapa)
+    return jsonify([{
+        **dict(desig_item),
+        'dsg_data': format_date(desig_item.get('dsg_data')),        
+        'dt_ultvisit': format_date(desig_item.get('dt_ultvisit')),
+        'data_inclu': format_date(desig_item.get('data_inclu'))
+    } for desig_item in desig])
+
 @app.route('/desigsuges', methods=['GET'])
 def get_desigsugest():
     desig = desig_service.get_desig_sugest()
     return jsonify([{
-        **dict(desig),
-        'dsg_data': format_date(desig.get('dsg_data')),        
-        'dt_ultvisit': format_date(desig.get('dt_ultvisit')),
-        'data_inclu': format_date(desig.get('data_inclu'))
-    } for desig in desig])
+        **dict(desig_item),
+        'dsg_data': format_date(desig_item.get('dsg_data')),        
+        'dt_ultvisit': format_date(desig_item.get('dt_ultvisit')),
+        'data_inclu': format_date(desig_item.get('data_inclu'))
+    } for desig_item in desig])
 
 
 @app.route('/desigoutras/<string:desig_user>', methods=['GET'])
@@ -1053,6 +1067,78 @@ def delete_uanotac(uanotac_id):
         return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
     
 
+######### ######### ######### ######### #########  #####
+## Rotas da API para o cadastro de Registro de Horas
+######### ######### ######### ######### #########  #####
+@app.route('/hrsprgall', methods=['GET'])
+def get_allhrsprg():
+    hrsprg = hrsprg_service.get_all_hrsprg()
+    return jsonify([{
+        **dict(hrsprg_item),         
+		'data_inclu': format_date(hrsprg_item.get('data_inclu')),
+		'mhrsp_data': format_date(hrsprg_item.get('mhrsp_data'))    
+    } for hrsprg_item in hrsprg])
+    
+
+@app.route('/hrsprg/<string:hrsprg_user>', methods=['GET'])
+def get_hrsprg(hrsprg_user):
+    hrsprg = hrsprg_service.get_hrsprg_user(hrsprg_user)
+    return jsonify([{
+        **dict(hrsprg_item),        
+		'data_inclu': format_date(hrsprg_item.get('data_inclu')),
+		'mhrsp_data': format_date(hrsprg_item.get('mhrsp_data'))       
+    } for hrsprg_item in hrsprg])
+
+
+@app.route('/hrsprg', methods=['POST'])
+def add_hrsprg():
+    data = request.json
+    hrsprg = MovHorasCampo(data_inclu=parse_date(data.get('data_inclu')),
+						mhrsp_data=parse_date(data.get('mhrsp_data')),
+                        mhrsp_pub=data.get('mhrsp_pub'),
+                        mhrsp_anosrv=data.get('mhrsp_anosrv'),
+                        mhrsp_anocal=data.get('mhrsp_anocal'),
+                        mhrsp_mes=data.get('mhrsp_mes'),
+                        mhrsp_ativ=data.get('mhrsp_ativ'),     
+						mhrsp_hrs=data.get('mhrsp_hrs'), 
+						mhrsp_min=data.get('mhrsp_min'), 
+						mhrsp_ensino=data.get('mhrsp_ensino'), 
+						mhrsp_mensag=data.get('mhrsp_mensag')						
+                        )     
+    hrsprg_id = hrsprg_service.add_hrsprg(hrsprg)
+    return jsonify({"id": hrsprg_id, "message": "Registro add com sucesso!"}), 201
+
+
+@app.route('/hrsprg/<int:hrsprg_id>', methods=['PUT'])
+def update_hrsprg(hrsprg_id):
+    data = request.json
+    hrsprg = MovHorasCampo(data_inclu=parse_date(data.get('data_inclu')),
+                        mhrsp_data=parse_date(data.get('mhrsp_data')),
+                        mhrsp_pub=data.get('mhrsp_pub'),
+                        mhrsp_anosrv=data.get('mhrsp_anosrv'),
+                        mhrsp_anocal=data.get('mhrsp_anocal'),
+                        mhrsp_mes=data.get('mhrsp_mes'),
+                        mhrsp_ativ=data.get('mhrsp_ativ'),     
+						mhrsp_hrs=data.get('mhrsp_hrs'), 
+						mhrsp_min=data.get('mhrsp_min'), 
+						mhrsp_ensino=data.get('mhrsp_ensino'), 
+						mhrsp_mensag=data.get('mhrsp_mensag')			           
+                        )     
+    updated_hrsprg_id = hrsprg_service.update_hrsprg(hrsprg_id, hrsprg)
+    return jsonify({"message": "Registro atualizado com sucesso!", "id": updated_hrsprg_id}), 200
+	
+
+# Rota DELETE para os registros da rota 
+@app.route('/hrsprg/<int:hrsprg_id>', methods=['DELETE'])
+def delete_hrsprg(hrsprg_id):
+    try:
+        hrsprg_service.delete_hrsprg(hrsprg_id)  # Chama o serviço para deletar o registro
+        return jsonify({"message": "Registro excluído com sucesso!"}), 200
+    except ValueError:
+        return jsonify({"message": "Registro não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"message": "Erro ao excluir o Registro", "error": str(e)}), 500
+    
 
 ### FIM DAS ROTAS 
 

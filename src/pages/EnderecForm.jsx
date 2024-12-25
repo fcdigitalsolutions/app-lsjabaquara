@@ -26,6 +26,10 @@ const EnderecForm = () => {
     return accumulator + (item.num_pessoas || 0);
   }, 0);
 
+  const totalCasa = data.filter(item => item.terr_tp_local === '1').length;
+  const totalComercio = data.filter(item => item.terr_tp_local === '2').length;
+  const totalPredio = data.filter(item => item.terr_tp_local === '3').length;
+
   const formatDateTime = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Adiciona zero se necessário
@@ -517,6 +521,39 @@ const EnderecForm = () => {
         </Box>
 
         <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#007FFF', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Surdos Casa
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalCasa}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#FF2400', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+               Surdos Trabalho
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalComercio}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
+          <Card sx={{ width: '100%', backgroundColor: '#42426F', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+               Surdos Prédio
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalPredio}</Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
           <Card sx={{ width: '100%', backgroundColor: '#00009C', color: 'white' }}>
             <CardContent>
               <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
@@ -528,7 +565,7 @@ const EnderecForm = () => {
         </Box>
 
         <Box sx={{ flex: 1, minWidth: '160px', maxWidth: '160px', height: '110px' }}>
-          <Card sx={{ width: '100%', backgroundColor: '#D9D919', color: 'white' }}>
+          <Card sx={{ width: '100%', backgroundColor: 'rgb(149, 218, 29)', color: 'white' }}>
             <CardContent>
               <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                 Total de Revisitas
@@ -553,7 +590,7 @@ const EnderecForm = () => {
           <Card sx={{ width: '100%', backgroundColor: '#8C1717', color: 'white' }}>
             <CardContent>
               <Typography variant="h5" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                Morador Enfermo
+                Morador Doente
               </Typography>
               <Typography variant="h2" sx={{ fontSize: '1.8rem' }}>{totalDoentes}</Typography>
             </CardContent>

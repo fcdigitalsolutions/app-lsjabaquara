@@ -198,6 +198,21 @@ class CaduAnotacoes:
         self.uanot_legend    = uanot_legend
         self.uanot_cor       = uanot_cor
         self.uanot_mensag    = uanot_mensag
+
+    
+class MovHorasCampo: 
+    def __init__(self,data_inclu,mhrsp_data,mhrsp_pub,mhrsp_anosrv,mhrsp_anocal,mhrsp_mes,mhrsp_ativ,mhrsp_hrs,mhrsp_min,mhrsp_ensino,mhrsp_mensag ):
+        self.data_inclu	     = data_inclu      
+        self.mhrsp_data	     = mhrsp_data
+        self.mhrsp_pub       = mhrsp_pub
+        self.mhrsp_anosrv    = mhrsp_anosrv
+        self.mhrsp_anocal    = mhrsp_anocal
+        self.mhrsp_mes       = mhrsp_mes
+        self.mhrsp_ativ      = mhrsp_ativ
+        self.mhrsp_hrs       = mhrsp_hrs
+        self.mhrsp_min       = mhrsp_min
+        self.mhrsp_ensino    = mhrsp_ensino
+        self.mhrsp_mensag    = mhrsp_mensag
     
 
 ##########################

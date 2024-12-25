@@ -258,6 +258,22 @@ def init_db():
             )
         ''')    
 
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS mov_horas_pregacao (
+	            id INT AUTO_INCREMENT PRIMARY KEY,
+	            data_inclu	   datetime NULL,
+                mhrsp_data	   datetime NULL,
+				mhrsp_pub	   varchar(255) NULL,
+				mhrsp_anosrv   varchar(255) NULL,  
+                mhrsp_anocal   varchar(255) NULL,  
+                mhrsp_mes      varchar(255) NULL,  
+                mhrsp_ativ     varchar(255) NULL,  
+                mhrsp_hrs      varchar(255) NULL,  
+                mhrsp_min      varchar(255) NULL, 
+                mhrsp_ensino   varchar(255) NULL, 
+				mhrsp_mensag   text
+            )
+        ''')    
 
         conn.commit()
         cursor.close()

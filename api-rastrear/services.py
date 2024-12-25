@@ -14,6 +14,7 @@ from models import (
     RegPublicacoes, 
     CadNotificacoes,
     CaduAnotacoes,
+    MovHorasCampo,
     )
 
 def rows_to_dict(cursor, rows):
@@ -550,79 +551,160 @@ class DesignService:
         return result
 
 
+    def get_desig_sugest2(self, desig_tpmapa):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            (   SELECT 
+                    desg.id AS desig_id,     
+				    desg.dsg_data,
+				    desg.dsg_detalhes,
+				    desg.dsg_mapa_cod,
+                    terr.id AS territor_id, 
+                    terr.terr_nome, 
+                    terr.data_inclu, 
+                    terr.terr_respons, terr.dt_ultvisit,  
+                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+                FROM cad_territorios terr
+                LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+                WHERE 
+                    1 = 1 
+                    and terr.terr_status IN  ('0')
+                    and terr.terr_cor IN  ('0')
+                    and trim(terr.terr_tp_local) = %s
+                    and (isnull(desg.id) or desg.dsg_status in ('4'))
+                    and not (terr.terr_desig in ('2') )
+                ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 6  )
+		        UNION 
+            (   SELECT 
+                    desg.id AS desig_id,     
+				    desg.dsg_data,
+				    desg.dsg_detalhes,
+				    desg.dsg_mapa_cod,
+                    terr.id AS territor_id, 
+                    terr.terr_nome, 
+                    terr.data_inclu, 
+                    terr.terr_respons, terr.dt_ultvisit,  
+                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+                FROM cad_territorios terr
+                LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+                WHERE 
+                    1 = 1 
+                    and terr.terr_status IN  ('0')
+                    and terr.terr_cor IN  ('1')
+                    and trim(terr.terr_tp_local) = %s
+                    and (isnull(desg.id) or desg.dsg_status in ('4'))
+                    and not (terr.terr_desig in ('2') )
+                ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 6)
+                UNION 
+            (   SELECT 
+                    desg.id AS desig_id,     
+				    desg.dsg_data,
+				    desg.dsg_detalhes,
+				    desg.dsg_mapa_cod,
+                    terr.id AS territor_id, 
+                    terr.terr_nome, 
+                    terr.data_inclu, 
+                    terr.terr_respons, terr.dt_ultvisit,  
+                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+                FROM cad_territorios terr
+                LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+                WHERE 
+                    1 = 1 
+                    and terr.terr_status IN  ('0')
+                    and terr.terr_cor IN  ('2')
+                    and trim(terr.terr_tp_local) = %s
+                    and (isnull(desg.id) or desg.dsg_status in ('4'))
+                    and not (terr.terr_desig in ('2') )
+                ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 3)
+            """, (desig_tpmapa,desig_tpmapa,desig_tpmapa,))
+        
+        desig = cursor.fetchall()
+        result = rows_to_dict(cursor, desig)
+        conn.close()
+        return result
+    
     def get_desig_sugest(self):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-        
-         (  SELECT 
-                desg.id AS desig_id,     
-				desg.dsg_data,
-				desg.dsg_detalhes,
-				desg.dsg_mapa_cod,
-                terr.id AS territor_id, 
-                terr.terr_nome, 
-                terr.data_inclu, 
-                terr.terr_respons, terr.dt_ultvisit,  
-                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
-                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
-                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
-                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
-            FROM cad_territorios terr
-            LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
-            WHERE 
-                1 = 1 
-                and terr.terr_status IN  ('0')
-                and terr.terr_cor IN  ('0')
-                and not (terr.terr_desig in ('2') )
-                and (isnull(desg.id) or desg.dsg_status in ('4'))
-            ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 4  )
-		    UNION 
-           ( SELECT 
-                desg.id AS desig_id,     
-				desg.dsg_data,
-				desg.dsg_detalhes,
-				desg.dsg_mapa_cod,
-                terr.id AS territor_id, 
-                terr.terr_nome, 
-                terr.data_inclu, 
-                terr.terr_respons, terr.dt_ultvisit,  
-                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
-                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
-                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
-                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
-            FROM cad_territorios terr
-            LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
-            WHERE 
-                1 = 1 
-                and terr.terr_status IN  ('0')
-                and terr.terr_cor IN  ('1')
-                and not (terr.terr_desig in ('2') )
-                and (isnull(desg.id) or desg.dsg_status in ('4'))
-            ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 4)
-            UNION 
-            ( SELECT 
-                desg.id AS desig_id,     
-				desg.dsg_data,
-				desg.dsg_detalhes,
-				desg.dsg_mapa_cod,
-                terr.id AS territor_id, 
-                terr.terr_nome, 
-                terr.data_inclu, 
-                terr.terr_respons, terr.dt_ultvisit,  
-                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
-                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
-                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
-                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
-            FROM cad_territorios terr
-            LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
-            WHERE 
-                1 = 1 
-                and terr.terr_status IN  ('0')
-                and terr.terr_cor IN  ('2')
-                and not (terr.terr_desig in ('2') )
-                and (isnull(desg.id) or desg.dsg_status in ('4'))
-            ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 2)
+            (   SELECT 
+                    desg.id AS desig_id,     
+				    desg.dsg_data,
+				    desg.dsg_detalhes,
+				    desg.dsg_mapa_cod,
+                    terr.id AS territor_id, 
+                    terr.terr_nome, 
+                    terr.data_inclu, 
+                    terr.terr_respons, terr.dt_ultvisit,  
+                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+                FROM cad_territorios terr
+                LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+                WHERE 
+                    1 = 1 
+                    and terr.terr_status IN  ('0')
+                    and terr.terr_cor IN  ('0')
+                    and (isnull(desg.id) or desg.dsg_status in ('4'))
+                    and not (terr.terr_desig in ('2') )
+                ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 6  )
+		        UNION 
+            (   SELECT 
+                    desg.id AS desig_id,     
+				    desg.dsg_data,
+				    desg.dsg_detalhes,
+				    desg.dsg_mapa_cod,
+                    terr.id AS territor_id, 
+                    terr.terr_nome, 
+                    terr.data_inclu, 
+                    terr.terr_respons, terr.dt_ultvisit,  
+                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+                FROM cad_territorios terr
+                LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+                WHERE 
+                    1 = 1 
+                    and terr.terr_status IN  ('0')
+                    and terr.terr_cor IN  ('1')
+                    and (isnull(desg.id) or desg.dsg_status in ('4'))
+                    and not (terr.terr_desig in ('2') )
+                ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 6)
+                UNION 
+            (   SELECT 
+                    desg.id AS desig_id,     
+				    desg.dsg_data,
+				    desg.dsg_detalhes,
+				    desg.dsg_mapa_cod,
+                    terr.id AS territor_id, 
+                    terr.terr_nome, 
+                    terr.data_inclu, 
+                    terr.terr_respons, terr.dt_ultvisit,  
+                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
+                FROM cad_territorios terr
+                LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+                WHERE 
+                    1 = 1 
+                    and terr.terr_status IN  ('0')
+                    and terr.terr_cor IN  ('2')
+                    and (isnull(desg.id) or desg.dsg_status in ('4'))
+                    and not (terr.terr_desig in ('2') )
+                ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 3)
             """)
         
         desig = cursor.fetchall()
@@ -1208,6 +1290,85 @@ class UanotacService:
         conn.commit()
         conn.close()
         return uanotac_id
-  
+
+    
+##
+## Serviços para registro de Horas 
+class HorasCampService:
+    def add_hrsprg(self,hrsprg):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO mov_horas_pregacao(data_inclu,mhrsp_data,mhrsp_pub,mhrsp_anosrv,mhrsp_anocal,mhrsp_mes,mhrsp_ativ,mhrsp_hrs,mhrsp_min,mhrsp_ensino,mhrsp_mensag ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (hrsprg.data_inclu,hrsprg.mhrsp_data,hrsprg.mhrsp_pub,hrsprg.mhrsp_anosrv,hrsprg.mhrsp_anocal,hrsprg.mhrsp_mes,hrsprg.mhrsp_ativ,hrsprg.mhrsp_hrs,hrsprg.mhrsp_min,hrsprg.mhrsp_ensino,hrsprg.mhrsp_mensag ))
+        conn.commit()
+        hrsprg_id = cursor.lastrowid
+        conn.close()
+        return hrsprg_id
+    
+
+    def update_hrsprg(self, hrsprg_id, hrsprg):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE mov_horas_pregacao SET  mhrsp_data = %s, mhrsp_pub = %s, mhrsp_anosrv = %s, mhrsp_anocal = %s,mhrsp_mes = %s,mhrsp_ativ = %s, mhrsp_hrs = %s, mhrsp_ativ = %s, mhrsp_min = %s,mhrsp_ensino = %s,mhrsp_mensag = %s WHERE id = %s',
+	        (hrsprg.mhrsp_data,hrsprg.mhrsp_pub,hrsprg.mhrsp_anosrv,hrsprg.mhrsp_anocal,hrsprg.mhrsp_mes,hrsprg.mhrsp_ativ,hrsprg.mhrsp_hrs,hrsprg.mhrsp_min,hrsprg.mhrsp_ensino,hrsprg.mhrsp_mensag, hrsprg_id ))
+        conn.commit()
+        conn.close()
+        return hrsprg_id
+    
+    def get_all_hrsprg(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM mov_horas_pregacao where 1 = 1 order by mhrsp_pub,mhrsp_data  DESC")
+        hrsprg = cursor.fetchall()
+        result = rows_to_dict(cursor, hrsprg)
+        conn.close()
+        return result
+    
+    def get_hrsprg_user(self, hrsprg_user):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+	            id as uanot_id,
+	            data_inclu,	
+				mhrsp_data,	
+	            mhrsp_pub,	
+	            mhrsp_anosrv, 
+	            mhrsp_anocal,
+	            mhrsp_mes,  	
+				mhrsp_ativ,  	
+				mhrsp_hrs,  	
+				mhrsp_min,
+				mhrsp_ensino,	  
+	            mhrsp_mensag
+            FROM mov_horas_pregacao as thrspreg
+            WHERE 1 = 1 
+	            and trim(thrspreg.mhrsp_pub) = %s
+            ORDER BY mhrsp_data DESC
+            """, (hrsprg_user,))
+        hrsprg = cursor.fetchall()
+        result = rows_to_dict(cursor, hrsprg)
+        conn.close()
+        return result
+    
+    def delete_hrsprg(self, hrsprg_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verifica se o registro existe antes de tentar deletar
+        cursor.execute('SELECT * FROM mov_horas_pregacao WHERE id = %s', (hrsprg_id,))
+        hrsprg = cursor.fetchone()
+
+        if not hrsprg:
+            conn.close()
+            raise ValueError("Registro não encontrado")  # Lança erro se não encontrar
+
+        # Se o registro existe, faz a exclusão
+        cursor.execute('DELETE FROM mov_horas_pregacao WHERE id = %s', (hrsprg_id,))
+        conn.commit()
+        conn.close()
+        return hrsprg_id
+
+
 ##### ##### ##### ##### ######
 ###### FIM DOS SERVICES ###### 

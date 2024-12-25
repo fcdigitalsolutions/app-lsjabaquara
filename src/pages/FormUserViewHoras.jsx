@@ -7,7 +7,6 @@ import {
   CardContent,
   CardActions,
   Typography,
-  CircularProgress,
   IconButton,
   Collapse,
   Dialog,
@@ -42,166 +41,216 @@ const ExpandMore = styled((props) => {
 }));
 
 const FormUserViewHoras = () => {
-  const [dataUAnota, setDataUAnota] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  const { darkMode } = useTheme();
+  const [dataUHrsPreg, setDataUHrsPreg] = useState([]);
+  const [selectedYear, setSelectedYear] = useState('2024'); // Ano padrão (exemplo)
+  const [selectedMonth, setSelectedMonth] = useState('12'); // Mês padrão (exemplo)
+
   const [expanded, setExpanded] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
-  const [openuAnotacDialogEdit, setOpenuAnotacDialogEdit] = useState(false);
-  const [openuAnotacDialogNew, setOpenuAnotacDialogNew] = useState(false);
-  const [openuAnotacDialogDelete, setOpenuAnotacDialogDelete] = useState(false);
+  const [openuHrsPregcDialogEdit, setOpenuHrsPregcDialogEdit] = useState(false);
+  const [openuHrsPregcDialogNew, setOpenuHrsPregcDialogNew] = useState(false);
+  const [openuHrsPregcDialogDelete, setOpenuHrsPregcDialogDelete] = useState(false);
   const [formFields, setFormFields] = useState({
-    uanot_titul: '',
-    uanot_legend: '',
-    uanot_cor: '',
-    uanot_mensag: '',
+    mhrsp_ativ: '',
+    mhrsp_hrs: '',
+    mhrsp_min: '',
+    mhrsp_ensino: '',
+    mhrsp_mensag: '',
   });
 
   const userDados = JSON.parse(sessionStorage.getItem('userData'));
   const lginUser = userDados?.iduser;
-  const totalMapas = new Set(dataUAnota.map(item => item.uanot_id)).size;
-
-  const { darkMode } = useTheme();
 
   useEffect(() => {
-    setLoading(true);
-    api_service.get(`/uanotpub/${lginUser}`)
+    api_service.get(`/hrsprg/${lginUser}`)
       .then((response) => {
-        setDataUAnota(response.data);
-        setError(null);
+        setDataUHrsPreg(response.data);
+
       })
       .catch((error) => {
         console.error("Erro ao buscar os dados: ", error);
-        setError('Erro ao carregar as designações. Tente novamente mais tarde.');
       })
-      .finally(() => setLoading(false));
   }, [lginUser]);
+
+  // 2. Filtrar os dados conforme ano e mês
+  const filteredData = dataUHrsPreg.filter((item) => {
+    return (
+      item.mhrsp_anocal === selectedYear &&
+      item.mhrsp_mes === selectedMonth
+    );
+  });
+
+
+
+  // 3. Função para somar horas e minutos (exemplo reaproveitando a lógica)
+  const calcularHoras = (itens, atividade) => {
+    const { totalHoras, totalMins } = itens
+      .filter(item => item.mhrsp_ativ === atividade)
+      .reduce((acc, item) => {
+        const horasNum = parseFloat(item.mhrsp_hrs) || 0;
+        const minsNum = parseFloat(item.mhrsp_min) || 0;
+        return {
+          totalHoras: acc.totalHoras + horasNum,
+          totalMins: acc.totalMins + minsNum,
+        };
+      }, { totalHoras: 0, totalMins: 0 });
+
+    let horasFinais = totalHoras;
+    let minsFinais = totalMins;
+
+    const extraHours = Math.floor(minsFinais / 60);
+    horasFinais += extraHours;
+    minsFinais = minsFinais % 60;
+
+    const hh = horasFinais.toString().padStart(2, '0');
+    const mm = minsFinais.toString().padStart(2, '0');
+    return `${hh}:${mm}`;
+  };
+
+  // 4. Totais usando os itens filtrados
+  const totalHorasCamp = calcularHoras(filteredData, '1'); // Pregação
+  const totalHorasProj = calcularHoras(filteredData, '2'); // Projetos
+
+  const totalEstudos = filteredData.filter(item =>
+    // se, por exemplo, mhrsp_ensino > 0
+    parseFloat(item.mhrsp_ensino) > 0
+  ).length;
+
+
 
   const handleFieldChange = (field, value) => {
     setFormFields((prevState) => ({ ...prevState, [field]: value }));
   };
 
-  const handleAnotacSubmit = async () => {
-    const uAnotacDataNew = {
+  const handleHrsPregcSubmit = async () => {
+    const uHrsPregcDataNew = {
       data_inclu: new Date().toLocaleDateString("pt-BR"),
-      uanot_pub: lginUser,
-      uanot_titul: formFields.uanot_titul,
-      uanot_legend: formFields.uanot_legend,
-      uanot_cor: formFields.uanot_cor,
-      uanot_mensag: formFields.uanot_mensag,
+      mhrsp_data: new Date().toLocaleDateString("pt-BR"),
+      mhrsp_pub: lginUser,
+      mhrsp_anosrv: formFields.mhrsp_anosrv,
+      mhrsp_anocal: formFields.mhrsp_anocal,
+      mhrsp_mes: formFields.mhrsp_mes,
+      mhrsp_ativ: formFields.mhrsp_ativ,
+      mhrsp_hrs: formFields.mhrsp_hrs,
+      mhrsp_min: formFields.mhrsp_min,
+      mhrsp_ensino: formFields.mhrsp_ensino,
+      mhrsp_mensag: formFields.mhrsp_mensag,
     };
 
     try {
-      await api_service.post(`/uanotac`, uAnotacDataNew); // Insere a visita
-      setOpenuAnotacDialogNew(false); // Fecha o modal de visita
+      await api_service.post(`/hrsprg`, uHrsPregcDataNew); // Insere a visita
+      setOpenuHrsPregcDialogNew(false); // Fecha o modal de visita
     } catch (error) {
       console.error("Erro ao registrar visita e atualizar os dados: ", error);
     }
   };
 
-  const handleAnotacUpdate = async () => {
+  const handleHrsPregcUpdate = async () => {
     if (!selectedItem) return;
-    const uAnotacDataEdit = {
-      uanot_pub: selectedItem.uanot_pub,
-      uanot_titul: formFields.uanot_titul,
-      uanot_legend: formFields.uanot_legend,
-      uanot_cor: formFields.uanot_cor,
-      uanot_mensag: formFields.uanot_mensag,
+    const uHrsPregcDataEdit = {
+      mhrsp_pub: selectedItem.mhrsp_pub,
+      mhrsp_anosrv: formFields.mhrsp_anosrv,
+      mhrsp_anocal: selectedItem.mhrsp_anocal,
+      mhrsp_mes: selectedItem.mhrsp_mes,
+      mhrsp_data: formFields.mhrsp_data,
+      mhrsp_ativ: formFields.mhrsp_ativ,
+      mhrsp_hrs: formFields.mhrsp_hrs,
+      mhrsp_min: formFields.mhrsp_min,
+      mhrsp_ensino: formFields.mhrsp_ensino,
+      mhrsp_mensag: formFields.mhrsp_mensag,
     };
 
     try {
-      await api_service.put(`/uanotac/${selectedItem.uanot_id}`, uAnotacDataEdit); // edita anotação
+      await api_service.put(`/hrsprg/${selectedItem.mhrsp_id}`, uHrsPregcDataEdit); // edita anotação
       // Atualiza os dados da anotação
       console.log("Registro alterado com sucesso.");
 
-           // Atualiza o estado local para refletir as mudanças
-           setDataUAnota((prevData) =>
-            prevData.map((item) =>
-              item.uanot_id === selectedItem.uanot_id
-                ? { ...item, uanot_legend: selectedItem.uanot_legend, uanot_cor: selectedItem.uanot_cor }
-                : item
-            )
-          );
+      // Atualiza o estado local para refletir as mudanças
+      setDataUHrsPreg((prevData) =>
+        prevData.map((item) =>
+          item.mhrsp_id === selectedItem.mhrsp_id
+            ? { ...item, mhrsp_ativ: selectedItem.mhrsp_ativ }
+            : item
+        )
+      );
 
-      setOpenuAnotacDialogEdit(false); // Fecha o modal de visita
+      setOpenuHrsPregcDialogEdit(false); // Fecha o modal de visita
     } catch (error) {
       console.error("Erro ao atualizar os dados: ", error);
     }
   };
 
-  const handleAnotacDelete = async () => {
+  const handleHrsPregcDelete = async () => {
     if (!selectedItem) return;
-    const uAnotacDataDelete = {
-      uanot_pub: selectedItem.uanot_pub,
-      uanot_titul: formFields.uanot_titul,
-      uanot_legend: formFields.uanot_legend,
-      uanot_cor: formFields.uanot_cor,
-      uanot_mensag: formFields.uanot_mensag,
+    const uHrsPregcDataDelete = {
+      mhrsp_pub: selectedItem.mhrsp_pub,
+      mhrsp_anosrv: selectedItem.mhrsp_anosrv,
+      mhrsp_anocal: selectedItem.mhrsp_anocal,
+      mhrsp_mes: selectedItem.mhrsp_mes,
     };
 
     try {
-      await api_service.delete(`/uanotac/${selectedItem.uanot_id}`, uAnotacDataDelete); // edita anotação
+      await api_service.delete(`/hrsprg/${selectedItem.mhrsp_id}`, uHrsPregcDataDelete); // edita anotação
       // Atualiza os dados da anotação
       console.log("Registro excluído com sucesso.");
 
-           // Atualiza o estado local para refletir as mudanças
-           setDataUAnota((prevData) =>
-            prevData.map((item) =>
-              item.uanot_id === selectedItem.uanot_id
-                ? { ...item, uanot_legend: selectedItem.uanot_legend, uanot_cor: selectedItem.uanot_cor }
-                : item
-            )
-          );
-
-      setOpenuAnotacDialogDelete(false); // Fecha o modal de visita
+      setOpenuHrsPregcDialogDelete(false); // Fecha o modal de visita
     } catch (error) {
       console.error("Erro ao atualizar os dados: ", error);
     }
   };
 
-  const handleOpenDialogNewAnot = () => {
+  const handleOpenDialogNewHoras = () => {
     setFormFields({
-      data_inclu: new Date().toLocaleDateString("pt-BR"),
-      uanot_titul: '',
-      uanot_legend: '',
-      uanot_cor: '',
-      uanot_mensag: '',
+      ...formFields,
+      mhrsp_anosrv: selectedYear, // Por exemplo, se você chama esse campo de "mhrsp_anosrv"
+      mhrsp_anocal: selectedYear, // Ajuste se for esse o campo
+      mhrsp_mes: selectedMonth,
+      mhrsp_ativ: '',    // Zere ou defina o padrão
+      mhrsp_hrs: '',
+      mhrsp_min: '',
+      mhrsp_ensino: '',
+      mhrsp_mensag: '',
     });
 
-    setOpenuAnotacDialogNew(true); // Abre o diálogo
+    setOpenuHrsPregcDialogNew(true); // Abre o diálogo
   };
 
 
   const handleOpenDialogEditAnot = (item) => {
     setSelectedItem({
       ...item,
-      uanot_id: item.uanot_id,
+      mhrsp_id: item.mhrsp_id,
     });
 
     setFormFields({
-      uanot_titul: item.uanot_titul || '',
-      uanot_legend: item.uanot_legend || '',
-      uanot_cor: item.uanot_cor || '',
-      uanot_mensag: item.uanot_mensag || '',
+      mhrsp_ativ: item.mhrsp_ativ || '',
+      mhrsp_hrs: item.mhrsp_hrs || '',
+      mhrsp_min: item.mhrsp_min || '',
+      mhrsp_ensino: item.mhrsp_ensino || '',
+      mhrsp_mensag: item.mhrsp_mensag || '',
     });
 
-    setOpenuAnotacDialogEdit(true); // Abre o diálogo
+    setOpenuHrsPregcDialogEdit(true); // Abre o diálogo
   };
 
   const handleOpenDialogDeleteAnot = (item) => {
     setSelectedItem({
       ...item,
-      uanot_id: item.uanot_id,
+      mhrsp_id: item.mhrsp_id,
     });
 
     setFormFields({
-      uanot_titul: item.uanot_titul || '',
-      uanot_legend: item.uanot_legend || '',
-      uanot_cor: item.uanot_cor || '',
-      uanot_mensag: item.uanot_mensag || '',
+      mhrsp_ativ: item.mhrsp_ativ || '',
+      mhrsp_hrs: item.mhrsp_hrs || '',
+      mhrsp_min: item.mhrsp_min || '',
+      mhrsp_ensino: item.mhrsp_ensino || '',
+      mhrsp_mensag: item.mhrsp_mensag || '',
     });
 
-    setOpenuAnotacDialogDelete(true); // Abre o diálogo
+    setOpenuHrsPregcDialogDelete(true); // Abre o diálogo
   };
 
   const handleExpandClick = (id) => {
@@ -210,6 +259,110 @@ const FormUserViewHoras = () => {
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333333' }}>
+
+      <Box className="card-container-user-horas">
+
+        {/* SELETORES DE ANO E MÊS */}
+        <Box 
+          sx={{ 
+              display: 'flex', 
+              gap: 2, 
+              marginTop: '14px',
+              marginBottom: '6px',
+          }}>
+          <FormControl size="small" 
+            sx={{ minWidth: 120, color: darkMode ? '#D9D919' : '#202038', }}>
+            <InputLabel>Ano</InputLabel>
+            <Select
+            sx={{ 
+             color: darkMode ? '#D9D919' : '#202038',
+            }}
+              value={selectedYear}
+              label="Ano"
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              <MenuItem value="2023">2023</MenuItem>
+              <MenuItem value="2024">2024</MenuItem>
+              <MenuItem value="2025">2025</MenuItem>
+              {/* insira os anos que quiser */}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Mês</InputLabel>
+            <Select
+            sx={{ 
+             color: darkMode ? '#D9D919' : '#202038',
+            }}
+              value={selectedMonth}
+              label="Mês"
+              onChange={(e) => setSelectedMonth(e.target.value)}
+            >
+              <MenuItem value="01">Janeiro</MenuItem>
+              <MenuItem value="02">Fevereiro</MenuItem>
+              <MenuItem value="03">Março</MenuItem>
+              <MenuItem value="04">Abril</MenuItem>
+              <MenuItem value="05">Maio</MenuItem>
+              <MenuItem value="06">Junho</MenuItem>
+              <MenuItem value="07">Julho</MenuItem>
+              <MenuItem value="08">Agosto</MenuItem>
+              <MenuItem value="09">Setembro</MenuItem>
+              <MenuItem value="10">Outubro</MenuItem>
+              <MenuItem value="11">Novembro</MenuItem>
+              <MenuItem value="12">Dezembro</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+        <Box className="card-box-horas-user">
+          <Card
+            className="card-user-horas"
+            sx={{
+              backgroundColor: darkMode ? '#174A63' : '#67e7eb',
+              color: darkMode ? '#67e7eb' : '#333',
+              transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-10px) scale(1.03)',
+                boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+              },
+              '&:active': {
+                transform: 'translateY(-10px) scale(1.03)',
+                boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+              },
+            }}
+          >
+            <CardContent>
+              <Typography
+                sx={{
+                  fontSize: '0.80rem',
+                  marginLeft: '2px',
+                  marginTop: '-5px',
+                }}
+              >
+                Horas de Pregação: {totalHorasCamp}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: '0.80rem',
+                  marginLeft: '2px',
+                  marginTop: '-3px',
+                }}
+              >
+                Horas de Projetos: {totalHorasProj}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: '0.80rem',
+                  marginLeft: '2px',
+                  marginTop: '-3px',
+                }}
+              >
+                Estudos: {totalEstudos}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+
       <Box
         sx={{
           color: darkMode ? ' #67e7eb' : ' #333333',
@@ -221,13 +374,14 @@ const FormUserViewHoras = () => {
         }}
       >
         <Box
-          onClick={() => handleOpenDialogNewAnot(null)}
+          onClick={() => handleOpenDialogNewHoras(null)}
           sx={{
             display: 'flex',
             cursor: 'pointer',
             fontSize: '14px',
             marginLeft: '195px',
-            marginTop: '5px',
+            marginTop: '15px',
+            marginBottom: '10px',
             color: darkMode ? ' #ffffff' : '#00009C',
             '&:hover': {
               color: darkMode ? '#67e7eb' : '#7F00FF',
@@ -238,123 +392,112 @@ const FormUserViewHoras = () => {
           <FaClock style={{ marginRight: '4px' }} />
           Lançar Horas
         </Box>
-        <Typography sx={{ fontSize: '0.8rem', marginLeft: '5px', marginTop: '10px' }}>
-          Suas Horas: {totalMapas}
-        </Typography>
+
       </Box>
 
-      {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <Typography variant="body1" color="error" align="center">{error}</Typography>
-      ) : (
-        <Box className="card-container-user-horas">
-          {/* Removi um Box duplicado */}
-          {dataUAnota.map((item, index) => {
-         
-            return (
-              <Box key={index} className="card-box-horas-user">
-                <Card
-                  className="card-user-horas"
-                  sx={{
-                    backgroundColor: darkMode ? '#174A63' :'#67e7eb',
-                    color: darkMode ? '#67e7eb' : '#333',
-                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                    '&:hover': {
-                      transform: 'translateY(-10px) scale(1.03)',
-                      boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
-                    },
-                    '&:active': {
-                      transform: 'translateY(-10px) scale(1.03)',
-                      boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
-                    },
-                  }}
-                >
-                  <CardContent>
-                    <Typography
-                      sx={{
-                        fontSize: '1.0rem',
-                        marginLeft: '2px',
-                        marginTop: '-10px',
-                      }}
-                    >
-                    {item.uanot_titul}
-                    </Typography>
+      <Box className="card-container-user-horas">
+        {filteredData.map((item, index) => {
 
-                    <Typography
-                      sx={{
-                        fontSize: '0.78rem',
-                        marginLeft: '2px',
-                        marginTop: '-3px',
-                      }}
-                    >
-                      Data: {item.data_inclu}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: '0.78rem',
-                        marginLeft: '2px',
-                        marginTop: '-3px',
-                      }}
-                    >
-                      Dia: {item.uanot_legend}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: '0.78rem',
-                        marginLeft: '2px',
-                        marginTop: '-3px',
-                      }}
-                    >
-                      Horas: {item.uanot_legend}
-                    </Typography>
+          return (
+            <Box key={index} className="card-box-horas-user">
+              <Card
+                className="card-user-horas"
+                sx={{
+                  backgroundColor: darkMode ? '#174A63' : '#67e7eb',
+                  color: darkMode ? '#67e7eb' : '#333',
+                  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-10px) scale(1.03)',
+                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(-10px) scale(1.03)',
+                    boxShadow: '0px 8px 16px rgba(0,0,0,0.3)',
+                  },
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    sx={{
+                      fontSize: '0.78rem',
+                      marginLeft: '2px',
+                      marginTop: '-3px',
+                    }}
+                  >
+                    Data: {item.mhrsp_data}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '0.78rem',
+                      marginLeft: '2px',
+                      marginTop: '-3px',
+                    }}
+                  >
+                    Atividade: {item.mhrsp_ativ}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '0.78rem',
+                      marginLeft: '2px',
+                      marginTop: '-3px',
+                    }}
+                  >
+                    Horas: {item.mhrsp_hrs}:{item.mhrsp_min}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '0.78rem',
+                      marginLeft: '2px',
+                      marginTop: '-3px',
+                    }}
+                  >
+                    Estudos: {item.mhrsp_ensino}
+                  </Typography>
 
+                  <Box
+                    onClick={() => handleOpenDialogEditAnot(item)}
+                    sx={{
+                      alignItems: 'center',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      cursor: 'pointer',
+                      fontSize: '0.80rem',
+                      marginTop: '-8px',
+                      color: darkMode ? '#ffffff' : '#2c2c4e',
+                      '&:hover': {
+                        color: darkMode ? '#67e7eb' : '#333333',
+                        textDecoration: 'underline',
+                      },
+                    }}
+                  >
+                    <FaFileSignature style={{ marginRight: '4px' }} />
+                    Alterar Horas
+                  </Box>
+                </CardContent>
+                <CardActions disableSpacing sx={{ marginTop: '-40px', marginRight: '230px' }}>
+                  <ExpandMore
+                    expand={expanded[item.uanot_id]}
+                    onClick={() => handleExpandClick(item.uanot_id)}
+                    aria-expanded={expanded[item.desig_id]}
+                    aria-label="Mostrar mais"
+                  >
+                    <FaAngleDoubleDown />
+                  </ExpandMore>
+                </CardActions>
+                <Collapse in={expanded[item.uanot_id]} timeout="auto" unmountOnExit>
+                  <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
+                    <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '-20px', color: darkMode ? '#67e7eb' : '#333' }}>
+                      {item.mhrsp_mensag || 'Nenhuma nota disponível.'}
+                    </Typography>
                     <Box
-                      onClick={() => handleOpenDialogEditAnot(item)}
-                      sx={{
-                        alignItems: 'center', 
-                        display: 'flex',
-                        flexDirection: 'column',
-                        cursor: 'pointer',
-                        fontSize: '0.80rem',
-                        marginTop: '10px',
-                        color: darkMode ? '#ffffff' : '#2c2c4e',
-                        '&:hover': {
-                          color: darkMode ? '#67e7eb' : '#333333',
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      <FaFileSignature style={{ marginRight: '4px' }} />
-                      Alterar Horas
-                    </Box>
-                  </CardContent>
-                  <CardActions disableSpacing sx={{ marginTop: '-30px', marginRight: '230px' }}>
-                    <ExpandMore
-                      expand={expanded[item.uanot_id]}
-                      onClick={() => handleExpandClick(item.uanot_id)}
-                      aria-expanded={expanded[item.desig_id]}
-                      aria-label="Mostrar mais"
-                    >
-                      <FaAngleDoubleDown />
-                    </ExpandMore>
-                  </CardActions>
-                  <Collapse in={expanded[item.uanot_id]} timeout="auto" unmountOnExit>
-                    <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
-                      <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '-20px', color: darkMode ? '#67e7eb' : '#333' }}>
-                        {item.uanot_mensag || 'Nenhuma nota disponível.'}
-                      </Typography>
-                      <Box
                       onClick={() => handleOpenDialogDeleteAnot(item)}
                       sx={{
-                        alignItems: 'center', 
+                        alignItems: 'center',
                         display: 'flex',
                         flexDirection: 'column',
                         cursor: 'pointer',
                         fontSize: '0.80rem',
-                        marginTop: '20px',
+                        marginTop: '15px',
                         color: darkMode ? '#ffffff' : '#2c2c4e',
                         '&:hover': {
                           color: darkMode ? '#67e7eb' : '#333333',
@@ -365,155 +508,164 @@ const FormUserViewHoras = () => {
                       <FaTrashAlt style={{ marginRight: '4px' }} />
                       Excluir Horas
                     </Box>
-                    </CardContent>
-                  </Collapse>
-                </Card>
-              </Box>
-            );
-          })}
-        </Box>
-      )}
+                  </CardContent>
+                </Collapse>
+              </Card>
+            </Box>
+          );
+        })}
+      </Box>
 
-      <Dialog open={openuAnotacDialogEdit} onClose={() => setOpenuAnotacDialogEdit(false)}>
-        <DialogTitle>Atividade: {selectedItem?.uanot_titul}</DialogTitle>
+      {/* Caixa de diálogo de lançamento do novo apontamento de horas */}
+      <Dialog open={openuHrsPregcDialogNew} onClose={() => setOpenuHrsPregcDialogNew(false)}>
+        <DialogTitle>Período: {selectedMonth}/{selectedYear} </DialogTitle>
         <DialogContent>
           <DialogContentText></DialogContentText>
-        
-
           <FormControl fullWidth margin="dense">
-            <InputLabel>Tipo de Atividade *</InputLabel>
+            <InputLabel>Tipo de Horas *</InputLabel>
             <Select
-              value={formFields.uanot_legend}
-              onChange={(e) => handleFieldChange('uanot_legend', e.target.value)}
+              value={formFields.mhrsp_ativ}
+              onChange={(e) => handleFieldChange('mhrsp_ativ', e.target.value)}
             >
-              <MenuItem value="0">Pregação</MenuItem>
-              <MenuItem value="1">Projetos</MenuItem>
-             
+              <MenuItem value="1">Pregação</MenuItem>
+              <MenuItem value="2">Projetos</MenuItem>
             </Select>
           </FormControl>
           <TextField
             margin="dense"
-            label="Suas Horas"
+            label="Horas*"
             type="text"
             fullWidth
-            value={formFields.uanot_mensag}
-            onChange={(e) => handleFieldChange('uanot_mensag', e.target.value)}
+            value={formFields.mhrsp_hrs}
+            onChange={(e) => handleFieldChange('mhrsp_hrs', e.target.value)}
           />
           <TextField
             margin="dense"
-            label="Seus Detalhes"
+            label="Minutos*"
+            type="text"
+            fullWidth
+            value={formFields.mhrsp_min}
+            onChange={(e) => handleFieldChange('mhrsp_min', e.target.value)}
+          />
+          <TextField
+            margin="dense"
+            label="Estudos*"
+            type="text"
+            fullWidth
+            value={formFields.mhrsp_ensino}
+            onChange={(e) => handleFieldChange('mhrsp_ensino', e.target.value)}
+          />
+          <TextField
+            margin="dense"
+            label="Observações Pessoais"
             type="text"
             fullWidth
             multiline
             rows={8}
-            value={formFields.uanot_mensag}
-            onChange={(e) => handleFieldChange('uanot_mensag', e.target.value)}
+            value={formFields.mhrsp_mensag}
+            onChange={(e) => handleFieldChange('mhrsp_mensag', e.target.value)}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenuAnotacDialogEdit(false)} color="primary">
+          <Button onClick={() => setOpenuHrsPregcDialogNew(false)} color="primary">
             Cancelar
           </Button>
-          <Button onClick={handleAnotacUpdate} color="primary">
+          <Button onClick={handleHrsPregcSubmit} color="primary">
             Confirmar
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openuAnotacDialogNew} onClose={() => setOpenuAnotacDialogNew(false)}>
 
-        <DialogContent>
+      {/* Caixa de diálogo de edição das horas anotadas */}
+      <Dialog open={openuHrsPregcDialogEdit} onClose={() => setOpenuHrsPregcDialogEdit(false)}>
+        <DialogTitle>Período:  {selectedItem?.mhrsp_mes} / {selectedItem?.mhrsp_anosrv} </DialogTitle>
+         <DialogContent>
           <DialogContentText></DialogContentText>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Tipo de Horas *</InputLabel>
+            <Select
+              value={formFields.mhrsp_ativ}
+              onChange={(e) => handleFieldChange('mhrsp_ativ', e.target.value)}
+            >
+              <MenuItem value="1">Pregação</MenuItem>
+              <MenuItem value="2">Projetos</MenuItem>
+            </Select>
+          </FormControl>
           <TextField
             margin="dense"
-            label="Título da Anotação*"
+            label="Horas*"
             type="text"
             fullWidth
-            value={formFields.uanot_titul}
-            onChange={(e) => handleFieldChange('uanot_titul', e.target.value)}
+            value={formFields.mhrsp_hrs}
+            onChange={(e) => handleFieldChange('mhrsp_hrs', e.target.value)}
           />
-
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Cor do Cartão *</InputLabel>
-            <Select
-              value={formFields.uanot_cor}
-              onChange={(e) => handleFieldChange('uanot_cor', e.target.value)}
-            >
-              <MenuItem value="0">Tema Atual</MenuItem>
-              <MenuItem value="1">Azul</MenuItem>
-              <MenuItem value="2">Vermelho</MenuItem>
-              <MenuItem value="3">Verde</MenuItem>
-              <MenuItem value="4">Rosa</MenuItem>
-              <MenuItem value="5">Spicy Pink</MenuItem>
-              <MenuItem value="6">Dark Orchid</MenuItem>
-              <MenuItem value="7">Chocolate</MenuItem>
-              <MenuItem value="8">Cinza</MenuItem>
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Legenda *</InputLabel>
-            <Select
-              value={formFields.uanot_legend}
-              onChange={(e) => handleFieldChange('uanot_legend', e.target.value)}
-            >
-              <MenuItem value="0">Normal</MenuItem>
-              <MenuItem value="1">Importante</MenuItem>
-              <MenuItem value="2">Urgente</MenuItem>
-              <MenuItem value="3">Alta Prioridade</MenuItem>
-            </Select>
-          </FormControl>
-
           <TextField
             margin="dense"
-            label="Anotação"
+            label="Minutos*"
+            type="text"
+            fullWidth
+            value={formFields.mhrsp_min}
+            onChange={(e) => handleFieldChange('mhrsp_min', e.target.value)}
+          />
+          <TextField
+            margin="dense"
+            label="Estudos*"
+            type="text"
+            fullWidth
+            value={formFields.mhrsp_ensino}
+            onChange={(e) => handleFieldChange('mhrsp_ensino', e.target.value)}
+          />
+          <TextField
+            margin="dense"
+            label="Observações Pessoais"
             type="text"
             fullWidth
             multiline
             rows={8}
-            value={formFields.uanot_mensag}
-            onChange={(e) => handleFieldChange('uanot_mensag', e.target.value)}
+            value={formFields.mhrsp_mensag}
+            onChange={(e) => handleFieldChange('mhrsp_mensag', e.target.value)}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenuAnotacDialogNew(false)} color="primary">
+          <Button onClick={() => setOpenuHrsPregcDialogEdit(false)} color="primary">
             Cancelar
           </Button>
-          <Button onClick={handleAnotacSubmit} color="primary">
+          <Button onClick={handleHrsPregcUpdate} color="primary">
             Confirmar
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Caixa de diálogo de confirmação */}
-            <Dialog
-              open={openuAnotacDialogDelete}
-              onClose={() => setOpenuAnotacDialogDelete(false)}
-              aria-labelledby="alert-dialog-title"
-              aria-describedby="alert-dialog-description"
-            >
-              <DialogTitle id="alert-dialog-title">Confirmar Ação</DialogTitle>
-              <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                  Deseja excluir as informações da sua anotação ?
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setOpenuAnotacDialogDelete(false)} color="primary">
-                  Não
-                </Button>
-                <Button
-                  onClick={async () => {
-                    setOpenuAnotacDialogDelete(false);
-                    await handleAnotacDelete();
-                  }}
-                  color="primary"
-                  autoFocus
-                >
-                  Sim
-                </Button>
-              </DialogActions>
-            </Dialog>
+      <Dialog
+        open={openuHrsPregcDialogDelete}
+        onClose={() => setOpenuHrsPregcDialogDelete(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Confirmar Ação</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Deseja excluir o lançamento dessas horas ?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenuHrsPregcDialogDelete(false)} color="primary">
+            Não
+          </Button>
+          <Button
+            onClick={async () => {
+              setOpenuHrsPregcDialogDelete(false);
+              await handleHrsPregcDelete();
+            }}
+            color="primary"
+            autoFocus
+          >
+            Sim
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </Box>
   );
