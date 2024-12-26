@@ -62,7 +62,9 @@ const FormUserViewHoras = () => {
   const [selectedHorasRegular, setSelectedHorasRegular] = useState('50'); // Pioneiro Regular
   const [selectedHorasAuxliar1, setSelectedHorasAuxliar1] = useState('30'); // Pioneiro Auxiliar 1
   const [selectedHorasAuxliar2, setSelectedHorasAuxliar2] = useState('15'); // Pioneiro Auxiliar 2
+  const [selectedHorasPublicador, setselectedHorasPublicador] = useState('0.25'); // Pioneiro Auxiliar 2
   const [selectedMetaType, setSelectedMetaType] = useState('regular'); // Regular por padrão
+  const [selectedMetaStatus, setSelectedMetaStatus] = useState(''); // Regular por padrão
 
   const [expanded, setExpanded] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
@@ -360,14 +362,25 @@ const FormUserViewHoras = () => {
       case 'auxiliar2':
         metaAtual = parseInt(selectedHorasAuxliar2);
         break;
+      case 'publicador':
+          metaAtual = parseInt(selectedHorasPublicador);
+          break;
     
       default:
-        metaAtual = parseInt('8');
+        metaAtual = parseInt('0.25');
         break;
     }
     return metaAtual - (parseInt(totalHorasCamp) + parseInt(totalHorasProj));
   };
 
+  const getStatusMetaHoras = (horasRestantes) => {
+      if (horasRestantes <= 0) {
+         return 'Parabéns, você já alcançou sua meta!!'
+      }
+      else {
+        return "Faltam: "+ (horasRestantes) + "h para atingir sua meta!"
+      }
+  }
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333333' }}>
@@ -441,9 +454,9 @@ const FormUserViewHoras = () => {
                     gap: 1,
                     marginTop: '5px',
                     marginBottom: '1px',
-                    marginLeft: '-30px',
+                    marginLeft: '-45px',
         }}>
-          <BarChart width={360} height={140} data={barChartData}>
+          <BarChart width={350} height={140} data={barChartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="mes" />
             <YAxis />
@@ -502,7 +515,7 @@ const FormUserViewHoras = () => {
           <MenuItem value="regular">Pioneiro Regular</MenuItem>
           <MenuItem value="auxiliar1">Pioneiro Auxiliar</MenuItem>
           <MenuItem value="auxiliar2">Pioneiro Auxiliar (Campanha)</MenuItem>
-         
+          <MenuItem value="publicador">Publicador</MenuItem>
         </Select>
       </FormControl>
               <Typography
@@ -540,7 +553,7 @@ const FormUserViewHoras = () => {
                   marginTop: '-3px',
                 }}
               >
-              Faltam: {getHorasRestantes()} horas para atingir sua meta!
+              {getStatusMetaHoras(getHorasRestantes())}
               </Typography>
             </CardContent>
           </Card>
