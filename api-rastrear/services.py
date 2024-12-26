@@ -1305,12 +1305,11 @@ class HorasCampService:
         conn.close()
         return hrsprg_id
     
-
     def update_hrsprg(self, hrsprg_id, hrsprg):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE mov_horas_pregacao SET  mhrsp_data = %s, mhrsp_pub = %s, mhrsp_anosrv = %s, mhrsp_anocal = %s,mhrsp_mes = %s,mhrsp_ativ = %s, mhrsp_hrs = %s, mhrsp_ativ = %s, mhrsp_min = %s,mhrsp_ensino = %s,mhrsp_mensag = %s WHERE id = %s',
-	        (hrsprg.mhrsp_data,hrsprg.mhrsp_pub,hrsprg.mhrsp_anosrv,hrsprg.mhrsp_anocal,hrsprg.mhrsp_mes,hrsprg.mhrsp_ativ,hrsprg.mhrsp_hrs,hrsprg.mhrsp_min,hrsprg.mhrsp_ensino,hrsprg.mhrsp_mensag, hrsprg_id ))
+        cursor.execute('UPDATE mov_horas_pregacao SET mhrsp_data = %s, mhrsp_pub = %s, mhrsp_anosrv = %s, mhrsp_anocal = %s, mhrsp_mes = %s, mhrsp_ativ = %s, mhrsp_hrs = %s, mhrsp_min = %s, mhrsp_ensino = %s, mhrsp_mensag = %s WHERE id = %s',
+	        (hrsprg.mhrsp_data,hrsprg.mhrsp_pub,hrsprg.mhrsp_anosrv,hrsprg.mhrsp_anocal,hrsprg.mhrsp_mes,hrsprg.mhrsp_ativ,hrsprg.mhrsp_hrs,hrsprg.mhrsp_min,hrsprg.mhrsp_ensino,hrsprg.mhrsp_mensag, hrsprg_id, ))
         conn.commit()
         conn.close()
         return hrsprg_id
@@ -1318,7 +1317,24 @@ class HorasCampService:
     def get_all_hrsprg(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM mov_horas_pregacao where 1 = 1 order by mhrsp_pub,mhrsp_data  DESC")
+        cursor.execute("""
+            SELECT 
+	            id as mhrsp_id,
+	            data_inclu,	
+				mhrsp_data,	
+	            mhrsp_pub,	
+	            mhrsp_anosrv, 
+	            mhrsp_anocal,
+	            mhrsp_mes,  	
+				mhrsp_ativ,  	
+				mhrsp_hrs,  	
+				mhrsp_min,
+				mhrsp_ensino,	  
+	            mhrsp_mensag
+            FROM mov_horas_pregacao as thrspreg
+            WHERE 1 = 1 
+            ORDER BY mhrsp_pub, mhrsp_data DESC
+            """ )
         hrsprg = cursor.fetchall()
         result = rows_to_dict(cursor, hrsprg)
         conn.close()
@@ -1329,7 +1345,7 @@ class HorasCampService:
         cursor = conn.cursor()
         cursor.execute("""
             SELECT 
-	            id as uanot_id,
+	            id as mhrsp_id,
 	            data_inclu,	
 				mhrsp_data,	
 	            mhrsp_pub,	

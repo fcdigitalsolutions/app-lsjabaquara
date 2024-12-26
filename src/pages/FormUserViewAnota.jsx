@@ -408,7 +408,7 @@ const FormUserViewAnota = () => {
                     <ExpandMore
                       expand={expanded[item.uanot_id]}
                       onClick={() => handleExpandClick(item.uanot_id)}
-                      aria-expanded={expanded[item.desig_id]}
+                      aria-expanded={expanded[item.uanot_id]}
                       aria-label="Mostrar mais"
                     >
                       <FaAngleDoubleDown />

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import api_service from '../services/api_service';
 import {
@@ -18,8 +19,17 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel
+  InputLabel,
 } from '@mui/material';
+
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,} from 'recharts';
+
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import 'dayjs/locale/pt-br';
+
 import {
   FaAngleDoubleDown,
   FaClock,
@@ -43,9 +53,16 @@ const ExpandMore = styled((props) => {
 const FormUserViewHoras = () => {
 
   const { darkMode } = useTheme();
+  const userDados = JSON.parse(sessionStorage.getItem('userData'));
+  const lginUser = userDados?.iduser;
+
   const [dataUHrsPreg, setDataUHrsPreg] = useState([]);
   const [selectedYear, setSelectedYear] = useState('2024'); // Ano padrão (exemplo)
   const [selectedMonth, setSelectedMonth] = useState('12'); // Mês padrão (exemplo)
+  const [selectedHorasRegular, setSelectedHorasRegular] = useState('50'); // Pioneiro Regular
+  const [selectedHorasAuxliar1, setSelectedHorasAuxliar1] = useState('30'); // Pioneiro Auxiliar 1
+  const [selectedHorasAuxliar2, setSelectedHorasAuxliar2] = useState('15'); // Pioneiro Auxiliar 2
+  const [selectedMetaType, setSelectedMetaType] = useState('regular'); // Regular por padrão
 
   const [expanded, setExpanded] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
@@ -53,15 +70,13 @@ const FormUserViewHoras = () => {
   const [openuHrsPregcDialogNew, setOpenuHrsPregcDialogNew] = useState(false);
   const [openuHrsPregcDialogDelete, setOpenuHrsPregcDialogDelete] = useState(false);
   const [formFields, setFormFields] = useState({
+    mhrsp_data: dayjs(), // ex.: inicia com a data de hoje
     mhrsp_ativ: '',
     mhrsp_hrs: '',
     mhrsp_min: '',
     mhrsp_ensino: '',
     mhrsp_mensag: '',
   });
-
-  const userDados = JSON.parse(sessionStorage.getItem('userData'));
-  const lginUser = userDados?.iduser;
 
   useEffect(() => {
     api_service.get(`/hrsprg/${lginUser}`)
@@ -74,7 +89,8 @@ const FormUserViewHoras = () => {
       })
   }, [lginUser]);
 
-  // 2. Filtrar os dados conforme ano e mês
+
+  // Filtrar os dados conforme ano e mês
   const filteredData = dataUHrsPreg.filter((item) => {
     return (
       item.mhrsp_anocal === selectedYear &&
@@ -82,9 +98,7 @@ const FormUserViewHoras = () => {
     );
   });
 
-
-
-  // 3. Função para somar horas e minutos (exemplo reaproveitando a lógica)
+  // Função para somar horas e minutos (exemplo reaproveitando a lógica)
   const calcularHoras = (itens, atividade) => {
     const { totalHoras, totalMins } = itens
       .filter(item => item.mhrsp_ativ === atividade)
@@ -109,15 +123,45 @@ const FormUserViewHoras = () => {
     return `${hh}:${mm}`;
   };
 
-  // 4. Totais usando os itens filtrados
+  // Totais usando os itens filtrados
   const totalHorasCamp = calcularHoras(filteredData, '1'); // Pregação
   const totalHorasProj = calcularHoras(filteredData, '2'); // Projetos
 
-  const totalEstudos = filteredData.filter(item =>
-    // se, por exemplo, mhrsp_ensino > 0
-    parseFloat(item.mhrsp_ensino) > 0
-  ).length;
+  // Função para somar estudos (exemplo reaproveitando a lógica)
+  const calcularEstudos = (itens) => {
+    const { totalEstudos } = itens
+      .reduce((acc, item) => {
+        const EstudoNum = parseFloat(item.mhrsp_ensino) || 0;
 
+        return {
+          totalEstudos: acc.totalEstudos + EstudoNum,
+        };
+      }, { totalEstudos: 0 });
+
+    let totalValor = totalEstudos;
+
+
+    return totalValor;
+  };
+
+  const totalEstudos = calcularEstudos(filteredData); // Projetos
+
+  const dataFilteredByYear = dataUHrsPreg.filter((item) => item.mhrsp_anocal === selectedYear);
+
+  const barChartData = dataFilteredByYear.reduce((acc, item) => {
+    const meses = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+    ];
+    const mesIndex = parseInt(item.mhrsp_mes) - 1;
+    if (!acc[mesIndex]) {
+      acc[mesIndex] = { mes: meses[mesIndex], pregação: 0, projetos: 0, estudos: 0 };
+    }
+    acc[mesIndex].pregação += parseFloat(item.mhrsp_ativ === '1' ? item.mhrsp_hrs || 0 : 0);
+    acc[mesIndex].projetos += parseFloat(item.mhrsp_ativ === '2' ? item.mhrsp_hrs || 0 : 0);
+    acc[mesIndex].estudos += parseFloat(item.mhrsp_ensino || 0);
+    return acc;
+  }, []).filter(Boolean);
 
 
   const handleFieldChange = (field, value) => {
@@ -127,7 +171,7 @@ const FormUserViewHoras = () => {
   const handleHrsPregcSubmit = async () => {
     const uHrsPregcDataNew = {
       data_inclu: new Date().toLocaleDateString("pt-BR"),
-      mhrsp_data: new Date().toLocaleDateString("pt-BR"),
+      mhrsp_data: formFields.mhrsp_data.format('DD/MM/YYYY'),
       mhrsp_pub: lginUser,
       mhrsp_anosrv: formFields.mhrsp_anosrv,
       mhrsp_anocal: formFields.mhrsp_anocal,
@@ -151,10 +195,10 @@ const FormUserViewHoras = () => {
     if (!selectedItem) return;
     const uHrsPregcDataEdit = {
       mhrsp_pub: selectedItem.mhrsp_pub,
-      mhrsp_anosrv: formFields.mhrsp_anosrv,
+      mhrsp_anosrv: selectedItem.mhrsp_anosrv,
       mhrsp_anocal: selectedItem.mhrsp_anocal,
+      mhrsp_data: formFields.mhrsp_data.format('DD/MM/YYYY'),
       mhrsp_mes: selectedItem.mhrsp_mes,
-      mhrsp_data: formFields.mhrsp_data,
       mhrsp_ativ: formFields.mhrsp_ativ,
       mhrsp_hrs: formFields.mhrsp_hrs,
       mhrsp_min: formFields.mhrsp_min,
@@ -195,7 +239,6 @@ const FormUserViewHoras = () => {
       await api_service.delete(`/hrsprg/${selectedItem.mhrsp_id}`, uHrsPregcDataDelete); // edita anotação
       // Atualiza os dados da anotação
       console.log("Registro excluído com sucesso.");
-
       setOpenuHrsPregcDialogDelete(false); // Fecha o modal de visita
     } catch (error) {
       console.error("Erro ao atualizar os dados: ", error);
@@ -218,14 +261,19 @@ const FormUserViewHoras = () => {
     setOpenuHrsPregcDialogNew(true); // Abre o diálogo
   };
 
-
   const handleOpenDialogEditAnot = (item) => {
     setSelectedItem({
       ...item,
       mhrsp_id: item.mhrsp_id,
     });
 
+    // Converte a string de data em dayjs
+    const parsedDate = item.mhrsp_data
+      ? dayjs(item.mhrsp_data, 'DD/MM/YYYY') // Se vier em "DD/MM/YYYY"
+      : null;
+
     setFormFields({
+      mhrsp_data: parsedDate,
       mhrsp_ativ: item.mhrsp_ativ || '',
       mhrsp_hrs: item.mhrsp_hrs || '',
       mhrsp_min: item.mhrsp_min || '',
@@ -257,26 +305,93 @@ const FormUserViewHoras = () => {
     setExpanded((prevExpanded) => ({ ...prevExpanded, [id]: !prevExpanded[id] }));
   };
 
+  const getStatusTpHoras = (mhrsp_ativ) => {
+    switch (mhrsp_ativ) {
+      case '1':
+        return 'Pregação';
+      case '2':
+        return 'Projetos';
+      default:
+        return 'Outros';
+    }
+  };
+
+  const getStatusNomeMes = (mhrsp_mes) => {
+    switch (mhrsp_mes) {
+      case '1':
+        return 'Janeiro';
+      case '2':
+        return 'Fevereiro';
+      case '3':
+        return 'Março';
+      case '4':
+        return 'Abril';
+      case '5':
+        return 'Maio';
+      case '6':
+        return 'Junho';
+      case '7':
+        return 'Julho';
+      case '8':
+        return 'Agosto';
+      case '9':
+        return 'Setembro';
+      case '10':
+        return 'Outubro';
+      case '11':
+        return 'Novembro';
+      case '12':
+        return 'Dezembro';
+      default:
+        return 'Outros';
+    }
+  };
+
+   // Calcula o valor dinamicamente com base na meta selecionada
+   const getHorasRestantes = () => {
+    let metaAtual;
+    switch (selectedMetaType) {
+      case 'regular':
+        metaAtual = parseInt(selectedHorasRegular);
+        break;
+      case 'auxiliar1':
+        metaAtual = parseInt(selectedHorasAuxliar1);
+        break;
+      case 'auxiliar2':
+        metaAtual = parseInt(selectedHorasAuxliar2);
+        break;
+    
+      default:
+        metaAtual = parseInt('8');
+        break;
+    }
+    return metaAtual - (parseInt(totalHorasCamp) + parseInt(totalHorasProj));
+  };
+
+
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333333' }}>
 
       <Box className="card-container-user-horas">
-
         {/* SELETORES DE ANO E MÊS */}
-        <Box 
-          sx={{ 
-              display: 'flex', 
-              gap: 2, 
-              marginTop: '14px',
-              marginBottom: '6px',
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            marginTop: '14px',
+            marginBottom: '6px',
           }}>
-          <FormControl size="small" 
+          <FormControl size="small"
             sx={{ minWidth: 120, color: darkMode ? '#D9D919' : '#202038', }}>
-            <InputLabel>Ano</InputLabel>
+            <InputLabel sx={{
+                color: darkMode ? '#67e7eb' : '#333',
+
+                
+              }}>Ano</InputLabel>
             <Select
-            sx={{ 
-             color: darkMode ? '#D9D919' : '#202038',
-            }}
+              sx={{
+                color: darkMode ? '#67e7eb' : '#333',
+              }}
               value={selectedYear}
               label="Ano"
               onChange={(e) => setSelectedYear(e.target.value)}
@@ -284,16 +399,23 @@ const FormUserViewHoras = () => {
               <MenuItem value="2023">2023</MenuItem>
               <MenuItem value="2024">2024</MenuItem>
               <MenuItem value="2025">2025</MenuItem>
-              {/* insira os anos que quiser */}
+              <MenuItem value="2026">2026</MenuItem>
+              <MenuItem value="2027">2027</MenuItem>
+              <MenuItem value="2028">2028</MenuItem>
+              <MenuItem value="2029">2029</MenuItem>
+              <MenuItem value="2030">2030</MenuItem>
+              {/* insira os anos manualmente */}
             </Select>
           </FormControl>
 
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Mês</InputLabel>
+          <FormControl size="small" sx={{ minWidth: 120, color: darkMode ? '#67e7eb' : '#333', }}>
+            <InputLabel sx={{
+                color: darkMode ? '#67e7eb' : '#333',
+              }}>Mês</InputLabel>
             <Select
-            sx={{ 
-             color: darkMode ? '#D9D919' : '#202038',
-            }}
+              sx={{
+                color: darkMode ? '#67e7eb' : '#333',
+              }}
               value={selectedMonth}
               label="Mês"
               onChange={(e) => setSelectedMonth(e.target.value)}
@@ -313,6 +435,27 @@ const FormUserViewHoras = () => {
             </Select>
           </FormControl>
         </Box>
+
+        <Box 
+                  sx={{
+                    gap: 1,
+                    marginTop: '5px',
+                    marginBottom: '1px',
+                    marginLeft: '-30px',
+        }}>
+          <BarChart width={360} height={140} data={barChartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="mes" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="pregação" fill="#8884d8" />
+            <Bar dataKey="projetos" fill="#82ca9d" />
+            <Bar dataKey="estudos" fill="#ffc658" />
+          </BarChart>
+        </Box>
+
+        {/*  card estático com o total dos cards filtrados pelo ano + mês  */}
         <Box className="card-box-horas-user">
           <Card
             className="card-user-horas"
@@ -331,6 +474,37 @@ const FormUserViewHoras = () => {
             }}
           >
             <CardContent>
+            <Typography
+                sx={{
+                  fontSize: '0.90rem',
+                  marginLeft: '2px',
+                  marginTop: '-5px',
+                  fontWeight: 'bold',
+                  marginBottom: '10px', 
+                }}
+              >
+                {getStatusNomeMes(selectedMonth)} / {selectedYear}
+              </Typography>
+
+              {/* Select para escolher a meta */}
+      <FormControl size="small" sx={{ minWidth: 100, marginBottom: '12px', }}>
+      <InputLabel sx={{
+                color: darkMode ? '#D9D919' : '#202038',
+              }}>Meta</InputLabel>
+        <Select
+        sx={{
+          color: darkMode ? '#D9D919' : '#202038',
+        }}
+          value={selectedMetaType}
+          onChange={(e) => setSelectedMetaType(e.target.value)}
+          label="Meta"
+        >
+          <MenuItem value="regular">Pioneiro Regular</MenuItem>
+          <MenuItem value="auxiliar1">Pioneiro Auxiliar</MenuItem>
+          <MenuItem value="auxiliar2">Pioneiro Auxiliar (Campanha)</MenuItem>
+         
+        </Select>
+      </FormControl>
               <Typography
                 sx={{
                   fontSize: '0.80rem',
@@ -357,6 +531,16 @@ const FormUserViewHoras = () => {
                 }}
               >
                 Estudos: {totalEstudos}
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontSize: '0.80rem',
+                  marginLeft: '2px',
+                  marginTop: '-3px',
+                }}
+              >
+              Faltam: {getHorasRestantes()} horas para atingir sua meta!
               </Typography>
             </CardContent>
           </Card>
@@ -433,7 +617,7 @@ const FormUserViewHoras = () => {
                       marginTop: '-3px',
                     }}
                   >
-                    Atividade: {item.mhrsp_ativ}
+                    Atividade: {getStatusTpHoras(item.mhrsp_ativ)}
                   </Typography>
                   <Typography
                     sx={{
@@ -476,15 +660,15 @@ const FormUserViewHoras = () => {
                 </CardContent>
                 <CardActions disableSpacing sx={{ marginTop: '-40px', marginRight: '230px' }}>
                   <ExpandMore
-                    expand={expanded[item.uanot_id]}
-                    onClick={() => handleExpandClick(item.uanot_id)}
-                    aria-expanded={expanded[item.desig_id]}
+                    expand={expanded[item.mhrsp_id]}
+                    onClick={() => handleExpandClick(item.mhrsp_id)}
+                    aria-expanded={expanded[item.mhrsp_id]}
                     aria-label="Mostrar mais"
                   >
                     <FaAngleDoubleDown />
                   </ExpandMore>
                 </CardActions>
-                <Collapse in={expanded[item.uanot_id]} timeout="auto" unmountOnExit>
+                <Collapse in={expanded[item.mhrsp_id]} timeout="auto" unmountOnExit>
                   <CardContent>{/* o primeiro Typography sempre margem -20px os demais segue padrão */}
                     <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '-20px', color: darkMode ? '#67e7eb' : '#333' }}>
                       {item.mhrsp_mensag || 'Nenhuma nota disponível.'}
@@ -518,9 +702,21 @@ const FormUserViewHoras = () => {
 
       {/* Caixa de diálogo de lançamento do novo apontamento de horas */}
       <Dialog open={openuHrsPregcDialogNew} onClose={() => setOpenuHrsPregcDialogNew(false)}>
-        <DialogTitle>Período: {selectedMonth}/{selectedYear} </DialogTitle>
+        <DialogTitle>Período: {getStatusNomeMes(selectedMonth)} / {selectedYear} </DialogTitle>
         <DialogContent>
           <DialogContentText></DialogContentText>
+
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale="pt-br"
+          >
+            <DatePicker
+              value={formFields.mhrsp_data} // ex.: dayjs() ou null
+              onChange={(newValue) => handleFieldChange('mhrsp_data', newValue)}
+              renderInput={(params) => <TextField {...params} />}
+            />
+          </LocalizationProvider>
+
           <FormControl fullWidth margin="dense">
             <InputLabel>Tipo de Horas *</InputLabel>
             <Select
@@ -579,8 +775,19 @@ const FormUserViewHoras = () => {
 
       {/* Caixa de diálogo de edição das horas anotadas */}
       <Dialog open={openuHrsPregcDialogEdit} onClose={() => setOpenuHrsPregcDialogEdit(false)}>
-        <DialogTitle>Período:  {selectedItem?.mhrsp_mes} / {selectedItem?.mhrsp_anosrv} </DialogTitle>
-         <DialogContent>
+        <DialogTitle>Período: {getStatusNomeMes(selectedItem?.mhrsp_mes)} / {selectedItem?.mhrsp_anosrv}</DialogTitle>
+        <DialogContent>
+          <DialogContentText></DialogContentText>
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale="pt-br"
+          >
+            <DatePicker
+              value={formFields.mhrsp_data} // ex.: dayjs() ou null
+              onChange={(newValue) => handleFieldChange('mhrsp_data', newValue)}
+              renderInput={(params) => <TextField {...params} />}
+            />
+          </LocalizationProvider>
           <DialogContentText></DialogContentText>
           <FormControl fullWidth margin="dense">
             <InputLabel>Tipo de Horas *</InputLabel>

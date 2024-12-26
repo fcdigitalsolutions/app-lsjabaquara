@@ -300,7 +300,7 @@ body {
 .card-container-msg-user {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.2px;
+  gap: 2px;
   justify-content: center;
   min-width: 350px;
   max-width: 350px;
