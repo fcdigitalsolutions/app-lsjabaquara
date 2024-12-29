@@ -415,7 +415,7 @@ def get_pubcall():
         'data_inclu': format_date(pubc.get('data_inclu'))
     } for pubc in pubc])
 
-## Rotas da API para o cadastro de puiblicadores 
+## Rotas da API para o cadastro de publicadores 
 @app.route('/pubcallsint', methods=['GET'])
 def get_pubcallsint():
     pubc = pubc_service.get_all_pubc_sint()
@@ -423,6 +423,16 @@ def get_pubcallsint():
         **dict(pubc),    
         'data_inclu': format_date(pubc.get('data_inclu'))
     } for pubc in pubc])
+
+## Rotas da API para o cadastro de publicadores por user 
+@app.route('/pubc/<string:pubc_user>', methods=['GET'])
+def get_pubcuser(pubc_user):
+    pubc = pubc_service.get_pubc_user(pubc_user)
+    return jsonify([{
+        **dict(pubc),    
+        'data_inclu': format_date(pubc.get('data_inclu'))
+    } for pubc in pubc])
+
 
 @app.route('/pubc', methods=['POST'])
 def add_pubc():

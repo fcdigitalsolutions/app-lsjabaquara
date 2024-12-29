@@ -27,7 +27,7 @@ const PubcForm = () => {
   const defaultDtInclu = formatDateTime(Data_Atual);
 
   // Totalizando os CARDs 
-  const totalPionerAux = data.filter(item => item.desig_campo === '1').length;
+  const totalPionerAux = data.filter(item => (item.desig_campo === '1')).length;
   const totalPionerReg = data.filter(item => item.desig_campo === '2').length;
   const totalServos = data.filter(item => item.desig_servic === '2').length;
   const totalAnciaos = data.filter(item => item.desig_servic === '3').length;
@@ -274,6 +274,8 @@ const PubcForm = () => {
         return 'Pioneiro Regular';
       case '3':
         return 'Pioneiro Especial';
+      case '4':
+          return 'Pioneiro Auxiliar (Campanha)';
       default:
         return 'Outros';
     }
@@ -490,6 +492,7 @@ const PubcForm = () => {
                       <MenuItem onClick={() => handleFilterSelect('1')}>Pioneiro Auxiliar</MenuItem>
                       <MenuItem onClick={() => handleFilterSelect('2')}>Pioneiro Regular</MenuItem>
                       <MenuItem onClick={() => handleFilterSelect('3')}>Pioneiro Especial</MenuItem>
+                      <MenuItem onClick={() => handleFilterSelect('4')}>Pioneiro Auxiliar (Campanha)</MenuItem>
                     </>
                   )}
                 </Menu>
@@ -626,7 +629,8 @@ const PubcForm = () => {
                               <MenuItem value="1">Pioneiro Auxiliar</MenuItem>
                               <MenuItem value="2">Pioneiro Regular</MenuItem>
                               <MenuItem value="3">Pioneiro Especial</MenuItem>
-                            </Select>
+                              <MenuItem value="4">Pioneiro Auxiliar (Campanha)</MenuItem>
+                         </Select>
                           </FormControl>
                         ) : (
                           <div
@@ -810,6 +814,7 @@ const PubcForm = () => {
                   <MenuItem value="1">Pioneiro Auxiliar</MenuItem>
                   <MenuItem value="2">Pioneiro Regular</MenuItem>
                   <MenuItem value="3">Pioneiro Especial</MenuItem>
+                  <MenuItem value="4">Pioneiro Auxiliar (Campanha)</MenuItem>
                 </Select>
               </FormControl>
             </Box>

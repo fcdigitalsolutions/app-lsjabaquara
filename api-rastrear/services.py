@@ -375,7 +375,28 @@ class PublicaService:
         result = rows_to_dict(cursor, pubc)
         conn.close()
         return result
-
+    
+    def get_pubc_user(self, pubc_user):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            select 
+                id as pubc_id,
+                data_inclu, 
+                pub_login as 'pub_chave',
+                pub_nome, pub_contat, pub_email, pub_endereco, 
+                pub_regiao, desig_servic, desig_campo, pub_status 
+            from cad_publicador pubc
+            where 1 = 1 
+            	and trim(pubc.pub_login) = %s
+            order by 
+            	id  ASC
+            """, (pubc_user,))
+        
+        pubc = cursor.fetchall()
+        result = rows_to_dict(cursor, pubc)
+        conn.close()
+        return result
 
     def delete_publi(self, pubc_id):
         print(f"Excluindo publicador com ID: {pubc_id}")  # Adiciona um print para debug

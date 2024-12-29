@@ -22,7 +22,7 @@ import {
   InputLabel,
 } from '@mui/material';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, } from 'recharts';
 
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -59,12 +59,13 @@ const FormUserViewHoras = () => {
   const [dataUHrsPreg, setDataUHrsPreg] = useState([]);
   const [selectedYear, setSelectedYear] = useState('2024'); // Ano padrão (exemplo)
   const [selectedMonth, setSelectedMonth] = useState('12'); // Mês padrão (exemplo)
+  const [selectedHorasEspecial, setSelectedHorasEspecial] = useState('100'); // Pioneiro Regular
   const [selectedHorasRegular, setSelectedHorasRegular] = useState('50'); // Pioneiro Regular
   const [selectedHorasAuxliar1, setSelectedHorasAuxliar1] = useState('30'); // Pioneiro Auxiliar 1
   const [selectedHorasAuxliar2, setSelectedHorasAuxliar2] = useState('15'); // Pioneiro Auxiliar 2
   const [selectedHorasPublicador, setselectedHorasPublicador] = useState('0.25'); // Pioneiro Auxiliar 2
-  const [selectedMetaType, setSelectedMetaType] = useState('regular'); // Regular por padrão
-  const [selectedMetaStatus, setSelectedMetaStatus] = useState(''); // Regular por padrão
+  const [selectedMetaType, setSelectedMetaType] = useState(''); // Meta padrão será definida após carregar a API
+  const [userPublicad, setUserPublicad] = useState([]);
 
   const [expanded, setExpanded] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
@@ -80,6 +81,14 @@ const FormUserViewHoras = () => {
     mhrsp_mensag: '',
   });
 
+  // Mapeamento para `desig_campo`
+const desigCampoMap = {
+  0: { label: "Publicador", meta: selectedHorasPublicador },
+  1: { label: "Pioneiro Auxiliar", meta: selectedHorasAuxliar1 },
+  2: { label: "Pioneiro Regular", meta: selectedHorasRegular },
+  3: { label: "Pioneiro Especial", meta: selectedHorasEspecial },
+  4: { label: "Pioneiro Auxiliar (Campanha)", meta: selectedHorasAuxliar2 },
+};
   useEffect(() => {
     api_service.get(`/hrsprg/${lginUser}`)
       .then((response) => {
@@ -99,6 +108,29 @@ const FormUserViewHoras = () => {
       item.mhrsp_mes === selectedMonth
     );
   });
+
+  useEffect(() => {
+    const fetchUserPublicad = async () => {
+      try {
+        const response = await api_service.get(`/pubc/${lginUser}`);
+        setUserPublicad(response.data);
+  
+        // Inicializar o `selectedMetaType` com base no `desig_campo`
+        const publicador = response.data.find((p) => p.pub_chave === lginUser);
+        if (publicador && publicador.desig_campo !== undefined) {
+          setSelectedMetaType(publicador.desig_campo.toString()); // Salva o valor numérico como string
+        } else {
+          setSelectedMetaType("0"); // Valor padrão
+        }
+      } catch (error) {
+        console.error("Erro ao carregar os dados:", error);
+      }
+    };
+  
+    fetchUserPublicad();
+  }, [lginUser]);
+
+
 
   // Função para somar horas e minutos (exemplo reaproveitando a lógica)
   const calcularHoras = (itens, atividade) => {
@@ -349,38 +381,21 @@ const FormUserViewHoras = () => {
     }
   };
 
-   // Calcula o valor dinamicamente com base na meta selecionada
-   const getHorasRestantes = () => {
-    let metaAtual;
-    switch (selectedMetaType) {
-      case 'regular':
-        metaAtual = parseInt(selectedHorasRegular);
-        break;
-      case 'auxiliar1':
-        metaAtual = parseInt(selectedHorasAuxliar1);
-        break;
-      case 'auxiliar2':
-        metaAtual = parseInt(selectedHorasAuxliar2);
-        break;
-      case 'publicador':
-          metaAtual = parseInt(selectedHorasPublicador);
-          break;
-    
-      default:
-        metaAtual = parseInt('0.25');
-        break;
-    }
-    return metaAtual - (parseInt(totalHorasCamp) + parseInt(totalHorasProj));
-  };
 
-  const getStatusMetaHoras = (horasRestantes) => {
-      if (horasRestantes <= 0) {
-         return 'Parabéns, você já alcançou sua meta!!'
-      }
-      else {
-        return "Faltam: "+ (horasRestantes) + "h para atingir sua meta!"
-      }
-  }
+// Função para calcular as horas restantes
+const getHorasRestantes = () => {
+  const metaAtual = desigCampoMap[selectedMetaType]?.meta || 0;
+  return metaAtual - (parseFloat(totalHorasCamp) + parseFloat(totalHorasProj));
+};
+
+
+   const getStatusMetaHoras = (horasRestantes) => {
+    if (horasRestantes <= 0) {
+      return 'Parabéns, você já alcançou sua meta!!';
+    } else {
+      return `Faltam: ${horasRestantes}h para atingir sua meta!`;
+    }
+  };
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333333' }}>
@@ -397,10 +412,10 @@ const FormUserViewHoras = () => {
           <FormControl size="small"
             sx={{ minWidth: 120, color: darkMode ? '#D9D919' : '#202038', }}>
             <InputLabel sx={{
-                color: darkMode ? '#67e7eb' : '#333',
+              color: darkMode ? '#67e7eb' : '#333',
 
-                
-              }}>Ano</InputLabel>
+
+            }}>Ano</InputLabel>
             <Select
               sx={{
                 color: darkMode ? '#67e7eb' : '#333',
@@ -423,8 +438,8 @@ const FormUserViewHoras = () => {
 
           <FormControl size="small" sx={{ minWidth: 120, color: darkMode ? '#67e7eb' : '#333', }}>
             <InputLabel sx={{
-                color: darkMode ? '#67e7eb' : '#333',
-              }}>Mês</InputLabel>
+              color: darkMode ? '#67e7eb' : '#333',
+            }}>Mês</InputLabel>
             <Select
               sx={{
                 color: darkMode ? '#67e7eb' : '#333',
@@ -449,13 +464,13 @@ const FormUserViewHoras = () => {
           </FormControl>
         </Box>
 
-        <Box 
-                  sx={{
-                    gap: 1,
-                    marginTop: '5px',
-                    marginBottom: '1px',
-                    marginLeft: '-45px',
-        }}>
+        <Box
+          sx={{
+            gap: 1,
+            marginTop: '5px',
+            marginBottom: '1px',
+            marginLeft: '-45px',
+          }}>
           <BarChart width={350} height={140} data={barChartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="mes" />
@@ -487,37 +502,39 @@ const FormUserViewHoras = () => {
             }}
           >
             <CardContent>
-            <Typography
+              <Typography
                 sx={{
                   fontSize: '0.90rem',
                   marginLeft: '2px',
                   marginTop: '-5px',
                   fontWeight: 'bold',
-                  marginBottom: '10px', 
+                  marginBottom: '10px',
                 }}
               >
                 {getStatusNomeMes(selectedMonth)} / {selectedYear}
               </Typography>
 
               {/* Select para escolher a meta */}
-      <FormControl size="small" sx={{ minWidth: 100, marginBottom: '12px', }}>
-      <InputLabel sx={{
-                color: darkMode ? '#D9D919' : '#202038',
-              }}>Meta</InputLabel>
-        <Select
-        sx={{
-          color: darkMode ? '#D9D919' : '#202038',
-        }}
-          value={selectedMetaType}
-          onChange={(e) => setSelectedMetaType(e.target.value)}
-          label="Meta"
-        >
-          <MenuItem value="regular">Pioneiro Regular</MenuItem>
-          <MenuItem value="auxiliar1">Pioneiro Auxiliar</MenuItem>
-          <MenuItem value="auxiliar2">Pioneiro Auxiliar (Campanha)</MenuItem>
-          <MenuItem value="publicador">Publicador</MenuItem>
-        </Select>
-      </FormControl>
+              <FormControl size="small" sx={{ minWidth: 100, marginBottom: '12px', }}>
+                <InputLabel sx={{
+                  color: darkMode ? '#D9D919' : '#202038',
+                }}>Meta</InputLabel>
+                <Select
+                  sx={{
+                    color: darkMode ? '#D9D919' : '#202038',
+                  }}
+                  value={selectedMetaType}
+                  onChange={(e) => setSelectedMetaType(e.target.value)}
+                  label="Meta"
+                >  
+                  <MenuItem value="0">Publicador</MenuItem>
+                  <MenuItem value="1">Pioneiro Auxiliar</MenuItem>
+                  <MenuItem value="2">Pioneiro Regular</MenuItem>
+                  <MenuItem value="3">Pioneiro Especial</MenuItem>
+                  <MenuItem value="4">Pioneiro Auxiliar (Campanha)</MenuItem>
+
+                </Select>
+              </FormControl>
               <Typography
                 sx={{
                   fontSize: '0.80rem',
@@ -553,7 +570,8 @@ const FormUserViewHoras = () => {
                   marginTop: '-3px',
                 }}
               >
-              {getStatusMetaHoras(getHorasRestantes())}
+                {getStatusMetaHoras(getHorasRestantes())}
+                
               </Typography>
             </CardContent>
           </Card>
