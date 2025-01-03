@@ -51,6 +51,10 @@ const FormUserView = () => {
   const [publicadores, setPublicadores] = useState([]); // Estado para armazenar as opções de Publicadores
 
   const [openReservMapDialog, setOpenReservMapDialog] = useState(false);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [pendingNewTerritor, setPendingNewTerritor] = useState(null);
+  const [nextTerrNome, setNextTerrNome] = useState('');
+
   const [formFields, setFormFields] = useState({
     visit_status: '',
     num_pessoas: '',
@@ -244,6 +248,14 @@ const FormUserView = () => {
       terr_status: '0', // 0 - ativo, 1 - revisita, 2 - estudante
     };
 
+    // Atualiza o status da indicação para "confirmada"
+    const updatedIndicacao = {
+      ...selectedItem,
+      end_confirm: '3', // Confirmado
+      indic_desig: '1', // Atualiza como não-designado
+    };
+
+
     try {
       // Atualiza o status da designação
       await api_service.put(`/desig/${selectedItem.desig_id}`, updatedDesignacao);
@@ -252,6 +264,10 @@ const FormUserView = () => {
       // Atualiza o status do território
       await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
       console.log("Território liberado com sucesso.");
+
+
+      await api_service.put(`/indica/${selectedItem.indica_id}`, updatedIndicacao);
+      console.log('Indicação atualizada com sucesso.');
 
       // Atualiza o estado local para refletir as mudanças
       setData((prevData) =>
@@ -470,20 +486,139 @@ const FormUserView = () => {
     }
   };
 
+
+  // Função para determinar o status com base na confirmação do endereço
+  const getStatusDesigTipo = (desg_tipogrupo) => {
+    switch (desg_tipogrupo) {
+      case 'MAP': return 'Mapa';
+      case 'IND': return 'Indicação';
+      default: return 'Outros';
+    }
+  };
+
+  const getStatusColorDsgTipo = (status) => {
+    switch (status) {
+      case 'Mapa': return '#2F4F2F';
+      case 'Indicação': return '#191970';
+      default: return 'transparent';
+    }
+  };
+
+  const handleConfirmNewTerritor = async (confirm) => {
+    setOpenConfirmDialog(false);
+    if (confirm && pendingNewTerritor) {
+      try {
+        // Cria o novo território
+        const response = await api_service.post('/territ', pendingNewTerritor);
+        console.log('Novo registro de mapa criado:', response.data);
+
+        // Atualiza o status da designação para "encerrada"
+        const updatedDesignacao = {
+          ...selectedItem,
+          dsg_status: '4', // "Encerrada"
+        };
+
+        await api_service.put(`/desig/${selectedItem.desig_id}`, updatedDesignacao);
+        console.log('Designação atualizada para "encerrada".');
+
+        // Atualiza o status da indicação para "confirmada"
+        const updatedIndicacao = {
+          ...selectedItem,
+          end_confirm: '2', // Confirmado
+          indic_desig: '1', // Atualiza como não-designado
+        };
+
+        await api_service.put(`/indica/${selectedItem.indica_id}`, updatedIndicacao);
+        console.log('Indicação atualizada com sucesso.');
+
+        // Atualiza o estado local
+        setData((prevData) =>
+          prevData.map((item) =>
+            item.desig_id === selectedItem.desig_id
+              ? { ...item, dsg_status: '4', end_confirm: '2' }
+              : item
+          )
+        );
+
+        setPendingNewTerritor(null);
+      } catch (error) {
+        console.error("Erro ao processar a confirmação:", error);
+      }
+    }
+  };
+
+
+  const handleEndConfirmChange = async (row) => {
+    const newTerritor = {
+      data_inclu: new Date().toLocaleDateString("pt-BR"),
+      dt_ultvisit: new Date().toLocaleDateString("pt-BR"),
+      melhor_dia_hora: row.melhor_dia_hora,
+      melhor_hora: row.melhor_hora,
+      num_pessoas: row.num_pessoas || 1,
+      pub_ultvisi: row.pub_nome, // Nome do publicador
+      terr_classif: row.terr_classif || '0',
+      terr_coord: row.terr_coord || '', // Coordenadas do território
+      terr_cor: row.terr_cor || '2', // Coordenadas do território '2', // Verde por padrão
+      terr_desig: '1', //'1', // Não designado
+      terr_enderec: row.terr_enderec,
+      terr_link: row.terr_link || '',
+      terr_morador: 'SURDO (Vide Indicação)',
+      terr_nome: nextTerrNome, // Nome baseado no ID
+      terr_obs: row.terr_obs || '',
+      terr_regiao: row.terr_regiao || '',
+      terr_status: '0', // Ativo por padrão
+      terr_tp_local: row.terr_tp_local || '1', // Tipo de local
+    };
+
+    setPendingNewTerritor(newTerritor);
+    setSelectedItem(row); // Define o item atual
+    setOpenConfirmDialog(true); // Abre o diálogo de confirmação
+  };
+
+  useEffect(() => {
+    fetchLastTerrNome();
+  }, []);
+
+  // Função para buscar o último valor de `terr_nome` e calcular o próximo
+  const fetchLastTerrNome = async () => {
+    try {
+      const response = await api_service.get('/territall');
+      const data = response.data;
+
+      if (data.length > 0) {
+        // Encontrar o último código no campo `terr_nome`
+        const lastTerrNome = data[data.length - 1].terr_nome;
+
+        // Extrair a letra e o número, incrementando o número em 1
+        const letterPart = lastTerrNome.match(/[A-Za-z]+/)[0];
+        const numberPart = parseInt(lastTerrNome.match(/\d+/)[0]) + 1;
+
+        // Formatar o próximo código
+        const newTerrNome = `${letterPart}${numberPart}`;
+        setNextTerrNome(newTerrNome);
+      } else {
+        setNextTerrNome('A1'); // Valor inicial se não houver registros
+      }
+    } catch (error) {
+      console.error("Erro ao buscar o último código de `terr_nome`: ", error);
+      setNextTerrNome('A1'); // Valor padrão caso ocorra erro
+    }
+  };
+
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
 
       <Box
         sx={{
           color: darkMode ? '#67e7eb' : '#333333',
-          alignItems: 'center', 
+          alignItems: 'center',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'flex-start', 
+          justifyContent: 'flex-start',
           padding: '1px',
         }}
       >
-      <Typography sx={{ fontSize: '0.8rem', marginLeft: '5px', marginTop: '10px' }}>Seus Mapas - Pregação: {totalMapas} </Typography>  
+        <Typography sx={{ fontSize: '0.8rem', marginLeft: '5px', marginTop: '10px' }}>Seus Mapas - Pregação: {totalMapas} </Typography>
       </Box>
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
@@ -537,7 +672,21 @@ const FormUserView = () => {
                   </Box>
                   <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Responsável: {item.pub_nome}</Typography>
                   <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Última visita: {item.dt_ultvisit}</Typography>
-                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Mapa: {item.dsg_mapa_cod}</Typography>
+                  <Typography
+                    variant="body1"
+                    className="status-text-user"
+                    sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-6px' }}
+                  >
+                    <div
+                      className="status-badge-user-body"
+                      style={{
+                        backgroundColor: getStatusColorDsgTipo(getStatusDesigTipo(item.desg_tipogrupo)),
+                      }}
+                    >
+                      {getStatusDesigTipo(item.desg_tipogrupo)}
+                    </div>
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '8px' }}>Mapa: {item.dsg_mapa_cod}</Typography>
                   <Typography variant="body1" className="status-text-user" sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }} >
                     Local: {getStatusTpLocal(item.terr_tp_local)}
                   </Typography>
@@ -569,7 +718,7 @@ const FormUserView = () => {
                       sx={{
                         display: 'flex',
                         cursor: 'pointer',
-                        fontSize: '0.95rem',
+                        fontSize: '0.90rem',
                         color: darkMode ? '#ffffff' : '#2c2c4e',
                         '&:hover': {
                           color: darkMode ? '#67e7eb' : '#333333',
@@ -578,7 +727,7 @@ const FormUserView = () => {
                       }}
                     >
                       <FaCheckCircle style={{ marginRight: '4px' }} />
-                      Encerrar
+                      {item.desg_tipogrupo === "MAP"? "Encerrar" : "Não Se Aplica"}
                     </Box>
                   </Box>
                 </CardContent>
@@ -621,24 +770,51 @@ const FormUserView = () => {
                     <Typography variant="body2" sx={{ fontSize: '0.8rem', marginTop: '2px', color: darkMode ? '#67e7eb' : '#333' }}>
                       Observações: {item.terr_obs || 'Nenhuma observação disponível.'}
                     </Typography>
-                    <Box
-                      onClick={() => handleOpenReservDialog(item)}
-                      sx={{
-                        display: 'flex',
-                        cursor: 'pointer',
-                        fontSize: '0.95rem',
-                        marginLeft: '55px',
-                        marginTop: '10px',
-                        color: darkMode ? '#7FFF00' : '#2c2c4e',
-                        '&:hover': {
-                          color: darkMode ? '#67e7eb' : '#333333',
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      <FaCheckCircle style={{ marginRight: '4px' }} />
-                      Reservar Mapa
-                    </Box>
+
+                    {/* Botão Registrar Publicações exibido apenas se dsg_tipo for "3" */}
+                    {(item.desg_tipogrupo) === 'IND' && (
+                      <Box
+                        onClick={() => handleEndConfirmChange(item)}
+                        sx={{
+                          display: 'flex',
+                          cursor: 'pointer',
+                          fontSize: '0.95rem',
+                          marginLeft: '36px',
+                          marginTop: '12px',
+                          color: darkMode ? '#7FFF00' : '#2c2c4e',
+                          '&:hover': {
+                            color: darkMode ? '#67e7eb' : '#333333',
+                            textDecoration: 'underline',
+                          },
+                        }}
+                      >
+                        <FaCheckCircle style={{ marginRight: '4px' }} />
+                        Confirmar Indicação
+                      </Box>
+                    )}
+
+                    {/* Botão Registrar Publicações exibido apenas se dsg_tipo for "3" */}
+                    {(item.desg_tipogrupo) === 'MAP' && (
+                      <Box
+                        onClick={() => handleOpenReservDialog(item)}
+                        sx={{
+                          display: 'flex',
+                          cursor: 'pointer',
+                          fontSize: '0.95rem',
+                          marginLeft: '36px',
+                          marginTop: '12px',
+                          color: darkMode ? '#7FFF00' : '#2c2c4e',
+                          '&:hover': {
+                            color: darkMode ? '#67e7eb' : '#333333',
+                            textDecoration: 'underline',
+                          },
+                        }}
+                      >
+                        <FaCheckCircle style={{ marginRight: '4px' }} />
+                        Reservar Mapa
+                      </Box>
+                    )}
+
                   </CardContent>
                 </Collapse>
               </Card>
@@ -816,6 +992,27 @@ const FormUserView = () => {
         <DialogActions>
           <Button onClick={() => setOpenReservMapDialog(false)} color="primary">Cancelar</Button>
           <Button onClick={handleReservTerrit} color="primary">Confirmar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo de Confirmação */}
+      <Dialog
+        open={openConfirmDialog}
+        onClose={() => handleConfirmNewTerritor(false)}
+      >
+        <DialogTitle>Confirmar Ação</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Um novo registro de mapa será criado para este endereço confirmado. Deseja continuar?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleConfirmNewTerritor(false)} color="primary">
+            Não
+          </Button>
+          <Button onClick={() => handleConfirmNewTerritor(true)} color="primary" autoFocus>
+            Sim
+          </Button>
         </DialogActions>
       </Dialog>
 

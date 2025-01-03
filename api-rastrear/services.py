@@ -186,13 +186,22 @@ class IndicaService:
         conn.close()
         return indica_id
     
-    def update_indica(self, indica_id, indica):
+    def update_indica(self, indica_id, fields_to_update):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE cad_indicacoes SET nome_publica= %s, num_contato= %s, cod_congreg= %s, cod_regiao= %s, enderec= %s, end_confirm= %s, origem= %s, indic_url_map= %s,indic_tp_local= %s,indic_desig= %s,obs= %s WHERE id = %s',
-            (indica.nome_publica,indica.num_contato,indica.cod_congreg,indica.cod_regiao,indica.enderec,indica.end_confirm,indica.origem,indica.indic_url_map,indica.indic_tp_local,indica.indic_desig,indica.obs,indica_id ))
+
+        # Monta a cláusula SET dinamicamente com os campos enviados
+        set_clause = ', '.join([f"{key} = %s" for key in fields_to_update.keys()])
+        query = f"UPDATE cad_indicacoes SET {set_clause} WHERE id = %s"
+
+        # Valores para a query, adicionando o `indica_id` no final
+        values = list(fields_to_update.values())
+        values.append(indica_id)
+
+        # Executa a query de atualização
+        cursor.execute(query, values)
         conn.commit()
-        conn.close()
+        conn.close()    
         return indica_id
     
     def get_all_indica(self):
@@ -481,27 +490,77 @@ class DesignService:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT 
-                desg.id AS desig_id,     
-                terr.id AS territor_id,   
-                desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
-                desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
-                desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
-                desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
-                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
-                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
-                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
-                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
-            FROM cad_designacoes desg
-            LEFT JOIN cad_territorios terr ON desg.dsg_mapa_cod = terr.terr_nome
-            WHERE 
-                1 = 1 
-                and desg.dsg_status IN ('1', '2', '3') 
-                and desg.dsg_tipo IN  ('0', '1')                       
-                and terr.terr_status IN  ('0')
-                and trim(desg.pub_login) = %s
-            ORDER BY desg.dsg_mapa_cod ASC
-            """, (desig_user,))
+            (
+                SELECT 
+                    desg.id AS desig_id,     
+                    terr.id AS territor_id,    
+                    0 AS indica_id,                          
+                    desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
+                    desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
+                    desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
+                    desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
+                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs,
+                    'MAP' as desg_tipogrupo  
+                FROM cad_designacoes desg
+                LEFT JOIN cad_territorios terr ON desg.dsg_mapa_cod = terr.terr_nome
+                WHERE 
+                    1 = 1 
+                    and desg.dsg_status IN ('1', '2', '3') 
+                    and desg.dsg_tipo IN  ('0', '1')                       
+                    and terr.terr_status IN  ('0')
+                    and trim(desg.pub_login) = %s
+                ORDER BY desg.dsg_mapa_cod ASC 
+            )
+            UNION		
+            (    
+                SELECT 
+                    desg.id AS desig_id,    
+                    0 AS territor_id,
+                    indc.id AS indica_id, 
+                    desg.data_inclu, 
+                    desg.dsg_data, 
+                    desg.pub_login, 
+                    desg.pub_nome, 
+                    desg.dsg_tipo, 
+                    desg.dsg_detalhes, 
+                    desg.dsg_conselh, 
+                    desg.dsg_mapa_cod,
+                    desg.dsg_mapa_url, 
+                    desg.dsg_mapa_end, 
+                    desg.dsg_status, 
+                    desg.dsg_obs, 
+                    desg.pub_obs, 
+                    desg.pub_login as terr_respons, 
+                    desg.dsg_data as dt_ultvisit,  
+                    ''  AS terr_morador, 
+                    indc.nome_publica AS pub_ultvisi, 
+                    indc.enderec AS terr_enderec, 
+                    indc.cod_regiao AS terr_regiao, 
+                    indc.indic_url_map AS terr_link, 
+                    ''  AS terr_coord, 
+                    '2' AS terr_cor, 
+                    '0' AS terr_status, 
+                    '1' AS num_pessoas, 
+                    'Livre' AS melhor_hora, 
+                    'Livre' AS melhor_dia_hora, 
+                    indc.indic_tp_local AS terr_tp_local, 
+                    '0' AS terr_classif, 
+                    indc.indic_desig AS terr_desig, 
+                    CONCAT('Indicação: ',indc.nome_publica, ' / Cel: ', indc.num_contato, ' / OBS: ', indc.obs) AS terr_obs,
+                    'IND' as desg_tipogrupo 
+                FROM cad_designacoes desg
+                INNER JOIN cad_indicacoes indc on desg.dsg_mapa_cod = (CONCAT('IND', CAST(indc.id AS CHAR(255))))
+                WHERE 
+                    1 = 1 
+                    and desg.dsg_status IN ('1', '2', '3')  
+                    and desg.dsg_tipo IN  ('0', '1')
+			    	and trim(desg.pub_login) = %s
+                ORDER BY desg.dsg_mapa_cod ASC 
+		    ) 
+            """, (desig_user,desig_user,))
         
         desig = cursor.fetchall()
         result = rows_to_dict(cursor, desig)
@@ -512,26 +571,74 @@ class DesignService:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-              SELECT 
-                desg.id AS desig_id,     
-                terr.id AS territor_id, 
-                desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
-                desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
-                desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
-                desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
-                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
-                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
-                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
-                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
-            FROM cad_designacoes desg
-            LEFT JOIN cad_territorios terr ON desg.dsg_mapa_cod = terr.terr_nome
-            WHERE 
-                1 = 1 
-                and desg.dsg_status IN ('0') 
-                and desg.dsg_tipo IN  ('0', '1')
-                and terr.terr_status IN  ('0')
-                and (isnull(desg.pub_login) or desg.pub_login = '')
-            ORDER BY desg.dsg_mapa_cod ASC
+            (   SELECT 
+                    desg.id AS desig_id,     
+                    terr.id AS territor_id,    
+                    0 AS indica_id, 
+                    desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
+                    desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
+                    desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
+                    desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
+                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs,
+                    'MAP' as desg_tipogrupo 
+                FROM cad_designacoes desg
+                LEFT JOIN cad_territorios terr ON desg.dsg_mapa_cod = terr.terr_nome
+                WHERE 
+                    1 = 1 
+                    and desg.dsg_status IN ('0') 
+                    and desg.dsg_tipo IN  ('0', '1')
+                    and terr.terr_status IN  ('0')
+                    and (isnull(desg.pub_login) or desg.pub_login = '')
+                ORDER BY desg.dsg_mapa_cod ASC 
+            ) 
+            UNION 
+            (   SELECT 
+                    desg.id AS desig_id,     
+                    0 AS territor_id, 
+                    indc.id AS indica_id, 
+                    desg.data_inclu, 
+                    desg.dsg_data, 
+                    desg.pub_login, 
+                    desg.pub_nome, 
+                    desg.dsg_tipo, 
+                    desg.dsg_detalhes, 
+                    desg.dsg_conselh, 
+                    desg.dsg_mapa_cod,
+                    desg.dsg_mapa_url, 
+                    desg.dsg_mapa_end, 
+                    desg.dsg_status, 
+                    desg.dsg_obs, 
+                    desg.pub_obs, 
+                    desg.pub_login as terr_respons, 
+                    indc.data_inclu as dt_ultvisit,  
+                    '' AS terr_morador, 
+                    indc.nome_publica AS pub_ultvisi, 
+                    indc.enderec AS terr_enderec, 
+                    indc.cod_regiao AS terr_regiao, 
+                    indc.indic_url_map AS terr_link, 
+                    '' AS terr_coord, 
+                    '2' AS terr_cor, 
+                    '0' AS terr_status, 
+                    '1' AS num_pessoas, 
+                    'Livre' AS melhor_hora, 
+                    'Livre' AS melhor_dia_hora, 
+                    indc.indic_tp_local AS terr_tp_local, 
+                    '0' AS terr_classif, 
+                    indc.indic_desig AS terr_desig, 
+                    CONCAT('Indicação: ',indc.nome_publica, ' / Cel: ', indc.num_contato, ' / OBS: ', indc.obs) AS terr_obs,
+                    'IND' desg_tipogrupo
+                FROM cad_designacoes desg
+                INNER JOIN cad_indicacoes indc on desg.dsg_mapa_cod = (CONCAT('IND', CAST(indc.id AS CHAR(255))))
+                WHERE 
+                    1 = 1 
+                    and desg.dsg_status IN ('0') 
+                    and desg.dsg_tipo IN  ('0', '1')
+                    and (isnull(desg.pub_login) or desg.pub_login = '')
+                ORDER BY desg.dsg_mapa_cod ASC 
+            ) 
             """)
         
         desig = cursor.fetchall()
@@ -572,82 +679,133 @@ class DesignService:
         return result
 
 
-    def get_desig_sugest2(self, desig_tpmapa):
+    def get_desig_sugest2(self, desig_tpmapa, desg_tipogrupo_filter=None):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            (   SELECT 
-                    desg.id AS desig_id,     
-				    desg.dsg_data,
-				    desg.dsg_detalhes,
-				    desg.dsg_mapa_cod,
-                    terr.id AS territor_id, 
-                    terr.terr_nome, 
-                    terr.data_inclu, 
-                    terr.terr_respons, terr.dt_ultvisit,  
-                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
-                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
-                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
-                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
-                FROM cad_territorios terr
-                LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
-                WHERE 
-                    1 = 1 
-                    and terr.terr_status IN  ('0')
-                    and terr.terr_cor IN  ('0')
-                    and trim(terr.terr_tp_local) = %s
-                    and (isnull(desg.id) or desg.dsg_status in ('4'))
-                    and not (terr.terr_desig in ('2') )
-                ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 6  )
-		        UNION 
-            (   SELECT 
-                    desg.id AS desig_id,     
-				    desg.dsg_data,
-				    desg.dsg_detalhes,
-				    desg.dsg_mapa_cod,
-                    terr.id AS territor_id, 
-                    terr.terr_nome, 
-                    terr.data_inclu, 
-                    terr.terr_respons, terr.dt_ultvisit,  
-                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
-                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
-                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
-                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
-                FROM cad_territorios terr
-                LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
-                WHERE 
-                    1 = 1 
-                    and terr.terr_status IN  ('0')
-                    and terr.terr_cor IN  ('1')
-                    and trim(terr.terr_tp_local) = %s
-                    and (isnull(desg.id) or desg.dsg_status in ('4'))
-                    and not (terr.terr_desig in ('2') )
-                ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 6)
-                UNION 
-            (   SELECT 
-                    desg.id AS desig_id,     
-				    desg.dsg_data,
-				    desg.dsg_detalhes,
-				    desg.dsg_mapa_cod,
-                    terr.id AS territor_id, 
-                    terr.terr_nome, 
-                    terr.data_inclu, 
-                    terr.terr_respons, terr.dt_ultvisit,  
-                    terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
-                    terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
-                    terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
-                    terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs 
-                FROM cad_territorios terr
-                LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
-                WHERE 
-                    1 = 1 
-                    and terr.terr_status IN  ('0')
-                    and terr.terr_cor IN  ('2')
-                    and trim(terr.terr_tp_local) = %s
-                    and (isnull(desg.id) or desg.dsg_status in ('4'))
-                    and not (terr.terr_desig in ('2') )
-                ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 3)
-            """, (desig_tpmapa,desig_tpmapa,desig_tpmapa,))
+          SELECT * 
+        FROM (
+            (SELECT 
+                desg.id AS desig_id,     
+                terr.id AS territor_id,    
+                0 AS indica_id, 
+                desg.dsg_data,
+                desg.dsg_detalhes,
+                desg.dsg_mapa_cod,
+                terr.terr_nome, 
+                terr.data_inclu, 
+                terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs,
+                'MAP' AS desg_tipogrupo
+            FROM cad_territorios terr
+            LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE 
+                1 =1
+                AND terr.terr_status IN ('0')
+                AND terr.terr_cor IN ('0')
+                AND TRIM(terr.terr_tp_local) = %s
+                AND (ISNULL(desg.id) OR desg.dsg_status IN ('4'))
+                AND NOT (terr.terr_desig IN ('2'))
+            ORDER BY terr.dt_ultvisit, terr.terr_nome DESC
+            LIMIT 6
+        ) UNION (
+            SELECT 
+                desg.id AS desig_id,     
+                terr.id AS territor_id,    
+                0 AS indica_id,     
+                desg.dsg_data,
+                desg.dsg_detalhes,
+                desg.dsg_mapa_cod,
+                terr.terr_nome, 
+                terr.data_inclu, 
+                terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs, 
+                'MAP' AS desg_tipogrupo
+            FROM cad_territorios terr
+            LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE 
+                1 =1
+                AND terr.terr_status IN ('0')
+                AND terr.terr_cor IN ('1')
+                AND TRIM(terr.terr_tp_local) = %s
+                AND (ISNULL(desg.id) OR desg.dsg_status IN ('4'))
+                AND NOT (terr.terr_desig IN ('2'))
+            ORDER BY terr.dt_ultvisit, terr.terr_nome DESC
+            LIMIT 6
+        ) UNION (
+            SELECT 
+                desg.id AS desig_id,     
+                0 AS territor_id,    
+                indc.id AS indica_id,   
+                indc.data_inclu AS dsg_data,
+                indc.obs AS dsg_detalhes,
+                CONCAT('IND', CAST(indc.id AS CHAR(255))) AS dsg_mapa_cod,
+                CONCAT('IND', CAST(indc.id AS CHAR(255))) AS terr_nome, 
+                indc.data_inclu AS data_inclu, 
+                indc.nome_publica AS terr_respons, 
+                indc.data_inclu AS dt_ultvisit,  
+                '' AS terr_morador, 
+                indc.nome_publica AS pub_ultvisi, 
+                indc.enderec AS terr_enderec, 
+                indc.cod_regiao AS terr_regiao, 
+                indc.indic_url_map AS terr_link, 
+                '' AS terr_coord, 
+                '2' AS terr_cor, 
+                '0' AS terr_status, 
+                '1' AS num_pessoas, 
+                'Livre' AS melhor_hora, 
+                'Livre' AS melhor_dia_hora, 
+                indc.indic_tp_local AS terr_tp_local, 
+                '0' AS terr_classif, 
+                indc.indic_desig AS terr_desig, 
+                CONCAT('Indicação: ',indc.nome_publica, ' / Cel: ', indc.num_contato, ' / OBS: ', indc.obs) AS terr_obs,
+                'IND' AS desg_tipogrupo
+            FROM cad_indicacoes indc
+            LEFT JOIN cad_designacoes desg on desg.dsg_mapa_cod = (CONCAT('IND', CAST(indc.id AS CHAR(255))))
+            WHERE 
+                1=1
+                AND TRIM(indc.end_confirm) = '1'
+                AND (ISNULL(desg.id) OR desg.dsg_status IN ('4'))
+                AND NOT (indc.indic_desig IN ('2'))
+            ORDER BY indc.data_inclu DESC
+            LIMIT 15
+        ) UNION (
+            SELECT 
+                desg.id AS desig_id,     
+                terr.id AS territor_id,    
+                0 AS indica_id,   
+                desg.dsg_data,
+                desg.dsg_detalhes,
+                desg.dsg_mapa_cod,
+                terr.terr_nome, 
+                terr.data_inclu, 
+                terr.terr_respons, terr.dt_ultvisit,  
+                terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
+                terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
+                terr.terr_status, terr.num_pessoas, terr.melhor_hora, terr.melhor_dia_hora, 
+                terr.terr_tp_local, terr.terr_classif, terr.terr_desig, terr.terr_obs, 
+                'MAP' AS desg_tipogrupo
+            FROM cad_territorios terr
+            LEFT JOIN cad_designacoes desg ON desg.dsg_mapa_cod = terr.terr_nome
+            WHERE
+                1=1
+                AND terr.terr_status IN ('0')
+                AND terr.terr_cor IN ('2')
+                AND TRIM(terr.terr_tp_local) = %s
+                AND (ISNULL(desg.id) OR desg.dsg_status IN ('4'))
+                AND NOT (terr.terr_desig IN ('2'))
+            ORDER BY terr.dt_ultvisit, terr.terr_nome DESC
+            LIMIT 3 )
+        ) AS Query_Unidas
+        WHERE desg_tipogrupo = %s
+    """, ( desig_tpmapa, desig_tpmapa, desig_tpmapa, desg_tipogrupo_filter))
+    
         
         desig = cursor.fetchall()
         result = rows_to_dict(cursor, desig)
@@ -659,11 +817,11 @@ class DesignService:
         cursor = conn.cursor()
         cursor.execute("""
             (   SELECT 
-                    desg.id AS desig_id,     
+                    desg.id AS desig_id,                        
+                    terr.id AS territor_id,  
 				    desg.dsg_data,
 				    desg.dsg_detalhes,
 				    desg.dsg_mapa_cod,
-                    terr.id AS territor_id, 
                     terr.terr_nome, 
                     terr.data_inclu, 
                     terr.terr_respons, terr.dt_ultvisit,  
@@ -682,11 +840,11 @@ class DesignService:
                 ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 6  )
 		        UNION 
             (   SELECT 
-                    desg.id AS desig_id,     
+                    desg.id AS desig_id,                       
+                    terr.id AS territor_id,  
 				    desg.dsg_data,
 				    desg.dsg_detalhes,
-				    desg.dsg_mapa_cod,
-                    terr.id AS territor_id, 
+				    desg.dsg_mapa_cod, 
                     terr.terr_nome, 
                     terr.data_inclu, 
                     terr.terr_respons, terr.dt_ultvisit,  
@@ -705,11 +863,11 @@ class DesignService:
                 ORDER BY terr.dt_ultvisit,terr.terr_nome desc limit 6)
                 UNION 
             (   SELECT 
-                    desg.id AS desig_id,     
+                    desg.id AS desig_id,                      
+                    terr.id AS territor_id,   
 				    desg.dsg_data,
 				    desg.dsg_detalhes,
-				    desg.dsg_mapa_cod,
-                    terr.id AS territor_id, 
+				    desg.dsg_mapa_cod, 
                     terr.terr_nome, 
                     terr.data_inclu, 
                     terr.terr_respons, terr.dt_ultvisit,  

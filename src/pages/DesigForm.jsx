@@ -42,6 +42,7 @@ const DesigForm = () => {
   const [publicadores, setPublicadores] = useState([]);
 
   const [tipoTerr, setTipoTerr] = useState('1');  // Valor padrão
+  const [tipoGrupoMap, setTipoGrupoMap] = useState('MAP');  // Valor padrão
 
   const excelSerialToDate = (value) => {
     if (!value) return ""; // Se o valor for nulo ou vazio, retorna vazio.
@@ -406,20 +407,30 @@ const DesigForm = () => {
   // seleciona sugestões de designações baseado no cadastro de territórios / mapas ativos
   useEffect(() => {
     // Requisição à API sempre que `tipoTerr` mudar
-    api_service.get(`/desigsuges/${tipoTerr}`)
-      .then((response) => {
-        setDataSugest(response.data);
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar os dados: ", error);
-      });
-  }, [tipoTerr]);
+    if (tipoTerr && tipoGrupoMap) {
+      api_service.get(`/desigsuges/${tipoTerr}/${tipoGrupoMap}`)
+        .then((response) => {
+          setDataSugest(response.data);
+        })
+        .catch((error) => {
+          console.error("Erro ao buscar os dados: ", error);
+        });
+    }
+  }, [tipoTerr, tipoGrupoMap]);
 
-  // Função de handle para mudança do tipo de território
   const handleTipoTerrChange = (e) => {
-    setTipoTerr(e.target.value);
-  };
+    const newTipoTerr = e.target.value;
 
+    // Atualiza `tipoTerr` com o novo valor
+    setTipoTerr(newTipoTerr);
+
+    // Define `tipoGrupoMap` baseado em uma lógica específica
+    if (newTipoTerr === '4') {
+      setTipoGrupoMap('IND');
+    } else {
+      setTipoGrupoMap('MAP'); // Valor padrão ou específico
+    }
+  };
 
   useEffect(() => {
     const fetchPublicadores = async () => {
@@ -601,6 +612,7 @@ const DesigForm = () => {
       setMessage('Nenhum item selecionado para envio.');
       return;
     }
+
     // Filtrar os dados selecionados com base nos IDs
     const selectedData = dataSugest.filter((row) => selected.includes(row.idSg));
     const cleanedData = selectedData.map((row) => ({
@@ -609,24 +621,23 @@ const DesigForm = () => {
       pub_login: '',
       pub_nome: '',
       pub_obs: '',
-      dsg_tipo: '0',  // 0 - Mapa, 1 - Indicação, 2 - Dirig. Campo, 3 - Carrinho ... 
+      dsg_tipo: row.desg_tipogrupo === 'MAP' ? '0' : '1', // 0 - Mapa, 1 - Indicação, ...
       dsg_detalhes: row.terr_tp_local || '',
       dsg_conselh: '00',
       dsg_mapa_cod: row.terr_nome || '',  // Valor padrão para dsg_mapa_cod
       dsg_mapa_url: row.terr_link || '',  // Valor padrão para dsg_mapa_url
       dsg_mapa_end: row.terr_enderec || '',  // Valor padrão para dsg_mapa_end
-      dsg_status: '0',  // 0 - Não Designada, 1 - Pendente, 2 - Realizada.. 
-      dsg_obs: '',// Valor padrão para dsg_obs 
+      dsg_status: '0',  // 0 - Não Designada, 1 - Pendente, ...
+      dsg_obs: '', // Valor padrão para dsg_obs
     }));
 
-    console.log('Linhas selecionadas:', cleanedData);
     try {
       // Enviar os dados em lote para a API
       const response = await api_service.post('/desiglot', cleanedData);
 
-      // Atualizar a interface com os resultados
       if (response.status === 201) {
         setMessage('Sugestões efetivadas com sucesso!');
+
         setSelected([]); // Limpa a seleção
       } else {
         setMessage('Erro ao efetivar sugestões. Verifique os dados e tente novamente.');
@@ -636,6 +647,7 @@ const DesigForm = () => {
       setMessage('Erro ao enviar sugestões. Tente novamente.');
     }
   };
+
 
   const getStatusTipo = (dsg_tipo) => {
     switch (dsg_tipo) {
@@ -916,6 +928,7 @@ const DesigForm = () => {
                     <MenuItem value="1">Pregação: Casa em Casa</MenuItem>
                     <MenuItem value="2">Campanha: Trabalho</MenuItem>
                     <MenuItem value="3">Campanha: Prédio</MenuItem>
+                    <MenuItem value="4">Campanha: Indicações</MenuItem>
                   </Select>
                 </FormControl>
               </Box>

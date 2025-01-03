@@ -57,15 +57,18 @@ const FormUserViewHoras = () => {
   const lginUser = userDados?.iduser;
 
   const [dataUHrsPreg, setDataUHrsPreg] = useState([]);
-  const [selectedYear, setSelectedYear] = useState('2024'); // Ano padrão (exemplo)
-  const [selectedMonth, setSelectedMonth] = useState('12'); // Mês padrão (exemplo)
-  const [selectedHorasEspecial, setSelectedHorasEspecial] = useState('100'); // Pioneiro Regular
-  const [selectedHorasRegular, setSelectedHorasRegular] = useState('50'); // Pioneiro Regular
-  const [selectedHorasAuxliar1, setSelectedHorasAuxliar1] = useState('30'); // Pioneiro Auxiliar 1
-  const [selectedHorasAuxliar2, setSelectedHorasAuxliar2] = useState('15'); // Pioneiro Auxiliar 2
-  const [selectedHorasPublicador, setselectedHorasPublicador] = useState('0.25'); // Pioneiro Auxiliar 2
+
+  const [selectedYear, setSelectedYear] = useState(''); // Ano padrão (exemplo)
+  const [selectedMonth, setSelectedMonth] = useState(''); // Mês padrão (exemplo)
+
+  const [selectedHorasEspecial] = useState('100'); // Pioneiro Regular
+  const [selectedHorasRegular] = useState('50'); // Pioneiro Regular
+  const [selectedHorasAuxliar1] = useState('30'); // Pioneiro Auxiliar 1
+  const [selectedHorasAuxliar2] = useState('15'); // Pioneiro Auxiliar 2
+  const [selectedHorasPublicador] = useState('0.25'); // Pioneiro Auxiliar 2
   const [selectedMetaType, setSelectedMetaType] = useState(''); // Meta padrão será definida após carregar a API
   const [userPublicad, setUserPublicad] = useState([]);
+
 
   const [expanded, setExpanded] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
@@ -82,13 +85,22 @@ const FormUserViewHoras = () => {
   });
 
   // Mapeamento para `desig_campo`
-const desigCampoMap = {
-  0: { label: "Publicador", meta: selectedHorasPublicador },
-  1: { label: "Pioneiro Auxiliar", meta: selectedHorasAuxliar1 },
-  2: { label: "Pioneiro Regular", meta: selectedHorasRegular },
-  3: { label: "Pioneiro Especial", meta: selectedHorasEspecial },
-  4: { label: "Pioneiro Auxiliar (Campanha)", meta: selectedHorasAuxliar2 },
-};
+  const desigCampoMap = {
+    0: { label: "Publicador", meta: selectedHorasPublicador },
+    1: { label: "Pioneiro Auxiliar", meta: selectedHorasAuxliar1 },
+    2: { label: "Pioneiro Regular", meta: selectedHorasRegular },
+    3: { label: "Pioneiro Especial", meta: selectedHorasEspecial },
+    4: { label: "Pioneiro Auxiliar (Campanha)", meta: selectedHorasAuxliar2 },
+  };
+
+  useEffect(() => {
+    const anoDataAtual = new Date().getFullYear();
+    const mesDataAtual = (new Date().getMonth() + 1).toString().padStart(2, '0');
+
+    setSelectedYear(anoDataAtual);
+    setSelectedMonth(mesDataAtual);
+  }, []);
+
   useEffect(() => {
     api_service.get(`/hrsprg/${lginUser}`)
       .then((response) => {
@@ -114,7 +126,7 @@ const desigCampoMap = {
       try {
         const response = await api_service.get(`/pubc/${lginUser}`);
         setUserPublicad(response.data);
-  
+
         // Inicializar o `selectedMetaType` com base no `desig_campo`
         const publicador = response.data.find((p) => p.pub_chave === lginUser);
         if (publicador && publicador.desig_campo !== undefined) {
@@ -126,7 +138,7 @@ const desigCampoMap = {
         console.error("Erro ao carregar os dados:", error);
       }
     };
-  
+
     fetchUserPublicad();
   }, [lginUser]);
 
@@ -352,23 +364,23 @@ const desigCampoMap = {
 
   const getStatusNomeMes = (mhrsp_mes) => {
     switch (mhrsp_mes) {
-      case '1':
+      case '01':
         return 'Janeiro';
-      case '2':
+      case '02':
         return 'Fevereiro';
-      case '3':
+      case '03':
         return 'Março';
-      case '4':
+      case '04':
         return 'Abril';
-      case '5':
+      case '05':
         return 'Maio';
-      case '6':
+      case '06':
         return 'Junho';
-      case '7':
+      case '07':
         return 'Julho';
-      case '8':
+      case '08':
         return 'Agosto';
-      case '9':
+      case '09':
         return 'Setembro';
       case '10':
         return 'Outubro';
@@ -377,19 +389,19 @@ const desigCampoMap = {
       case '12':
         return 'Dezembro';
       default:
-        return 'Outros';
+        return 'Erro';
     }
   };
 
 
-// Função para calcular as horas restantes
-const getHorasRestantes = () => {
-  const metaAtual = desigCampoMap[selectedMetaType]?.meta || 0;
-  return metaAtual - (parseFloat(totalHorasCamp) + parseFloat(totalHorasProj));
-};
+  // Função para calcular as horas restantes
+  const getHorasRestantes = () => {
+    const metaAtual = desigCampoMap[selectedMetaType]?.meta || 0;
+    return metaAtual - (parseFloat(totalHorasCamp) + parseFloat(totalHorasProj));
+  };
 
 
-   const getStatusMetaHoras = (horasRestantes) => {
+  const getStatusMetaHoras = (horasRestantes) => {
     if (horasRestantes <= 0) {
       return 'Parabéns, você já alcançou sua meta!!';
     } else {
@@ -526,7 +538,7 @@ const getHorasRestantes = () => {
                   value={selectedMetaType}
                   onChange={(e) => setSelectedMetaType(e.target.value)}
                   label="Meta"
-                >  
+                >
                   <MenuItem value="0">Publicador</MenuItem>
                   <MenuItem value="1">Pioneiro Auxiliar</MenuItem>
                   <MenuItem value="2">Pioneiro Regular</MenuItem>
@@ -571,7 +583,7 @@ const getHorasRestantes = () => {
                 }}
               >
                 {getStatusMetaHoras(getHorasRestantes())}
-                
+
               </Typography>
             </CardContent>
           </Card>

@@ -234,23 +234,36 @@ def add_indica():
     indica_id = indica_service.add_indica(indica)
     return jsonify({"id": indica_id, "message": "Indicação add com sucesso!"}), 201
 
+
 @app.route('/indica/<int:indica_id>', methods=['PUT'])
-def update_indica(indica_id):
+def update_indica_especif(indica_id):
     data = request.json
-    indica = Indicacoes(data_inclu=parse_date(data.get('data_inclu')),
-                        nome_publica=data.get('nome_publica'),
-                        num_contato=data.get('num_contato'),
-                        cod_congreg=data.get('cod_congreg'),
-                        cod_regiao=data.get('cod_regiao'),
-                        enderec=data.get('enderec'),
-                        end_confirm=data.get('end_confirm'),
-                        origem=data.get('origem'),
-                        indic_url_map=data.get('indic_url_map'),
-                        indic_tp_local=data.get('indic_tp_local'),
-                        indic_desig=data.get('indic_desig'),
-                        obs=data.get('obs'))
-    updated_indica_id = indica_service.update_indica(indica_id, indica)
-    return jsonify({"message": "Indicação atualizada com sucesso!", "id": updated_indica_id}), 200
+
+    # Lista de campos permitidos
+    allowed_fields = [
+        'nome_publica', 'num_contato', 'cod_congreg', 'cod_regiao', 
+        'enderec', 'end_confirm', 'origem','indic_url_map',  
+        'indic_tp_local', 'indic_desig', 'obs'
+    ]
+
+    # Dicionário para armazenar os campos a serem atualizados
+    fields_to_update = {}
+
+    # Verifica e adiciona os demais campos ao dicionário de atualização
+    for field in allowed_fields:
+        if field in data :  
+            fields_to_update[field] = data[field]
+
+    if not fields_to_update:
+        return jsonify({"error": "Nenhum campo válido para atualizar"}), 400
+
+    try:
+        # Chama o service para realizar a atualização
+        updated_indica_id = indica_service.update_indica(indica_id, fields_to_update)
+        return jsonify({"message": "Indicação atualizada com sucesso!", "id": updated_indica_id}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # Rota DELETE para excluir uma indicação existente
 @app.route('/indica/<int:indica_id>', methods=['DELETE'])
@@ -537,9 +550,9 @@ def get_desigensino(desig_user):
 
 
 
-@app.route('/desigsuges/<string:desig_tpmapa>', methods=['GET'])
-def get_desigsugest2(desig_tpmapa):
-    desig = desig_service.get_desig_sugest2(desig_tpmapa)
+@app.route('/desigsuges/<string:desig_tpmapa>/<string:desg_tipogrupo_filter>', methods=['GET'])
+def get_desigsugest2(desig_tpmapa,desg_tipogrupo_filter ):
+    desig = desig_service.get_desig_sugest2(desig_tpmapa, desg_tipogrupo_filter)
     return jsonify([{
         **dict(desig_item),
         'dsg_data': format_date(desig_item.get('dsg_data')),        
@@ -779,7 +792,6 @@ def update_specific_territ_fields(territ_id):
 
     try:
         # Chama o service para realizar a atualização
-        territ_service = TerritService()
         updated_territ_id = territ_service.update_territ_especif(territ_id, fields_to_update)
         return jsonify({"message": "Campos do território atualizados com sucesso!", "id": updated_territ_id}), 200
     except Exception as e:

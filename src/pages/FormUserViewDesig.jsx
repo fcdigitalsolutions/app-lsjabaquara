@@ -193,51 +193,75 @@ const FormUserEnsino = () => {
 
 
   const handleDesignar = async () => {
-    if (!selectedItem || !selectedItem.desig_id || !formFields.pub_login) {
+    if (!selectedItem || !formFields.pub_login) {
       console.error("Por favor, selecione uma designação e um publicador.");
       return;
     }
 
-    const updatedTerritorio = {
-      terr_desig: '2', // 1 - Não designado, 2 - Designado - Atualiza para indicar que o território está livre
-      terr_respons: '',
-      terr_status: '0', // 0 - ativo, 1 - revisita, 2 - estudante
-    };
-
-    // Atualiza o status da designação
+    // Dados comuns para ambas as rotas
     const updatedData = {
       ...selectedItem,
       dsg_status: '1', // Define o status como "Pendente"
       pub_login: formFields.pub_login, // Login do publicador selecionado
-      pub_nome: publicadores.find(p => p.pub_chave === formFields.pub_login)?.pub_nome || '', // Nome do publicador correspondente
-      dsg_data: new Date().toLocaleDateString("pt-BR"), // Data da designação
+      pub_nome: publicadores.find((p) => p.pub_chave === formFields.pub_login)?.pub_nome || '', // Nome do publicador correspondente
+      dsg_data: new Date().toLocaleDateString('pt-BR'), // Data da designação
     };
 
     try {
-      // Faz a requisição PUT para atualizar a designação
+      if (selectedItem.desg_tipogrupo === 'IND') {
+        // Atualizar a rota de indicações
+        const updatedIndicacao = {
+          indic_desig: '2', // Atualiza como designado
+
+        };
+        await api_service.put(`/indica/${selectedItem.indica_id}`, updatedIndicacao);
+        console.log('Indicação atualizada com sucesso.');
+      } else if (selectedItem.desg_tipogrupo === 'MAP') {
+        // Atualizar a rota de territórios
+        const updatedTerritorio = {
+          terr_desig: '2', // Define como designado
+          terr_respons: '',
+          terr_status: '0', // Define como ativo
+        };
+        await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
+        console.log('Território atualizado com sucesso.');
+      }
+
+      // Atualiza a designação
       await api_service.put(`/desig/${selectedItem.desig_id}`, updatedData);
 
-      // Atualiza o status do território
-      await api_service.put(`/terrupdesp/${selectedItem.territor_id}`, updatedTerritorio);
-      console.log("Território liberado com sucesso.");
-
-      // Atualiza o estado local para refletir as mudanças
+      // Atualizar o estado local
       setData((prevData) =>
         prevData.map((item) =>
           item.desig_id === selectedItem.desig_id
-            ? { ...item, dsg_status: '1', terr_desig: '0' }
+            ? { ...item, dsg_status: '1', terr_desig: selectedItem.desg_tipogrupo === 'IND' ? '0' : '2' }
             : item
         )
       );
 
       setOpenVisitDialog(false); // Fecha o diálogo
-      console.log("Designação atualizada com sucesso.");
-      //Alert("Designação atualizada com sucesso.");
+      console.log('Designação atualizada com sucesso.');
     } catch (error) {
-      console.error("Erro ao designar a designação: ", error);
+      console.error('Erro ao designar a designação:', error);
     }
   };
 
+  // Função para determinar o status com base na confirmação do endereço
+  const getStatusDesigTipo = (desg_tipogrupo) => {
+    switch (desg_tipogrupo) {
+      case 'MAP': return 'Mapa';
+      case 'IND': return 'Indicação';
+      default: return 'Outros';
+    }
+  };
+
+  const getStatusColorDsgTipo = (status) => {
+    switch (status) {
+      case 'Mapa': return '#2F4F2F';
+      case 'Indicação': return '#191970';
+      default: return 'transparent';
+    }
+  };
 
   return (
     <Box className="main-container-user" sx={{ backgroundColor: darkMode ? '#202038' : '#f0f0f0', color: darkMode ? '#67e7eb' : '#333' }}>
@@ -305,7 +329,22 @@ const FormUserEnsino = () => {
                         Designar/Transferir
                       </Box>
                       <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '10px' }}>Última visita: {item.dt_ultvisit}</Typography>
-                      <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }}>Mapa: {item.dsg_mapa_cod}</Typography>
+
+                      <Typography
+                        variant="body1"
+                        className="status-text-user"
+                        sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-6px' }}
+                      >
+                        <div
+                          className="status-badge-user-body"
+                          style={{
+                            backgroundColor: getStatusColorDsgTipo(getStatusDesigTipo(item.desg_tipogrupo)),
+                          }}
+                        >
+                          {getStatusDesigTipo(item.desg_tipogrupo)}
+                        </div>
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '8px' }}>Mapa: {item.dsg_mapa_cod}</Typography>
                       <Typography variant="body1" className="status-text-user" sx={{ fontSize: '0.8rem', marginLeft: '-10px', marginTop: '-2px' }} >
                         Local: {getStatusTpLocal(item.terr_tp_local)}
                       </Typography>
