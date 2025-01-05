@@ -24,6 +24,9 @@ import FormUserViewOutras from './pages/FormUserViewOutras';
 import ConfigCampoForm from './pages/ConfigCampoForm';
 import FormUserViewAnota from './pages/FormUserViewAnota';
 import FormUserViewHoras from './pages/FormUserViewHoras';
+import DashGestor from './pages/DashGestor';
+
+
 
 import RegPublicacoes from './pages/RegPublicacoes';
 import CadNotificacoes from './pages/CadNotificacoes';
@@ -60,6 +63,7 @@ const App = () => {
                 <ThemeProvider>
                 <SidebarUser>
                   <Routes> 
+                    <Route path="/huser" element={<FormUserViewOutras />} />
                     <Route path="formuseroutras" element={<FormUserViewOutras />} />
                     <Route path="form-userview" element={<FormUserView />} />
                     <Route path="formuserensino" element={<FormUserViewEnsino />} />
@@ -96,6 +100,7 @@ const App = () => {
                     <Route path="form-regpub" element={<RegPublicacoes />} />
                     <Route path="form-notific" element={<CadNotificacoes />} />
                     <Route path="form-users" element={<UsersForm />} />
+                    <Route path="dash-gestor" element={<DashGestor />} />
                     <Route path="/ls" element={<SelectTpUser />} />
                   </Routes>
                 </Sidebar>
