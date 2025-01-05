@@ -1555,7 +1555,7 @@ const DesigForm = () => {
             <TablePagination
               rowsPerPageOptions={[]}
               component="div"
-              count={setDataDesig.length}
+              count={dataDesig.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}

@@ -68,10 +68,10 @@ const DashGestor = () => {
 
     setTerritoryChartData(chartData);
 
-    const totalVisitas = filteredData.length;
+    const totalVisits = filteredData.length;
     const mostVisited = chartData.sort((a, b) => b.visitas - a.visitas)[0] || {};
     setTerritorySummary({
-      totalVisitas,
+      totalVisits,
       mostVisited: mostVisited.territorios || "N/A",
       mostVisitedCount: mostVisited.visitas || 0,
     });
@@ -79,7 +79,7 @@ const DashGestor = () => {
 
   const processRegionData = useCallback((visitas, territories) => {
     const now = new Date();
-    const filteredVisitas = visitas.filter((visit) => {
+    const filteredVisits = visitas.filter((visit) => {
       if (!visit.visit_data) return false; // Ignorar visitas sem data
       const [day, month, year] = visit.visit_data.split("/");
       const visitDate = new Date(`${year}-${month}-${day}`);
@@ -94,24 +94,24 @@ const DashGestor = () => {
       return acc;
     }, {});
 
-    const regionCounts = filteredVisitas.reduce((acc, visit) => {
+    const regionCounts = filteredVisits.reduce((acc, visit) => {
       const region = territoryMap[visit.visit_cod] || "Região Desconhecida";
       acc[region] = (acc[region] || 0) + 1;
       return acc;
     }, {});
 
     const chartData = Object.entries(regionCounts).map(([key, value]) => ({
-      region: key,
+      região: key,
       visitas: value,
     }));
 
     setRegionChartData(chartData);
 
-    const totalVisitas = filteredVisitas.length;
+    const totalVisits = filteredVisits.length;
     const mostVisited = chartData.sort((a, b) => b.visitas - a.visitas)[0] || {};
     setRegionSummary({
-      totalVisitas,
-      mostVisited: mostVisited.region || "N/A",
+      totalVisits,
+      mostVisited: mostVisited.região || "N/A",
       mostVisitedCount: mostVisited.visitas || 0,
     });
   }, [selectedYear, selectedPeriod]);
@@ -188,7 +188,6 @@ const DashGestor = () => {
     }
   }, [visitData, territoryData, processTerritoryData, processRegionData, processStatusData, processVisitStatusData]);
 
-  
   return (
     <Box sx={{ padding: "16px", backgroundColor: "#f5f5f5" }}>
       <Typography variant="h4" sx={{ marginBottom: "20px" }}>
@@ -231,7 +230,7 @@ const DashGestor = () => {
             </ResponsiveContainer>
           </Box>
           <Box sx={{ marginTop: "20px" }}>
-            <Typography variant="body1">Total de Visitas: {territorySummary.totalVisitas}</Typography>
+            <Typography variant="body1">Total de Visitas: {territorySummary.totalVisits}</Typography>
             <Typography variant="body1">Território Mais Visitado: {territorySummary.mostVisited} ({territorySummary.mostVisitedCount} Visitas)</Typography>
           </Box>
         </Box>
@@ -251,7 +250,7 @@ const DashGestor = () => {
                     </ResponsiveContainer>
                   </Box>
                   <Box sx={{ marginTop: "20px" }}>
-                    <Typography variant="body1">Total de Visitas: {regionSummary.totalVisitas}</Typography>
+                    <Typography variant="body1">Total de Visitas: {regionSummary.totalVisits}</Typography>
                     <Typography variant="body1">Região Mais Visitada: {regionSummary.mostVisited} ({regionSummary.mostVisitedCount} Visitas)</Typography>
                   </Box>
                 </Box>
