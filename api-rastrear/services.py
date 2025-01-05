@@ -480,7 +480,31 @@ class DesignService:
     def get_all_desig(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM cad_designacoes where 1 = 1 order by dsg_data desc")
+        cursor.execute(
+            """
+                SELECT 
+                    desg.id, 
+                    desg.id AS desig_id,     
+                    0 AS territor_id,    
+                    0 AS indica_id,                          
+                    desg.data_inclu,
+                    desg.dsg_data,
+                    desg.pub_login, 
+                    desg.pub_nome, 
+                    desg.dsg_tipo, 
+                    desg.dsg_detalhes, 
+                    desg.dsg_conselh, 
+                    desg.dsg_mapa_cod,
+                    desg.dsg_mapa_url, 
+                    desg.dsg_mapa_end, 
+                    desg.dsg_status,
+                    desg.dsg_obs, 
+                    desg.pub_obs
+                FROM cad_designacoes desg
+                WHERE 
+                    1 = 1 
+                ORDER BY desg.dsg_data DESC
+            """)
         desig = cursor.fetchall()
         result = rows_to_dict(cursor, desig)
         conn.close()
@@ -686,6 +710,7 @@ class DesignService:
           SELECT * 
         FROM (
             (SELECT 
+                terr.id as id_padrao,
                 desg.id AS desig_id,     
                 terr.id AS territor_id,    
                 0 AS indica_id, 
@@ -712,7 +737,8 @@ class DesignService:
             ORDER BY terr.dt_ultvisit, terr.terr_nome DESC
             LIMIT 6
         ) UNION (
-            SELECT 
+            SELECT
+                terr.id as id_padrao,
                 desg.id AS desig_id,     
                 terr.id AS territor_id,    
                 0 AS indica_id,     
@@ -739,7 +765,8 @@ class DesignService:
             ORDER BY terr.dt_ultvisit, terr.terr_nome DESC
             LIMIT 6
         ) UNION (
-            SELECT 
+            SELECT
+                indc.id as id_padrao, 
                 desg.id AS desig_id,     
                 0 AS territor_id,    
                 indc.id AS indica_id,   
@@ -776,7 +803,8 @@ class DesignService:
             ORDER BY indc.data_inclu DESC
             LIMIT 15
         ) UNION (
-            SELECT 
+            SELECT
+                terr.id as id_padrao,
                 desg.id AS desig_id,     
                 terr.id AS territor_id,    
                 0 AS indica_id,   
@@ -895,7 +923,7 @@ class DesignService:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT 
+          ( SELECT 
                 desg.id AS desig_id,     
                 camp.id AS camp_id,   
                 desg.data_inclu,
@@ -975,8 +1003,55 @@ class DesignService:
                 desg.dsg_status IN ('1', '2', '3') 
                 AND desg.dsg_tipo IN ('2', '3', '4') 
                 and trim(desg.pub_login) = %s
-                ORDER BY desg.dsg_data ASC
-                """, (desig_user,))
+                ORDER BY desg.dsg_data ASC ) 
+			UNION 
+	        ( SELECT 
+                desg.id AS desig_id,     
+                camp.id AS camp_id,   
+                desg.data_inclu,
+                desg.dsg_data,
+                desg.pub_login,
+                desg.pub_nome, 
+                desg.dsg_tipo,
+                desg.dsg_detalhes,
+                desg.dsg_conselh, 
+                desg.dsg_mapa_cod,
+                desg.dsg_mapa_url,
+                desg.dsg_mapa_end,
+                desg.dsg_status,
+                desg.dsg_obs, 
+                desg.pub_obs,
+                camp.data_inclu,
+                camp.cmp_tipo,  
+                camp.cmp_diadasem,
+                camp.cmp_seq,
+                camp.cmp_local, 
+                camp.cmp_enderec,
+                camp.cmp_url,
+                camp.cmp_tipoativ,
+                camp.cmp_horaini,
+                camp.cmp_horafim,
+                camp.cmp_detalhes,
+                /* Primeiro Publicador Auxiliar (OFFSET 0) */
+                '' AS cmp_publicador02,
+            
+                /* Segundo Publicador Auxiliar (OFFSET 1) */
+                '' AS cmp_publicador03,
+            
+                /* Terceiro Publicador Auxiliar (OFFSET 2) */
+                '' AS cmp_publicador04
+            
+            FROM cad_designacoes desg
+            LEFT JOIN cad_configcampo camp
+                ON desg.dsg_mapa_cod = camp.cmp_diadasem
+                AND camp.cmp_tipo = '4'
+            WHERE 
+                desg.dsg_status IN ('1', '2', '3') 
+                AND desg.dsg_tipo IN ('5','6','7','8','9') 
+                    and trim(desg.pub_login) = %s
+                ORDER BY desg.dsg_data ASC 
+		    ) 
+	            """, (desig_user,desig_user,))
         
         desig = cursor.fetchall()
         result = rows_to_dict(cursor, desig)

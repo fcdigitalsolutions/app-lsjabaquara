@@ -197,7 +197,7 @@ const SidebarUser = ({ children }) => {
           ))}
         </section>
       </motion.div>
-      <motion.div className="content" style={{ fontSize: '9px', backgroundColor: darkMode ? '#202038' : '#f0f0f0' }}>
+      <motion.div className="content-user" style={{ fontSize: '9px', backgroundColor: darkMode ? '#202038' : '#f0f0f0' }}>
         {children}
       </motion.div>
     </Box>

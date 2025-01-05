@@ -66,6 +66,11 @@ body {
   font-size: 10px; /* Tamanho da fonte reduzido */
 }
 
+.content-user {
+  overflow-y: auto;
+  max-height: calc(100vh - 100px); /* Ajuste conforme necessário */
+}
+
 /* Geral para o container principal */
 .main-containerusers {
   display: flex;

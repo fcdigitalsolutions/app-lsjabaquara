@@ -58,8 +58,9 @@ const FormUserViewHoras = () => {
 
   const [dataUHrsPreg, setDataUHrsPreg] = useState([]);
 
-  const [selectedYear, setSelectedYear] = useState(''); // Ano padrão (exemplo)
-  const [selectedMonth, setSelectedMonth] = useState(''); // Mês padrão (exemplo)
+
+  const [selectedYear, setSelectedYear] = useState('2025'); // Ano padrão (exemplo)
+  const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0')); // Mês padrão (exemplo)
 
   const [selectedHorasEspecial] = useState('100'); // Pioneiro Regular
   const [selectedHorasRegular] = useState('50'); // Pioneiro Regular
@@ -93,6 +94,8 @@ const FormUserViewHoras = () => {
     4: { label: "Pioneiro Auxiliar (Campanha)", meta: selectedHorasAuxliar2 },
   };
 
+/*
+
   useEffect(() => {
     const anoDataAtual = new Date().getFullYear();
     const mesDataAtual = (new Date().getMonth() + 1).toString().padStart(2, '0');
@@ -100,6 +103,9 @@ const FormUserViewHoras = () => {
     setSelectedYear(anoDataAtual);
     setSelectedMonth(mesDataAtual);
   }, []);
+  
+
+  */ 
 
   useEffect(() => {
     api_service.get(`/hrsprg/${lginUser}`)
@@ -112,14 +118,6 @@ const FormUserViewHoras = () => {
       })
   }, [lginUser]);
 
-
-  // Filtrar os dados conforme ano e mês
-  const filteredData = dataUHrsPreg.filter((item) => {
-    return (
-      item.mhrsp_anocal === selectedYear &&
-      item.mhrsp_mes === selectedMonth
-    );
-  });
 
   useEffect(() => {
     const fetchUserPublicad = async () => {
@@ -142,6 +140,13 @@ const FormUserViewHoras = () => {
     fetchUserPublicad();
   }, [lginUser]);
 
+
+  const filteredData = dataUHrsPreg.filter((item) => {
+    return (
+      item.mhrsp_anocal === selectedYear  &&
+      item.mhrsp_mes ===selectedMonth
+    );
+  });
 
 
   // Função para somar horas e minutos (exemplo reaproveitando a lógica)
@@ -922,4 +927,3 @@ const FormUserViewHoras = () => {
 };
 
 export default FormUserViewHoras;
-

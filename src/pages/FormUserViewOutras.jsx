@@ -96,10 +96,12 @@ const FormUserViewOutras = () => {
       case '1': return 'Indicação';
       case '2': return 'Dirigente Campo';
       case '3': return 'Carrinho';
-      case '4': return 'Mecânicas';
-      case '5': return 'Reunião RMWB';
-      case '6': return 'Reunião FDS';
-      case '7': return 'Discurso Publico';
+      case '4': return 'Mídias / Zoom';
+      case '5': return 'Câmera';
+      case '6': return 'Indicador';
+      case '7': return 'Reunião RMWB';
+      case '8': return 'Reunião FDS';
+      case '9': return 'Discurso Publico';
       default: return 'Outros';
     }
   };
@@ -108,9 +110,11 @@ const FormUserViewOutras = () => {
     switch (status) {
       case 'Mapa': return '#2F4F2F';
       case 'Indicação': return '#CC0000';
-      case 'Dirigente Campo': return '#8C1717';
-      case 'Carrinho': return '"#2F2F4F';
-      case 'Mecânicas': return '#000000';
+      case 'Dirigente Campo': return '#42426F';
+      case 'Carrinho': return '#93DB70';
+      case 'Mídias / Zoom': return '#191970';
+      case 'Câmera': return '#000000';
+      case 'Indicador': return '#800000';
       case 'Reunião RMWB': return '#000000';
       case 'Reunião FDS': return '#000000';
       case 'Discurso Publico': return '#000000';

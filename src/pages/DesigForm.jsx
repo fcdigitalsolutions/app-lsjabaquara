@@ -17,7 +17,7 @@ import { FaChevronDown, FaUserPlus, FaShareSquare, FaUpload } from 'react-icons/
 import * as XLSX from 'xlsx'; // Importe a biblioteca XLSX
 
 const DesigForm = () => {
-  const [data, setData] = useState([]);
+  const [dataDesig, setDataDesig] = useState([]);
   const [dataSugest, setDataSugest] = useState([]);
   const [pageSugest, setPageSugest] = useState(0);
   const [page, setPage] = useState(0);
@@ -30,6 +30,7 @@ const DesigForm = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [filterColumn, setFilterColumn] = useState(''); // Guarda a coluna sendo filtrada  
   const [openImportCarrDialog, setOpenImportCarrDialog] = useState(false);
+  const [openImportMecanicDialog, setOpenImportMecanicDialog] = useState(false);
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedFileName, setSelectedFileName] = useState(""); // Armazena o nome do arquivo selecionado
@@ -46,22 +47,26 @@ const DesigForm = () => {
 
   const excelSerialToDate = (value) => {
     if (!value) return ""; // Se o valor for nulo ou vazio, retorna vazio.
-
+  
     // Verifica se é um número (serial do Excel).
     if (!isNaN(value)) {
       const excelStartDate = new Date(1899, 11, 30); // Data base do Excel.
       const convertedDate = new Date(excelStartDate.getTime() + value * 86400000); // Adiciona dias em milissegundos.
-      return convertedDate.toISOString().split('T')[0]; // Retorna no formato "YYYY-MM-DD".
+      const day = String(convertedDate.getDate()).padStart(2, "0");
+      const month = String(convertedDate.getMonth() + 1).padStart(2, "0");
+      const year = convertedDate.getFullYear();
+      return `${day}/${month}/${year}`; // Retorna no formato "DD/MM/YYYY".
     }
-
+  
     // Trata o caso de string no formato "DD/MM/YYYY".
     if (typeof value === "string" && value.includes("/")) {
       const [day, month, year] = value.split("/").map(Number); // Divide a string em partes numéricas.
-      return new Date(year, month - 1, day).toISOString().split('T')[0]; // Retorna no formato "YYYY-MM-DD".
+      return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`; // Retorna no formato "DD/MM/YYYY".
     }
-
+  
     return ""; // Retorna vazio para valores inválidos.
   };
+  
 
 
   useEffect(() => {
@@ -99,7 +104,7 @@ const DesigForm = () => {
   }, [value]); // Reage a mudanças no valor de `value`
 
 
-  const handleFileUpload = (event) => {
+  const handleUploadFileCarrinh = (event) => {
     const file = event.target.files[0];
     if (!file) {
       setDisplayMessage("Nenhum arquivo foi selecionado.");
@@ -130,11 +135,13 @@ const DesigForm = () => {
         const publicador = publicadores.find((pub) => {
           const pubFirstName = pub.pub_nome.split(" ")[0];
           const pubLastNameInitial = pub.pub_nome.split(" ")[1];
+
           return (
             pubFirstName === partialName &&
             (!initialLastName || pubLastNameInitial === initialLastName)
           );
         });
+
 
         return {
           data_inclu: excelSerialToDate(row["Data Inclusão"] || ""),
@@ -153,13 +160,14 @@ const DesigForm = () => {
         };
       });
 
-      setData(formattedData); // Atualiza os dados processados
+      setDataDesig(formattedData); // Atualiza os dados processados
     };
 
     reader.readAsBinaryString(file);
   };
 
-  const handleFileUploadType3 = (event) => {
+  
+  const handleUploadCarrinhType3 = (event) => {
     const file = event.target.files[0];
     if (!file) {
       setDisplayMessage("Nenhum arquivo foi selecionado.");
@@ -251,7 +259,7 @@ const DesigForm = () => {
   };
 
 
-  const handleImportAndSubmit = async () => {
+  const handleImportAndSubmitCarrinh = async () => {
     if (!selectedFile) {
       setDisplayMessage("Por favor, selecione uma planilha antes de importar.");
       setMessageColor("red");
@@ -338,7 +346,7 @@ const DesigForm = () => {
     }
   };
 
-  const handleSubmitType3 = async () => {
+  const handleSubmitCarrinhType3 = async () => {
     if (!selectedRows || selectedRows.length === 0) {
       setDisplayMessage("Por favor, processe o arquivo antes de importar.");
       setMessageColor("red");
@@ -366,17 +374,172 @@ const DesigForm = () => {
     }
   };
 
+  const normalizeText = (text) => {
+    if (!text) return ""; // Retorna vazio para entradas nulas ou indefinidas
+    return text
+      .normalize("NFD") // Decompõe caracteres com acento
+      .replace(/[\u0300-\u036f]/g, "") // Remove os acentos
+      .toLowerCase(); // Converte para letras minúsculas
+  };
+  
+  const handleUploadMecanicType456 = (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      setDisplayMessage("Nenhum arquivo foi selecionado.");
+      setMessageColor("red");
+      return;
+    }
+  
+    setSelectedFile(file); // Armazena o arquivo selecionado
+    setSelectedFileName(file.name); // Atualiza o nome do arquivo selecionado
+    setDisplayMessage(`Arquivo selecionado: ${file.name}`);
+    setMessageColor("black");
+  
+    const reader = new FileReader();
+  
+    reader.onload = (e) => {
+      const data = e.target.result;
+      const workbook = XLSX.read(data, { type: 'binary' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+  
+      const processedData = jsonData.flatMap((row) => {
+        console.log("Linha atual:", row); // Log para depuração
+      
+        const findPublicador = (name) => {
+          if (!name) return null;
+        
+          const [firstName, lastNamePart] = name.split(" ").map(normalizeText);
+        
+          if (lastNamePart && lastNamePart.endsWith(".")) {
+            // Busca com abreviação de sobrenome
+            return publicadores.find((pub) => {
+              const pubParts = pub.pub_nome.split(" ").map(normalizeText);
+              return (
+                pubParts[0] === firstName &&
+                pubParts.some((part) => part.startsWith(lastNamePart[0]))
+              );
+            });
+          } else if (lastNamePart) {
+            // Busca com sobrenome completo
+            return publicadores.find((pub) => {
+              const pubParts = pub.pub_nome.split(" ").map(normalizeText);
+              return (
+                pubParts[0] === firstName &&
+                pubParts.includes(lastNamePart)
+              );
+            });
+          }
+        
+          // Busca apenas pelo primeiro nome
+          return publicadores.find((pub) => {
+            const [pubFirstName] = pub.pub_nome.split(" ").map(normalizeText);
+            return pubFirstName === firstName;
+          });
+        };
+        
+      
+        const publicadMidias = row["Mídias"] ? findPublicador(row["Mídias"]) : null;
+        const publicadCamera = row["Câmera"] ? findPublicador(row["Câmera"]) : null;
+        const publicadIndicad = row["Indicador"] ? findPublicador(row["Indicador"]) : null;
+      
+        // Logs para correspondência
+        if (!publicadMidias && row["Mídias"]) console.warn(`Publicador não encontrado para Mídias: ${row["Mídias"]}`);
+        if (!publicadCamera && row["Câmera"]) console.warn(`Publicador não encontrado para Câmera: ${row["Câmera"]}`);
+        if (!publicadIndicad && row["Indicador"]) console.warn(`Publicador não encontrado para Indicador: ${row["Indicador"]}`);
+      
+        const baseRow = {
+          data_inclu: new Date().toLocaleDateString("pt-BR"),
+          dsg_data: excelSerialToDate(row["Data"] || ""),
+          dsg_mapa_cod: row["Dia"] || "",
+          dsg_detalhes: "4",
+          dsg_conselh: row["Conselho"] || "00",
+          dsg_mapa_url: row["Url"] || "",
+          dsg_mapa_end: row["Endereço"] || "",
+          dsg_status: row["Status"] || "1",
+          dsg_obs: row["Observ"] || "",
+        };
+      
+        const publicadorRows = [];
+        if (publicadMidias) {
+          publicadorRows.push({
+            ...baseRow,
+            pub_login: publicadMidias.pub_chave,
+            pub_nome: publicadMidias.pub_nome,
+            dsg_tipo: "4",
+          });
+        }
+        if (publicadCamera) {
+          publicadorRows.push({
+            ...baseRow,
+            pub_login: publicadCamera.pub_chave,
+            pub_nome: publicadCamera.pub_nome,
+            dsg_tipo: "5",
+          });
+        }
+        if (publicadIndicad) {
+          publicadorRows.push({
+            ...baseRow,
+            pub_login: publicadIndicad.pub_chave,
+            pub_nome: publicadIndicad.pub_nome,
+            dsg_tipo: "6",
+          });
+        }
+      
+        return publicadorRows;
+      });
 
-  const handleFileUploadCombined = (event) => {
+      setSelectedRows(processedData); // Atualiza o estado com os dados processados
+      console.log("Dados processados para Tipo 4,5,6:", processedData);
+    };
+  
+    reader.readAsBinaryString(file);
+  };
+  
+
+  
+  const handleSubmitMecanicType456 = async () => {
+    if (!selectedRows || selectedRows.length === 0) {
+      setDisplayMessage("Por favor, processe o arquivo antes de importar.");
+      setMessageColor("red");
+      return;
+    }
+  
+    try {
+      // Enviar os dados processados para a API
+      const response = await api_service.post('/desiglot', selectedRows);
+  
+      if (response.status === 201) {
+        setDisplayMessage("Importação concluída com sucesso!");
+        setMessageColor("green");
+        setSelectedRows([]); // Limpar os dados processados
+      } else {
+        setDisplayMessage("Erro ao enviar os dados. Verifique e tente novamente.");
+        setMessageColor("red");
+      }
+    } catch (error) {
+      console.error("Erro ao enviar os dados:", error);
+      setDisplayMessage("Erro ao enviar os dados. Tente novamente.");
+      setMessageColor("red");
+    }
+  };
+  
+ 
+  // designações de carrinho - chama upload
+  const handleUploadCarrinhCombined = (event) => {
     // Chama as duas handles com base na necessidade
-    handleFileUpload(event); // Handle para o Tipo padrão
-    handleFileUploadType3(event); // Handle para o Tipo 3
+    handleUploadFileCarrinh(event); // Handle para o Tipo padrão
+    handleUploadCarrinhType3(event); // Handle para o Tipo 3
+
   };
 
-  const handleSubmitCombined = async (event) => {
-    await handleSubmitType3();
-    await handleImportAndSubmit();
+  // designações de carrinho - chama envio para rota 
+  const handleSubmitCombinedCarrinh = async (event) => {
+    await handleSubmitCarrinhType3();
+    await handleImportAndSubmitCarrinh();
   };
+
 
   const [newDesignC, setNewDesignC] = useState({
     nome_publica: '',
@@ -397,7 +560,7 @@ const DesigForm = () => {
   useEffect(() => {
     api_service.get('/desigaall')
       .then((response) => {
-        setData(response.data);
+        setDataDesig(response.data);
       })
       .catch((error) => {
         console.error("Erro ao buscar os dados: ", error);
@@ -446,19 +609,21 @@ const DesigForm = () => {
   }, []);
 
   const handleSelect = (id) => {
+    console.log("Selecionando/desmarcando ID:", id); // Debug
     setSelected((prevSelected) =>
       prevSelected.includes(id)
         ? prevSelected.filter((item) => item !== id) // Desmarca se já estiver selecionado
         : [...prevSelected, id] // Marca se não estiver
     );
   };
+
   // Verifica se uma linha específica está selecionada
   const isSelected = (id) => selected.includes(id);
 
   // Função para controlar a seleção de todas as linhas das designações
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = dataSugest.map((row) => row.id);
+      const newSelected = dataSugest.map((row) => row.id_padrao);
       setSelected(newSelected);
     } else {
       setSelected([]);
@@ -470,7 +635,7 @@ const DesigForm = () => {
 
   // Função para iniciar a edição de uma linha
   const handleEdit = (row) => {
-    setEditRowId(row.id); // Define a linha como editável
+    setEditRowId(row.desig_id); // Define a linha como editável
     setEditedRowData({ ...row }); // Copia os dados atuais da linha para o estado editável
   };
 
@@ -483,8 +648,8 @@ const DesigForm = () => {
   // Função para salvar as alterações
   const handleSave = async () => {
     try {
-      await api_service.put(`/desig/${editedRowData.id}`, editedRowData); // Atualiza os dados no backend
-      setData(data.map(row => (row.id === editedRowData.id ? editedRowData : row))); // Atualiza os dados no frontend
+      await api_service.put(`/desig/${editedRowData.desig_id}`, editedRowData); // Atualiza os dados no backend
+      setDataDesig(dataDesig.map(row => (row.desig_id === editedRowData.desig_id ? editedRowData : row))); // Atualiza os dados no frontend
       setEditRowId(null); // Sai do modo de edição
     } catch (error) {
       console.error("Erro ao salvar os dados: ", error);
@@ -497,7 +662,7 @@ const DesigForm = () => {
     if (confirmDelete) {
       try {
         await api_service.delete(`/desig/${id}`); // Envia a solicitação de exclusão para a API
-        setData(data.filter(row => row.id !== id)); // Remove o registro excluído do estado local
+        setDataDesig(dataDesig.filter(row => row.desig_id !== id)); // Remove o registro excluído do estado local
       } catch (error) {
         console.error("Erro ao excluir os dados: ", error);
       }
@@ -520,7 +685,7 @@ const DesigForm = () => {
     }
     try {
       const response = await api_service.post('/desig', newDesignC);
-      setData([...data, response.data]); // Adiciona novo mapa aos dados
+      setDataDesig([...dataDesig, response.data]); // Adiciona novo mapa aos dados
       setNewDesignC({ data_inclu: '', dsg_data: '', pub_login: '', pub_nome: '', dsg_tipo: '', dsg_detalhes: '', dsg_conselh: '', dsg_mapa_cod: '', dsg_mapa_end: '', dsg_mapa_url: '', dsg_status: '', dsg_obs: '', pub_obs: '' }); // Limpa o formulário
       setMessage('Informações enviadas com sucesso!');
     } catch (error) {
@@ -532,6 +697,11 @@ const DesigForm = () => {
   const handleOpenImportCarrCampDlg = () => {
     setOpenImportCarrDialog(true); // Abre o diálogo
   };
+
+  const handleOpenImportMecanicDlg = () => {
+    setOpenImportMecanicDialog(true); // Abre o diálogo
+  };
+
 
   const buttonStyle = {
     padding: '4px 12px',
@@ -564,7 +734,7 @@ const DesigForm = () => {
   // Cálculo do índice inicial e final das linhas a serem exibidas
   const startIndex = page * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const currentData = data.slice(startIndex, endIndex);
+  const currentData = dataDesig.slice(startIndex, endIndex);
 
   // Estilo para inputs menores
   const inputStyle = {
@@ -603,7 +773,7 @@ const DesigForm = () => {
 
   // Função para obter a lista única de logradouros (enderec)
   const getUniqueBairro = () => {
-    const BairrosUnicos = [...new Set(data.map(row => row.terr_regiao))];
+    const BairrosUnicos = [...new Set(dataDesig.map(row => row.terr_regiao))];
     return BairrosUnicos;
   };
 
@@ -614,10 +784,10 @@ const DesigForm = () => {
     }
 
     // Filtrar os dados selecionados com base nos IDs
-    const selectedData = dataSugest.filter((row) => selected.includes(row.idSg));
+    const selectedData = dataSugest.filter((row) => selected.includes(row.id_padrao));
     const cleanedData = selectedData.map((row) => ({
-      dsg_data: new Date().toLocaleDateString("pt-BR"),  // Valor padrão para dsg_data
-      data_inclu: new Date().toLocaleDateString("pt-BR"),  // Valor padrão para dsg_data
+      dsg_data: new Date().toLocaleDateString("pt-BR"),  // Valor padrão 
+      data_inclu: new Date().toLocaleDateString("pt-BR"),  // Valor padrão 
       pub_login: '',
       pub_nome: '',
       pub_obs: '',
@@ -671,9 +841,9 @@ const DesigForm = () => {
       case 'Indicação': return '#CC0000';
       case 'Dirigente Campo': return '#42426F';
       case 'Carrinho': return '#93DB70';
-      case 'Mídias / Zoom': return '#000000';
+      case 'Mídias / Zoom': return '#191970';
       case 'Câmera': return '#000000';
-      case 'Indicador': return '#000000';
+      case 'Indicador': return '#800000';
       case 'Reunião RMWB': return '#000000';
       case 'Reunião FDS': return '#000000';
       case 'Discurso Publico': return '#000000';
@@ -1052,11 +1222,12 @@ const DesigForm = () => {
                     const statusTploc = getStatusTpLocal(row.terr_tp_local);
                     const statusClassif = getStatusClassif(row.terr_classif);
                     return (
-                      <TableRow key={row.id}>
+                      <TableRow key={row.id_padrao}>
+                          {console.log(row)} 
                         <TableCell TableCell align="center">
                           <Checkbox
-                            checked={isSelected(row.id)}
-                            onChange={() => handleSelect(row.id)}
+                            checked={isSelected(row.id_padrao)}
+                            onChange={() => handleSelect(row.id_padrao)}
                           />
                         </TableCell>
 
@@ -1166,6 +1337,7 @@ const DesigForm = () => {
                   transition: 'background-color 0.2s ease',
                   align: 'right',
                   borderRadius: '4px',
+                  marginTop: '10px',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#67e7eb';
@@ -1178,6 +1350,31 @@ const DesigForm = () => {
                 onClick={() => handleOpenImportCarrCampDlg()}
               >
                 <FaShareSquare /> Importar Designações - Campo e Carrinho
+              </button>
+          
+              <button
+                type="button"
+                style={{
+                  ...buttonStyle,
+                  backgroundColor: ' #8B4513',
+                  color: '#f1f1f1',
+                  transition: 'background-color 0.2s ease',
+                  align: 'right',
+                  borderRadius: '4px',
+                  marginLeft: '20px',
+                  marginTop: '10px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = ' #67e7eb';
+                  e.currentTarget.style.color = ' #202038';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgb(158, 119, 61)';
+                  e.currentTarget.style.color = ' #f1f1f1';
+                }}
+                onClick={() => handleOpenImportMecanicDlg()}
+              >
+                <FaShareSquare /> Importar Designações - Mecânicas
               </button>
 
             </Box>
@@ -1223,12 +1420,12 @@ const DesigForm = () => {
                 </TableHead>
                 <TableBody>
                   {currentData.map((row) => {
-                    const isEditing = row.id === editRowId;
+                    const isEditing = row.desig_id === editRowId;
                     const statusTipo = getStatusTipo(row.dsg_tipo);
                     const statusDesig = getStatusDesig(row.dsg_status);
                     const statusDesigDetalh = getStatusDesigDetalhes(row.dsg_detalhes);
                     return (
-                      <TableRow key={row.id}>
+                      <TableRow key={row.desig_id}>
                         <TableCell align="center">{isEditing ? <TextField name="dsg_data" value={editedRowData.dsg_data || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_data}</TableCell>
                         <TableCell align="center">{isEditing ? <TextField name="pub_login" value={editedRowData.pub_login || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_login}</TableCell>
                         <TableCell align="center">{isEditing ? <TextField name="pub_nome" value={editedRowData.pub_nome || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_nome}</TableCell>
@@ -1345,7 +1542,7 @@ const DesigForm = () => {
                           ) : (
                             <Box sx={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                               <Button variant="contained" color="primary" size="small" onClick={() => handleEdit(row)} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Editar</Button>
-                              <Button variant="contained" color="error" size="small" onClick={() => handleDelete(row.id)} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Excluir</Button>
+                              <Button variant="contained" color="error" size="small" onClick={() => handleDelete(row.desig_id)} sx={{ fontSize: '0.65rem', padding: '2px 5px' }}>Excluir</Button>
                             </Box>
                           )}
                         </TableCell>
@@ -1358,7 +1555,7 @@ const DesigForm = () => {
             <TablePagination
               rowsPerPageOptions={[]}
               component="div"
-              count={data.length}
+              count={setDataDesig.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}
@@ -1489,7 +1686,7 @@ const DesigForm = () => {
           },
         }}
       >
-        <DialogTitle>Importar Designações da Planilha</DialogTitle>
+        <DialogTitle>Importar Designações de Carrinho e Dirigente</DialogTitle>
         <DialogContent
           sx={{
             display: 'flex',
@@ -1530,14 +1727,14 @@ const DesigForm = () => {
               type="file"
               accept=".xlsx, .xls"
               hidden
-              onChange={handleFileUploadCombined}
+              onChange={handleUploadCarrinhCombined}
             />
           </Button>
 
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={handleSubmitCombined}
+            onClick={handleSubmitCombinedCarrinh}
             color="primary"
             disabled={isLoading}
           >
@@ -1553,7 +1750,84 @@ const DesigForm = () => {
         </DialogActions>
       </Dialog>
 
-      <Backdrop
+      <Dialog
+        open={openImportMecanicDialog}
+        onClose={() => setOpenImportMecanicDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            minHeight: '300px',
+            maxHeight: '400px',
+          },
+        }}
+      >
+        <DialogTitle>Importar Designações Mecânicas - Reunião</DialogTitle>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography variant="body2" sx={{ marginBottom: '16px' }}>
+            Selecione um arquivo Excel para importar as designações:
+          </Typography>
+          {displayMessage && (
+            <Typography
+              variant="body2"
+              sx={{
+                color: messageColor,
+                marginBottom: '16px',
+                fontStyle: 'italic',
+                fontSize: '12px',
+                textAlign: 'center',
+              }}
+            >
+              {displayMessage}
+            </Typography>
+          )}
+          <Button
+            variant="contained"
+            component="label"
+            style={{
+              backgroundColor: '#8B4513',
+              color: '#f1f1f1',
+              marginBottom: '16px',
+            }}
+          >
+            <FaUpload style={{ marginRight: '6px' }} />
+            Selecione a Planilha
+            <input
+             type="file"
+              accept=".xlsx, .xls"
+              hidden
+              onChange={handleUploadMecanicType456}
+            />
+          </Button>
+
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleSubmitMecanicType456}
+            
+            color="primary"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Processando...' : 'Importar'}
+          </Button>
+          <Button
+            onClick={() => setOpenImportMecanicDialog(false)}
+            color="primary"
+            disabled={isLoading}
+          >
+            Cancelar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+    <Backdrop
         sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
         open={isLoading}
       >

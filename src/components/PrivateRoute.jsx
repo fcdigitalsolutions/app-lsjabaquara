@@ -29,10 +29,6 @@ const PrivateRoute = ({ adminComponent: AdminComponent, userComponent: UserCompo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isUserSimples, adminOnly]); // Removed `navigate` from dependencies
 
-  console.log("AdminComponent:", AdminComponent);
-  console.log("UserComponent:", UserComponent);    
-  
-
   // Render the user or admin component based on permissions and selected mode
   return isUserSimples && UserComponent ? <UserComponent /> : <AdminComponent />;
 };
