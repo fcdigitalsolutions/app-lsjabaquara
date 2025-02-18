@@ -432,8 +432,8 @@ class DesignService:
     def add_desig(self,desig):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO cad_designacoes (data_inclu, dsg_data,pub_login, pub_nome, dsg_tipo, dsg_detalhes, dsg_conselh, dsg_mapa_cod,dsg_mapa_url, dsg_mapa_end, dsg_status, dsg_obs, pub_obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-            (desig.data_inclu,desig.dsg_data,desig.pub_login,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_url,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_obs,desig.pub_obs ))
+        cursor.execute('INSERT INTO cad_designacoes (data_inclu, dsg_data,pub_login, pub_nome, dsg_tipo, dsg_detalhes, dsg_conselh, dsg_mapa_cod,dsg_mapa_url, dsg_mapa_end, dsg_status,dsg_horaini, dsg_obs, pub_obs) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            (desig.data_inclu,desig.dsg_data,desig.pub_login,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_url,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_horaini,desig.dsg_obs,desig.pub_obs ))
         conn.commit()
         desig_id = cursor.lastrowid
         conn.close()
@@ -446,14 +446,14 @@ class DesignService:
             sql = """
             INSERT INTO cad_designacoes (
                 data_inclu, dsg_data, pub_login, pub_nome, dsg_tipo, dsg_detalhes, dsg_conselh,  
-                dsg_mapa_cod, dsg_mapa_url, dsg_mapa_end, dsg_status, dsg_obs, pub_obs
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                dsg_mapa_cod, dsg_mapa_url, dsg_mapa_end, dsg_status,dsg_horaini, dsg_obs, pub_obs
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             batch_values = [
                 (
                     desig.data_inclu, desig.dsg_data, desig.pub_login, desig.pub_nome, 
                     desig.dsg_tipo, desig.dsg_detalhes, desig.dsg_conselh, desig.dsg_mapa_cod, 
-                    desig.dsg_mapa_url, desig.dsg_mapa_end, desig.dsg_status, desig.dsg_obs,
+                    desig.dsg_mapa_url, desig.dsg_mapa_end, desig.dsg_status,desig.dsg_horaini, desig.dsg_obs,
                     desig.pub_obs,
                 )
                 for desig in desigs
@@ -471,8 +471,8 @@ class DesignService:
     def update_desig(self, desig_id, desig):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE cad_designacoes SET dsg_data= %s,pub_login= %s,pub_nome= %s,dsg_tipo= %s,dsg_detalhes= %s,dsg_conselh= %s,dsg_mapa_cod= %s,dsg_mapa_url= %s,dsg_mapa_end= %s,dsg_status= %s,dsg_obs= %s,pub_obs= %s WHERE id = %s',
-            (desig.dsg_data,desig.pub_login,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_url,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_obs,desig.pub_obs, desig_id ))
+        cursor.execute('UPDATE cad_designacoes SET dsg_data= %s,pub_login= %s,pub_nome= %s,dsg_tipo= %s,dsg_detalhes= %s,dsg_conselh= %s,dsg_mapa_cod= %s,dsg_mapa_url= %s,dsg_mapa_end= %s,dsg_status= %s,dsg_horaini= %s, dsg_obs= %s,pub_obs= %s WHERE id = %s',
+            (desig.dsg_data,desig.pub_login,desig.pub_nome,desig.dsg_tipo,desig.dsg_detalhes,desig.dsg_conselh,desig.dsg_mapa_cod,desig.dsg_mapa_url,desig.dsg_mapa_end,desig.dsg_status,desig.dsg_horaini,desig.dsg_obs,desig.pub_obs, desig_id ))
         conn.commit()
         conn.close()
         return desig_id
@@ -498,6 +498,7 @@ class DesignService:
                     desg.dsg_mapa_url, 
                     desg.dsg_mapa_end, 
                     desg.dsg_status,
+                    desg.dsg_horaini,
                     desg.dsg_obs, 
                     desg.pub_obs
                 FROM cad_designacoes desg
@@ -521,7 +522,7 @@ class DesignService:
                     0 AS indica_id,                          
                     desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
                     desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
-                    desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
+                    desg.dsg_mapa_url, desg.dsg_mapa_end,desg.dsg_horaini, desg.dsg_status, desg.dsg_obs, 
                     desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
                     terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
                     terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
@@ -555,6 +556,7 @@ class DesignService:
                     desg.dsg_mapa_url, 
                     desg.dsg_mapa_end, 
                     desg.dsg_status, 
+                    desg.dsg_horaini,
                     desg.dsg_obs, 
                     desg.pub_obs, 
                     desg.pub_login as terr_respons, 
@@ -601,7 +603,7 @@ class DesignService:
                     0 AS indica_id, 
                     desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
                     desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
-                    desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
+                    desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status,desg.dsg_horaini, desg.dsg_obs, 
                     desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
                     terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
                     terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
@@ -634,6 +636,7 @@ class DesignService:
                     desg.dsg_mapa_url, 
                     desg.dsg_mapa_end, 
                     desg.dsg_status, 
+                    desg.dsg_horaini,
                     desg.dsg_obs, 
                     desg.pub_obs, 
                     desg.pub_login as terr_respons, 
@@ -679,7 +682,7 @@ class DesignService:
                 terr.id AS territor_id,      -- ID do território
                 desg.data_inclu, desg.dsg_data, desg.pub_login, desg.pub_nome, 
                 desg.dsg_tipo, desg.dsg_detalhes, desg.dsg_conselh, desg.dsg_mapa_cod,
-                desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status, desg.dsg_obs, 
+                desg.dsg_mapa_url, desg.dsg_mapa_end, desg.dsg_status,desg.dsg_horaini, desg.dsg_obs, 
                 desg.pub_obs, terr.terr_respons, terr.dt_ultvisit,  
                 terr.terr_morador, terr.pub_ultvisi, terr.terr_enderec, 
                 terr.terr_regiao, terr.terr_link, terr.terr_coord, terr.terr_cor, 
@@ -717,6 +720,7 @@ class DesignService:
                 desg.dsg_data,
                 desg.dsg_detalhes,
                 desg.dsg_mapa_cod,
+                desg.dsg_horaini,
                 terr.terr_nome, 
                 terr.data_inclu, 
                 terr.terr_respons, terr.dt_ultvisit,  
@@ -745,6 +749,7 @@ class DesignService:
                 desg.dsg_data,
                 desg.dsg_detalhes,
                 desg.dsg_mapa_cod,
+                desg.dsg_horaini,       
                 terr.terr_nome, 
                 terr.data_inclu, 
                 terr.terr_respons, terr.dt_ultvisit,  
@@ -773,6 +778,7 @@ class DesignService:
                 indc.data_inclu AS dsg_data,
                 indc.obs AS dsg_detalhes,
                 CONCAT('IND', CAST(indc.id AS CHAR(255))) AS dsg_mapa_cod,
+                '' AS dsg_mapa_cod,
                 CONCAT('IND', CAST(indc.id AS CHAR(255))) AS terr_nome, 
                 indc.data_inclu AS data_inclu, 
                 indc.nome_publica AS terr_respons, 
@@ -811,6 +817,7 @@ class DesignService:
                 desg.dsg_data,
                 desg.dsg_detalhes,
                 desg.dsg_mapa_cod,
+                desg.dsg_horaini,
                 terr.terr_nome, 
                 terr.data_inclu, 
                 terr.terr_respons, terr.dt_ultvisit,  
@@ -850,6 +857,7 @@ class DesignService:
 				    desg.dsg_data,
 				    desg.dsg_detalhes,
 				    desg.dsg_mapa_cod,
+                    desg.dsg_horaini,
                     terr.terr_nome, 
                     terr.data_inclu, 
                     terr.terr_respons, terr.dt_ultvisit,  
@@ -873,6 +881,7 @@ class DesignService:
 				    desg.dsg_data,
 				    desg.dsg_detalhes,
 				    desg.dsg_mapa_cod, 
+                    desg.dsg_horaini,
                     terr.terr_nome, 
                     terr.data_inclu, 
                     terr.terr_respons, terr.dt_ultvisit,  
@@ -896,6 +905,7 @@ class DesignService:
 				    desg.dsg_data,
 				    desg.dsg_detalhes,
 				    desg.dsg_mapa_cod, 
+                    desg.dsg_horaini,
                     terr.terr_nome, 
                     terr.data_inclu, 
                     terr.terr_respons, terr.dt_ultvisit,  
@@ -923,7 +933,7 @@ class DesignService:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-          ( SELECT 
+         SELECT * FROM ( ( SELECT 
                 desg.id AS desig_id,     
                 camp.id AS camp_id,   
                 desg.data_inclu,
@@ -934,12 +944,12 @@ class DesignService:
                 desg.dsg_detalhes,
                 desg.dsg_conselh, 
                 desg.dsg_mapa_cod,
+                desg.dsg_horaini,
                 desg.dsg_mapa_url,
                 desg.dsg_mapa_end,
                 desg.dsg_status,
                 desg.dsg_obs, 
                 desg.pub_obs,
-                camp.data_inclu,
                 camp.cmp_tipo,  
                 camp.cmp_diadasem,
                 camp.cmp_seq,
@@ -956,7 +966,7 @@ class DesignService:
                     FROM (
                         SELECT DISTINCT pub_nome
                         FROM cad_designacoes desg_aux
-                        WHERE desg_aux.dsg_mapa_cod = camp.cmp_diadasem
+                        WHERE desg.dsg_mapa_cod = camp.cmp_diadasem and desg.dsg_horaini = camp.cmp_horaini 
                         AND desg_aux.dsg_tipo = desg.dsg_tipo
                         AND desg_aux.dsg_data = desg.dsg_data
                         AND desg_aux.pub_login <> desg.pub_login
@@ -971,7 +981,7 @@ class DesignService:
                     FROM (
                         SELECT DISTINCT pub_nome
                         FROM cad_designacoes desg_aux
-                        WHERE desg_aux.dsg_mapa_cod = camp.cmp_diadasem
+                        WHERE desg.dsg_mapa_cod = camp.cmp_diadasem and desg.dsg_horaini = camp.cmp_horaini 
                         AND desg_aux.dsg_tipo = desg.dsg_tipo
                         AND desg_aux.dsg_data = desg.dsg_data
                         AND desg_aux.pub_login <> desg.pub_login
@@ -986,7 +996,7 @@ class DesignService:
                     FROM (
                         SELECT DISTINCT pub_nome
                         FROM cad_designacoes desg_aux
-                        WHERE desg_aux.dsg_mapa_cod = camp.cmp_diadasem
+                        WHERE desg.dsg_mapa_cod = camp.cmp_diadasem and desg.dsg_horaini = camp.cmp_horaini 
                         AND desg_aux.dsg_tipo = desg.dsg_tipo
                         AND desg_aux.dsg_data = desg.dsg_data
                         AND desg_aux.pub_login <> desg.pub_login
@@ -997,13 +1007,13 @@ class DesignService:
             
             FROM cad_designacoes desg
             LEFT JOIN cad_configcampo camp
-                ON desg.dsg_mapa_cod = camp.cmp_diadasem
+                ON desg.dsg_mapa_cod = camp.cmp_diadasem and desg.dsg_horaini = camp.cmp_horaini 
                 AND desg.dsg_tipo = camp.cmp_tipo
             WHERE 
                 desg.dsg_status IN ('1', '2', '3') 
-                AND desg.dsg_tipo IN ('2', '3', '4') 
+                AND desg.dsg_tipo IN ('2', '3') 
                 and trim(desg.pub_login) = %s
-                ORDER BY desg.dsg_data ASC ) 
+                ) 
 			UNION 
 	        ( SELECT 
                 desg.id AS desig_id,     
@@ -1016,12 +1026,12 @@ class DesignService:
                 desg.dsg_detalhes,
                 desg.dsg_conselh, 
                 desg.dsg_mapa_cod,
+                desg.dsg_horaini,
                 desg.dsg_mapa_url,
                 desg.dsg_mapa_end,
                 desg.dsg_status,
                 desg.dsg_obs, 
                 desg.pub_obs,
-                camp.data_inclu,
                 camp.cmp_tipo,  
                 camp.cmp_diadasem,
                 camp.cmp_seq,
@@ -1043,14 +1053,14 @@ class DesignService:
             
             FROM cad_designacoes desg
             LEFT JOIN cad_configcampo camp
-                ON desg.dsg_mapa_cod = camp.cmp_diadasem
+                ON desg.dsg_mapa_cod = camp.cmp_diadasem  
                 AND camp.cmp_tipo = '4'
             WHERE 
                 desg.dsg_status IN ('1', '2', '3') 
-                AND desg.dsg_tipo IN ('5','6','7','8','9') 
+                AND desg.dsg_tipo IN ('4','5','6','7','8','9') 
                     and trim(desg.pub_login) = %s
-                ORDER BY desg.dsg_data ASC 
-		    ) 
+		    ) ) as Designacoes_Outras 
+                ORDER BY dsg_data ASC 
 	            """, (desig_user,desig_user,))
         
         desig = cursor.fetchall()
@@ -1497,7 +1507,7 @@ class UanotacService:
     def get_all_uanotac(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM cad_user_anotacoes where 1 = 1 order by uanot_pub, data_inclu ASC")
+        cursor.execute("SELECT * FROM cad_user_anotacoes where 1 = 1 order by uanot_pub, data_inclu DESC")
         uanotac = cursor.fetchall()
         result = rows_to_dict(cursor, uanotac)
         conn.close()
@@ -1518,7 +1528,7 @@ class UanotacService:
             FROM cad_user_anotacoes as tanot
             WHERE 1 = 1 
 	            and trim(tanot.uanot_pub) = %s
-            ORDER BY tanot.data_inclu ASC
+            ORDER BY tanot.data_inclu DESC
             """, (uanotac_user,))
         
         uanotac = cursor.fetchall()

@@ -147,6 +147,7 @@ const DesigForm = () => {
           data_inclu: excelSerialToDate(row["Data Inclusão"] || ""),
           dsg_data: excelSerialToDate(row["Data"] || ""),
           dsg_mapa_cod: row["Dia Sem."] || "",
+          dsg_horaini: row["Horario"] || "",
           pub_login: publicador ? publicador.pub_chave : "",
           pub_nome: publicador ? publicador.pub_nome : row["Dirigente"] || "",
           pub_obs: row["OBS Publicador"] || "",
@@ -208,6 +209,7 @@ const DesigForm = () => {
           data_inclu: new Date().toLocaleDateString("pt-BR"),
           dsg_data: row["Data"] || "",
           dsg_mapa_cod: row["Dia Sem."] || "",
+          dsg_horaini: row["Início"] || "",
           dsg_detalhes: "4",
           dsg_conselh: row["Conselho"] || "00",
           dsg_mapa_url: row["Url"] || "",
@@ -302,6 +304,7 @@ const DesigForm = () => {
             data_inclu: new Date().toLocaleDateString("pt-BR"),
             dsg_data: row["Data"] || "",
             dsg_mapa_cod: row["Dia Sem."] || "",
+            dsg_horaini: row["Horario"] || "",
             pub_login: publicador ? publicador.pub_chave : row["Dirigente"] || "",
             pub_nome: publicador ? publicador.pub_nome : row["Dirigente"] || "",
             pub_obs: row["OBS Publicador"] || "",
@@ -453,6 +456,7 @@ const DesigForm = () => {
           data_inclu: new Date().toLocaleDateString("pt-BR"),
           dsg_data: excelSerialToDate(row["Data"] || ""),
           dsg_mapa_cod: row["Dia"] || "",
+          dsg_horaini: row["Início"] || "",
           dsg_detalhes: "4",
           dsg_conselh: row["Conselho"] || "00",
           dsg_mapa_url: row["Url"] || "",
@@ -795,6 +799,7 @@ const DesigForm = () => {
       dsg_detalhes: row.terr_tp_local || '',
       dsg_conselh: '00',
       dsg_mapa_cod: row.terr_nome || '',  // Valor padrão para dsg_mapa_cod
+      dsg_horaini: '',  // Valor padrão para dsg_horaini
       dsg_mapa_url: row.terr_link || '',  // Valor padrão para dsg_mapa_url
       dsg_mapa_end: row.terr_enderec || '',  // Valor padrão para dsg_mapa_end
       dsg_status: '0',  // 0 - Não Designada, 1 - Pendente, ...
@@ -1394,6 +1399,7 @@ const DesigForm = () => {
                     </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Conselho</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cod. Mapa / Dia</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Horário Ini</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>End. Mapa</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Url. Mapa</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
@@ -1500,6 +1506,7 @@ const DesigForm = () => {
                         </TableCell>
                         <TableCell align="center">{isEditing ? <TextField name="dsg_conselh" value={editedRowData.dsg_conselh || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_conselh}</TableCell>
                         <TableCell align="center">{isEditing ? <TextField name="dsg_mapa_cod" value={editedRowData.dsg_mapa_cod || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_mapa_cod}</TableCell>
+                        <TableCell align="center">{isEditing ? <TextField name="dsg_horaini" value={editedRowData.dsg_horaini || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_horaini}</TableCell>
                         <TableCell align="center">{isEditing ? <TextField name="dsg_mapa_end" value={editedRowData.dsg_mapa_end || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_mapa_end}</TableCell>
                         <TableCell align="center">{isEditing ? <TextField name="dsg_mapa_url" value={editedRowData.dsg_mapa_url || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_mapa_url}</TableCell>
 
@@ -1617,6 +1624,9 @@ const DesigForm = () => {
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <TextField label="Cod. Mapa " variant="outlined" size="small" fullWidth value={newDesignC.dsg_mapa_cod} onChange={(e) => setNewDesignC({ ...newDesignC, dsg_mapa_cod: e.target.value })} sx={inputStyle} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '200px' }}>
+              <TextField label="Horário Inicio: " variant="outlined" size="small" fullWidth value={newDesignC.dsg_horaini} onChange={(e) => setNewDesignC({ ...newDesignC, dsg_horaini: e.target.value })} sx={inputStyle} />
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <TextField label="End. Mapa " variant="outlined" size="small" fullWidth value={newDesignC.dsg_mapa_end} onChange={(e) => setNewDesignC({ ...newDesignC, dsg_mapa_end: e.target.value })} sx={inputStyle} />

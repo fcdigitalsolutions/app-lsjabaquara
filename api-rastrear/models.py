@@ -87,7 +87,7 @@ class Publicadores:
         self.resp_obs	  = resp_obs			   
     
 class Designacoes: 
-    def __init__(self,data_inclu,dsg_data,pub_login,pub_nome,dsg_tipo,dsg_detalhes,dsg_conselh,dsg_mapa_cod,dsg_mapa_url,dsg_mapa_end,dsg_status,dsg_obs,pub_obs ):
+    def __init__(self,data_inclu,dsg_data,pub_login,pub_nome,dsg_tipo,dsg_detalhes,dsg_conselh,dsg_mapa_cod,dsg_mapa_url,dsg_mapa_end,dsg_horaini,dsg_status,dsg_obs,pub_obs ):
         self.data_inclu	  = data_inclu
         self.dsg_data     = dsg_data
         self.pub_login    = pub_login
@@ -99,6 +99,7 @@ class Designacoes:
         self.dsg_mapa_url = dsg_mapa_url
         self.dsg_mapa_end = dsg_mapa_end
         self.dsg_status	  = dsg_status
+        self.dsg_horaini  = dsg_horaini
         self.dsg_obs      = dsg_obs
         self.pub_obs      = pub_obs
        	

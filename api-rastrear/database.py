@@ -144,7 +144,8 @@ def init_db():
                 dsg_mapa_cod  varchar(255) NULL, 
                 dsg_mapa_url  varchar(255) NULL, 
                 dsg_mapa_end  varchar(255) NULL,
-                dsg_status    varchar(255) NULL,                 
+                dsg_status    varchar(255) NULL,      
+                dsg_horaini   varchar(255) NULL,            
 	            dsg_obs		  text,
                 pub_obs		  text
             )
