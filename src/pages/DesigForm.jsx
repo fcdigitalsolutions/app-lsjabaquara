@@ -47,7 +47,7 @@ const DesigForm = () => {
 
   const excelSerialToDate = (value) => {
     if (!value) return ""; // Se o valor for nulo ou vazio, retorna vazio.
-  
+
     // Verifica se é um número (serial do Excel).
     if (!isNaN(value)) {
       const excelStartDate = new Date(1899, 11, 30); // Data base do Excel.
@@ -57,16 +57,16 @@ const DesigForm = () => {
       const year = convertedDate.getFullYear();
       return `${day}/${month}/${year}`; // Retorna no formato "DD/MM/YYYY".
     }
-  
+
     // Trata o caso de string no formato "DD/MM/YYYY".
     if (typeof value === "string" && value.includes("/")) {
       const [day, month, year] = value.split("/").map(Number); // Divide a string em partes numéricas.
       return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`; // Retorna no formato "DD/MM/YYYY".
     }
-  
+
     return ""; // Retorna vazio para valores inválidos.
   };
-  
+
 
 
   useEffect(() => {
@@ -167,7 +167,7 @@ const DesigForm = () => {
     reader.readAsBinaryString(file);
   };
 
-  
+
   const handleUploadCarrinhType3 = (event) => {
     const file = event.target.files[0];
     if (!file) {
@@ -384,7 +384,7 @@ const DesigForm = () => {
       .replace(/[\u0300-\u036f]/g, "") // Remove os acentos
       .toLowerCase(); // Converte para letras minúsculas
   };
-  
+
   const handleUploadMecanicType456 = (event) => {
     const file = event.target.files[0];
     if (!file) {
@@ -392,29 +392,29 @@ const DesigForm = () => {
       setMessageColor("red");
       return;
     }
-  
+
     setSelectedFile(file); // Armazena o arquivo selecionado
     setSelectedFileName(file.name); // Atualiza o nome do arquivo selecionado
     setDisplayMessage(`Arquivo selecionado: ${file.name}`);
     setMessageColor("black");
-  
+
     const reader = new FileReader();
-  
+
     reader.onload = (e) => {
       const data = e.target.result;
       const workbook = XLSX.read(data, { type: 'binary' });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
-  
+
       const processedData = jsonData.flatMap((row) => {
         console.log("Linha atual:", row); // Log para depuração
-      
+
         const findPublicador = (name) => {
           if (!name) return null;
-        
+
           const [firstName, lastNamePart] = name.split(" ").map(normalizeText);
-        
+
           if (lastNamePart && lastNamePart.endsWith(".")) {
             // Busca com abreviação de sobrenome
             return publicadores.find((pub) => {
@@ -434,24 +434,24 @@ const DesigForm = () => {
               );
             });
           }
-        
+
           // Busca apenas pelo primeiro nome
           return publicadores.find((pub) => {
             const [pubFirstName] = pub.pub_nome.split(" ").map(normalizeText);
             return pubFirstName === firstName;
           });
         };
-        
-      
+
+
         const publicadMidias = row["Mídias"] ? findPublicador(row["Mídias"]) : null;
         const publicadCamera = row["Câmera"] ? findPublicador(row["Câmera"]) : null;
         const publicadIndicad = row["Indicador"] ? findPublicador(row["Indicador"]) : null;
-      
+
         // Logs para correspondência
         if (!publicadMidias && row["Mídias"]) console.warn(`Publicador não encontrado para Mídias: ${row["Mídias"]}`);
         if (!publicadCamera && row["Câmera"]) console.warn(`Publicador não encontrado para Câmera: ${row["Câmera"]}`);
         if (!publicadIndicad && row["Indicador"]) console.warn(`Publicador não encontrado para Indicador: ${row["Indicador"]}`);
-      
+
         const baseRow = {
           data_inclu: new Date().toLocaleDateString("pt-BR"),
           dsg_data: excelSerialToDate(row["Data"] || ""),
@@ -464,7 +464,7 @@ const DesigForm = () => {
           dsg_status: row["Status"] || "1",
           dsg_obs: row["Observ"] || "",
         };
-      
+
         const publicadorRows = [];
         if (publicadMidias) {
           publicadorRows.push({
@@ -490,30 +490,30 @@ const DesigForm = () => {
             dsg_tipo: "6",
           });
         }
-      
+
         return publicadorRows;
       });
 
       setSelectedRows(processedData); // Atualiza o estado com os dados processados
       console.log("Dados processados para Tipo 4,5,6:", processedData);
     };
-  
+
     reader.readAsBinaryString(file);
   };
-  
 
-  
+
+
   const handleSubmitMecanicType456 = async () => {
     if (!selectedRows || selectedRows.length === 0) {
       setDisplayMessage("Por favor, processe o arquivo antes de importar.");
       setMessageColor("red");
       return;
     }
-  
+
     try {
       // Enviar os dados processados para a API
       const response = await api_service.post('/desiglot', selectedRows);
-  
+
       if (response.status === 201) {
         setDisplayMessage("Importação concluída com sucesso!");
         setMessageColor("green");
@@ -528,8 +528,8 @@ const DesigForm = () => {
       setMessageColor("red");
     }
   };
-  
- 
+
+
   // designações de carrinho - chama upload
   const handleUploadCarrinhCombined = (event) => {
     // Chama as duas handles com base na necessidade
@@ -730,15 +730,32 @@ const DesigForm = () => {
     setPage(newPage);
   };
 
+
+  // Dados filtrados com base nos filtros das colunas
+  const FilterDataDesig = dataDesig.filter((row) => {
+    return (
+      (!filters.dsg_detalhes || row.dsg_detalhes === filters.dsg_detalhes) &&
+      (!filters.dsg_data || row.dsg_data === filters.dsg_data) &&
+      (!filters.pub_login || row.pub_login === filters.pub_login) &&
+      (!filters.pub_nome || row.pub_nome === filters.pub_nome) &&
+      (!filters.dsg_mapa_cod || row.dsg_mapa_cod === filters.dsg_mapa_cod) &&
+      (!filters.dsg_status || row.dsg_status === filters.dsg_status) &&
+      (!filters.dsg_tipo || row.dsg_tipo === filters.dsg_tipo) &&
+      (!filters.terr_cor || row.terr_cor === filters.terr_cor)
+    );
+  });
+
+
   // Cálculo do índice inicial e final das linhas a serem exibidas
   const startIndexSug = pageSugest * rowsPerPage;
   const endIndexSug = startIndexSug + rowsPerPage;
   const currentDataSugest = dataSugest.slice(startIndexSug, endIndexSug);
 
+
   // Cálculo do índice inicial e final das linhas a serem exibidas
   const startIndex = page * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const currentData = dataDesig.slice(startIndex, endIndex);
+  const paginatedData = FilterDataDesig.slice(startIndex, endIndex);
 
   // Estilo para inputs menores
   const inputStyle = {
@@ -824,6 +841,8 @@ const DesigForm = () => {
   };
 
 
+
+
   const getStatusTipo = (dsg_tipo) => {
     switch (dsg_tipo) {
       case '0': return 'Mapa';
@@ -835,10 +854,11 @@ const DesigForm = () => {
       case '6': return 'Indicador';
       case '7': return 'Reunião RMWB';
       case '8': return 'Reunião FDS';
-      case '9': return 'Discurso Publico';
+      case '9': return 'Discurso Público';
       default: return 'Outros';
     }
   };
+
 
   const getStatusColorTipo = (status) => {
     switch (status) {
@@ -851,7 +871,7 @@ const DesigForm = () => {
       case 'Indicador': return '#800000';
       case 'Reunião RMWB': return '#000000';
       case 'Reunião FDS': return '#000000';
-      case 'Discurso Publico': return '#000000';
+      case 'Discurso Público': return '#000000';
       default: return 'transparent';
     }
   };
@@ -899,6 +919,7 @@ const DesigForm = () => {
         return 'Outros';
     }
   };
+
 
   // Função para determinar a cor de fundo da célula com base no status
   const getStatusSitColor = (statusSit) => {
@@ -1041,6 +1062,26 @@ const DesigForm = () => {
         return 'transparent';
     }
   };
+
+
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniqueDataDesig = () => {
+    const DatasUnicas = [...new Set(FilterDataDesig.map(row => row.dsg_data))];
+    return DatasUnicas;
+  };
+
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniqueCodDesig = () => {
+    const CodMapaUnic = [...new Set(FilterDataDesig.map(row => row.dsg_mapa_cod))];
+    return CodMapaUnic;
+  };
+
+  // Função para obter a lista única de logradouros (enderec)
+  const getUniquePubDesig = () => {
+    const CodMapaUnic = [...new Set(FilterDataDesig.map(row => row.pub_nome))];
+    return CodMapaUnic;
+  };
+
 
   return (
     <Box sx={{ padding: '16px', backgroundColor: 'rgb(255,255,255)', color: '#202038' }}>
@@ -1228,7 +1269,7 @@ const DesigForm = () => {
                     const statusClassif = getStatusClassif(row.terr_classif);
                     return (
                       <TableRow key={row.id_padrao}>
-                          {console.log(row)} 
+                        {console.log(row)}
                         <TableCell TableCell align="center">
                           <Checkbox
                             checked={isSelected(row.id_padrao)}
@@ -1356,7 +1397,7 @@ const DesigForm = () => {
               >
                 <FaShareSquare /> Importar Designações - Campo e Carrinho
               </button>
-          
+
               <button
                 type="button"
                 style={{
@@ -1389,20 +1430,31 @@ const DesigForm = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Data</TableCell>
+
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Data
+                      <FaChevronDown onClick={(event) => handleClick(event, 'dsg_data')} />
+                    </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Publicador</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Nome Publicador</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Nome Publicador
+                      <FaChevronDown onClick={(event) => handleClick(event, 'pub_nome')} />
+                    </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Obs Publicador</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tipo</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tipo
+                      <FaChevronDown onClick={(event) => handleClick(event, 'dsg_tipo')} />
+                    </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Detalhes
                       <FaChevronDown onClick={(event) => handleClick(event, 'dsg_detalhes')} />
                     </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Conselho</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cod. Mapa / Dia</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cod. Mapa / Dia
+                      <FaChevronDown onClick={(event) => handleClick(event, 'dsg_mapa_cod')} />
+                    </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Horário Ini</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>End. Mapa</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Url. Mapa</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status
+                      <FaChevronDown onClick={(event) => handleClick(event, 'dsg_status')} />
+                    </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Desig. OBS</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
                   </TableRow>
@@ -1422,15 +1474,81 @@ const DesigForm = () => {
                       </>
                     )}
 
+                    {filterColumn === 'dsg_status' && (
+                      <>
+                        <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('0')}>NÃO DESIGNADA</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('1')}>PENDENTE</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('2')}>REALIZADA</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('3')}>VENCIDA</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('4')}>ENCERRADA</MenuItem>
+                      </>
+                    )}
+
+                    {filterColumn === 'dsg_tipo' && (
+                      <>
+                        <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('0')}>Mapa</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('1')}>Indicação</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('2')}>Dirigente Campo</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('3')}>Carrinho</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('4')}>Mídias / Zoom</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('5')}>Câmera</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('6')}>Indicador</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('7')}>Reunião RMWB</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('8')}>Reunião FDS</MenuItem>
+                        <MenuItem onClick={() => handleFilterSelect('9')}>Discurso Público</MenuItem>
+
+
+                      </>
+                    )}
+
+                    {filterColumn === 'dsg_data' && (
+                      <>
+                        <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                        {/* Gerar dinamicamente as congregações únicos */}
+                        {getUniqueDataDesig().map((dsg_data) => (
+                          <MenuItem key={dsg_data} onClick={() => handleFilterSelect(dsg_data)}>
+                            {dsg_data}
+                          </MenuItem>
+                        ))}
+                      </>
+                    )}
+
+
+                    {filterColumn === 'pub_nome' && (
+                      <>
+                        <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                        {/* Gerar dinamicamente as congregações únicos */}
+                        {getUniquePubDesig().map((pub_nome) => (
+                          <MenuItem key={pub_nome} onClick={() => handleFilterSelect(pub_nome)}>
+                            {pub_nome}
+                          </MenuItem>
+                        ))}
+                      </>
+                    )}
+                    {filterColumn === 'dsg_mapa_cod' && (
+                      <>
+                        <MenuItem onClick={() => handleFilterSelect('')}>Todos</MenuItem>
+                        {/* Gerar dinamicamente as congregações únicos */}
+                        {getUniqueCodDesig().map((dsg_mapa_cod) => (
+                          <MenuItem key={dsg_mapa_cod} onClick={() => handleFilterSelect(dsg_mapa_cod)}>
+                            {dsg_mapa_cod}
+                          </MenuItem>
+                        ))}
+                      </>
+                    )}
+
                   </Menu>
                 </TableHead>
                 <TableBody>
-                  {currentData.map((row) => {
+                  {paginatedData.map((row) => {
                     const isEditing = row.desig_id === editRowId;
                     const statusTipo = getStatusTipo(row.dsg_tipo);
                     const statusDesig = getStatusDesig(row.dsg_status);
                     const statusDesigDetalh = getStatusDesigDetalhes(row.dsg_detalhes);
                     return (
+
                       <TableRow key={row.desig_id}>
                         <TableCell align="center">{isEditing ? <TextField name="dsg_data" value={editedRowData.dsg_data || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.dsg_data}</TableCell>
                         <TableCell align="center">{isEditing ? <TextField name="pub_login" value={editedRowData.pub_login || ''} onChange={handleInputChange} size="small" sx={{ width: '100%' }} /> : row.pub_login}</TableCell>
@@ -1455,7 +1573,7 @@ const DesigForm = () => {
                                 <MenuItem value="6">Indicador</MenuItem>
                                 <MenuItem value="7">Reunião RMWB</MenuItem>
                                 <MenuItem value="8">Reunião FDS</MenuItem>
-                                <MenuItem value="9">Discurso Publico</MenuItem>
+                                <MenuItem value="9">Discurso Público</MenuItem>
                                 <MenuItem value="A">Outros</MenuItem>
                               </Select>
                             </FormControl>
@@ -1562,10 +1680,11 @@ const DesigForm = () => {
             <TablePagination
               rowsPerPageOptions={[]}
               component="div"
-              count={dataDesig.length}
+              count={FilterDataDesig.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}
+              labelRowsPerPage="Linhas por página:" // Texto personalizado
               sx={{
                 '& .MuiTablePagination-toolbar': { fontSize: '0.65rem' },
                 '& .MuiTablePagination-selectRoot': { fontSize: '0.65rem' },
@@ -1810,7 +1929,7 @@ const DesigForm = () => {
             <FaUpload style={{ marginRight: '6px' }} />
             Selecione a Planilha
             <input
-             type="file"
+              type="file"
               accept=".xlsx, .xls"
               hidden
               onChange={handleUploadMecanicType456}
@@ -1821,7 +1940,7 @@ const DesigForm = () => {
         <DialogActions>
           <Button
             onClick={handleSubmitMecanicType456}
-            
+
             color="primary"
             disabled={isLoading}
           >
@@ -1837,7 +1956,7 @@ const DesigForm = () => {
         </DialogActions>
       </Dialog>
 
-    <Backdrop
+      <Backdrop
         sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
         open={isLoading}
       >

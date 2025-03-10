@@ -37,6 +37,15 @@ const DashGestor = () => {
   const [visitStatusChartData, setVisitStatusChartData] = useState([]);
   const [visitStatusSummary, setVisitStatusSummary] = useState({});
 
+  const [chartData, setChartData] = useState([]);
+  const [summary, setSummary] = useState({
+    totalVisits: 0,
+    familyVisits: 0,
+    foundVisits: 0,
+    otherVisits: 0,
+  });
+  const [experienceText, setExperienceText] = useState("");
+
   // Carregar dados das rotas
   useEffect(() => {
     api_service.get("/rvisitall").then((response) => setVisitData(response.data));
@@ -178,6 +187,105 @@ const DashGestor = () => {
     }
   };
 
+
+   // Função para determinar o tipo de local
+   const getStatusTpLocal = (terr_tp_local) => {
+    switch (terr_tp_local) {
+      case "1":
+        return "Casa";
+      case "2":
+        return "Trabalho";
+      case "3":
+        return "Prédio";
+      default:
+        return "Outros";
+    }
+  };
+
+  // Função para determinar o status da visita
+  const getStatusVisit = (visit_status) => {
+    switch (visit_status) {
+      case "Não":
+        return "Não";
+      case "Sim":
+        return "Sim";
+      case "Carta":
+        return "Carta";
+      case "Família":
+        return "Família";
+      case "Outros":
+        return "Outros";
+      default:
+        return "Desconhecido";
+    }
+  };
+
+  // Processar dados para o gráfico
+  const processChartData = useCallback(() => {
+    const startDate = new Date(`${selectedYear}-03-08`);
+    const endDate = new Date(`${selectedYear}-04-12`);
+
+    // Filtrar dados por período e tipo de local (excluindo Trabalho)
+    const filteredData = visitData.filter((visit) => {
+      if (!visit.visit_data) return false;
+      const [day, month, year] = visit.visit_data.split("/");
+      const visitDate = new Date(`${year}-${month}-${day}`);
+      const type = getStatusTpLocal(visit.terr_tp_local);
+
+      return (
+        visitDate >= startDate &&
+        visitDate <= endDate &&
+        type !== "Trabalho" &&
+        year === selectedYear
+      );
+    });
+
+    let familyCount = 0;
+    let foundCount = 0;
+    let otherCount = 0;
+    let totalVisits = 0;
+    let experienceText = "";
+
+    filteredData.forEach((visit) => {
+      const type = getStatusVisit(visit.visit_status);
+      totalVisits++;
+
+      if (type === "Família") {
+        familyCount++;
+      } else if (type === "Sim") {
+        foundCount++;
+      } else {
+        otherCount++;
+      }
+
+      // Buscar experiência nas observações
+      if (visit.terr_obs && visit.terr_obs.includes("Experiência:")) {
+        experienceText = visit.terr_obs.split("Experiência:")[1].trim();
+      }
+    });
+
+    setChartData([
+      { name: "Família", visitas: familyCount },
+      { name: "Sim", visitas: foundCount },
+      { name: "Outros", visitas: otherCount },
+    ]);
+
+    setSummary({
+      totalVisits,
+      familyVisits: familyCount,
+      foundVisits: foundCount,
+      otherVisits: otherCount,
+    });
+
+    setExperienceText(experienceText);
+  }, [visitData, selectedYear]);
+
+  useEffect(() => {
+    if (visitData.length > 0) {
+      processChartData();
+    }
+  }, [visitData, selectedYear, processChartData]);
+
   // Atualizar gráficos quando dados ou filtros mudam
   useEffect(() => {
     if (visitData.length > 0 && territoryData.length > 0) {
@@ -235,6 +343,79 @@ const DashGestor = () => {
             <Typography variant="body1">Território Mais Visitado: {territorySummary.mostVisited} ({territorySummary.mostVisitedCount} Visitas)</Typography>
           </Box>
         </Box>
+
+
+
+        {/* Gráfico e Painel - Campanha de Celebração */}
+<Box
+  sx={{
+    flex: "1 1 45%",
+    minWidth: "250px",
+    backgroundColor: "#f9f9f9",
+    padding: "16px",
+    borderRadius: "8px"
+  }}
+>
+  {/* Filtro por ano */}
+  <Box sx={{ display: "flex", gap: 2, marginBottom: "20px" }}>
+    <FormControl size="small" sx={{ minWidth: 120 }}>
+      <InputLabel>Ano</InputLabel>
+      <Select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+        {[2023, 2024, 2025, 2026].map((year) => (
+          <MenuItem key={year} value={year.toString()}>
+            {year}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  </Box>
+
+  {/* Título */}
+  <Typography variant="h6" sx={{ marginBottom: "10px" }}>
+    Campanha de Celebração ({selectedYear})
+  </Typography>
+
+  {/* Gráfico */}
+  <Box sx={{ height: "200px" }}>
+    <ResponsiveContainer>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="visitas" fill="#82ca9d" />
+      </BarChart>
+    </ResponsiveContainer>
+  </Box>
+
+  {/* Resumo */}
+  <Box sx={{ marginTop: "20px" }}>
+  <Typography variant="body1">
+    Total de Visitas: <strong>{summary.totalVisits}</strong>
+  </Typography>
+  <Typography variant="body1">
+    Convites entregues <strong>para a Família: {summary.familyVisits} / ({(summary.familyVisits / summary.totalVisits * 100).toFixed(2)}%)</strong>
+  </Typography>
+  <Typography variant="body1">
+    Convites entregues direto <strong>para os Surdos: {summary.foundVisits} / ({(summary.foundVisits / summary.totalVisits * 100).toFixed(2)}%)</strong>
+  </Typography>
+  <Typography variant="body1">
+    Outros: <strong>{summary.otherVisits}</strong>
+  </Typography>
+</Box>
+
+  {/* Rodapé com Experiência */}
+  {experienceText && (
+    <Box sx={{ marginTop: "10px", padding: "8px", backgroundColor: "#e0f7fa", borderRadius: "4px" }}>
+      <Typography variant="body2">
+        <strong>Experiência:</strong> {experienceText}
+      </Typography>
+    </Box>
+  )}
+</Box>
+
+
           {/* Gráfico e Painel - Regiões */}
                 <Box sx={{ flex: "1 1 45%", minWidth: "250px", backgroundColor: "#f9f9f9", padding: "16px", borderRadius: "8px" }}>
                   <Typography variant="h6" sx={{ marginBottom: "10px" }}>Visitas por Região</Typography>
