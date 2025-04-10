@@ -236,7 +236,7 @@ const DashGestor = () => {
 
     
      // Filtrar dados por período e tipo de local (excluindo Trabalho)
-     const filteredComercData = visitComercData.filter((visit) => {
+    const filteredComercData = visitComercData.filter((visit) => {
       if (!visit.visit_data) return false;
       const [day, month, year] = visit.visit_data.split("/");
       const visitDate = new Date(`${year}-${month}-${day}`);
@@ -312,7 +312,7 @@ const DashGestor = () => {
     });
 
     setExperienceText(experienceText);
-  }, [visitCelebraData, selectedYear]);
+  }, [visitCelebraData, visitComercData, selectedYear]);
 
   useEffect(() => {
     if (visitCelebraData.length > 0) {
@@ -329,8 +329,6 @@ const DashGestor = () => {
       processVisitStatusData(visitCelebraData);
     }
   }, [visitCelebraData, territoryData, processTerritoryData, processRegionData, processStatusData, processVisitStatusData]);
-
- 
   
   return (
     <Box sx={{ padding: "16px", backgroundColor: "#f5f5f5" }}>
