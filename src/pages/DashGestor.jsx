@@ -26,7 +26,7 @@ const DashGestor = () => {
   const [territoryData, setTerritoryData] = useState([]);
 
   // Filtros globais
-  const [selectedYear, setSelectedYear] = useState("2024");
+  const [selectedYear, setSelectedYear] = useState("2025");
   const [selectedPeriod, setSelectedPeriod] = useState(3);
 
   // Filtros e dados de gráficos individuais
@@ -54,7 +54,7 @@ const DashGestor = () => {
   useEffect(() => {
  //   api_service.get("/rvisitall").then((response) => setVisitData(response.data));
     api_service.get("/rvisicelebr").then((response) => setVisitCelebrData(response.data));
-     api_service.get("/rvisicomerc").then((response) => setVisitComercData(response.data));
+    api_service.get("/rvisicomerc").then((response) => setVisitComercData(response.data));
     api_service.get("/territall").then((response) => setTerritoryData(response.data));
   }, []);
 
@@ -221,6 +221,7 @@ const DashGestor = () => {
     const startDate = new Date(`${selectedYear}-03-08`);
     const endDate = new Date(`${selectedYear}-04-12`);
 
+    if (!visitCelebraData || !visitComercData) return;
     // Filtrar dados por período e tipo de local (excluindo Trabalho)
     const filteredCelebrData = visitCelebraData.filter((visit) => {
       if (!visit.visit_data) return false;
@@ -315,10 +316,10 @@ const DashGestor = () => {
   }, [visitCelebraData, visitComercData, selectedYear]);
 
   useEffect(() => {
-    if (visitCelebraData.length > 0) {
+    if (visitCelebraData.length > 0 && visitComercData.length > 0) {
       processChartData();
     }
-  }, [visitCelebraData, selectedYear, processChartData]);
+  }, [visitCelebraData, visitComercData, selectedYear, processChartData]);
 
   // Atualizar gráficos quando dados ou filtros mudam
   useEffect(() => {
