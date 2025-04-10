@@ -22,7 +22,7 @@ import api_service from "../services/api_service";
 const DashGestor = () => {
   const [visitCelebraData, setVisitCelebrData] = useState([]);
   const [visitComercData, setVisitComercData] = useState([]);
-  const [visitData, setVisitData] = useState([]);
+//  const [visitData, setVisitData] = useState([]);
   const [territoryData, setTerritoryData] = useState([]);
 
   // Filtros globais
@@ -52,7 +52,7 @@ const DashGestor = () => {
 
   // Carregar dados das rotas
   useEffect(() => {
-    api_service.get("/rvisitall").then((response) => setVisitData(response.data));
+ //   api_service.get("/rvisitall").then((response) => setVisitData(response.data));
     api_service.get("/rvisicelebr").then((response) => setVisitCelebrData(response.data));
      api_service.get("/rvisicomerc").then((response) => setVisitComercData(response.data));
     api_service.get("/territall").then((response) => setTerritoryData(response.data));
@@ -234,6 +234,7 @@ const DashGestor = () => {
       );
     });
 
+    
      // Filtrar dados por período e tipo de local (excluindo Trabalho)
      const filteredComercData = visitComercData.filter((visit) => {
       if (!visit.visit_data) return false;
@@ -330,6 +331,7 @@ const DashGestor = () => {
   }, [visitCelebraData, territoryData, processTerritoryData, processRegionData, processStatusData, processVisitStatusData]);
 
  
+  
   return (
     <Box sx={{ padding: "16px", backgroundColor: "#f5f5f5" }}>
       <Typography variant="h4" sx={{ marginBottom: "20px" }}>
