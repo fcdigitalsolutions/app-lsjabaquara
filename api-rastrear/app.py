@@ -813,6 +813,24 @@ def get_rvisitall():
         'data_inclu': format_date(rvisitas.get('data_inclu'))
     } for rvisitas in rvisitas])
 
+@app.route('/rvisicelebr', methods=['GET'])
+def get_rvisitcelebra():
+    rvisitas = rvisita_service.get_visit_celebra()
+    return jsonify([{
+        **dict(rvisitas),        
+        'visit_data': format_date(rvisitas.get('visit_data')),
+        'data_inclu': format_date(rvisitas.get('data_inclu'))
+    } for rvisitas in rvisitas])
+
+@app.route('/rvisicomerc', methods=['GET'])
+def get_rvisitcomerc():
+    rvisitas = rvisita_service.get_visit_comercio()
+    return jsonify([{
+        **dict(rvisitas),        
+        'visit_data': format_date(rvisitas.get('visit_data')),
+        'data_inclu': format_date(rvisitas.get('data_inclu'))
+    } for rvisitas in rvisitas])
+
 @app.route('/rvisitas', methods=['POST'])
 def add_rvisitas():
     data = request.json

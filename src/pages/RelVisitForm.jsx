@@ -373,16 +373,20 @@ const RelVisitForm = () => {
     // Função para exportar os dados filtrados para planilha
     const handleExport = () => {
         const exportData = filteredData.map(row => ({
-            'Endereço': row.enderec,
-            'Detalhes': row.obs,
-            'Link Mapa': row.indic_url_map,
-            'Status': row.end_confirm === '2' ? 'Confirmado' : 'Pendente',
-            'Designado?': row.indic_desig === '2' ? 'Sim' : 'Não',
-            'Tipo de Local': row.indic_tp_local === '2' ? 'Comércio' : 'Residência',
-            'Data': row.data_inclu,
-            'Publicador': row.nome_publica,
-            'Contato': row.num_contato,
-            'Congregação': row.cod_congreg
+
+            'Data Inclusão' 	: row.data_inclu,	
+            'Data Visita'       : row.visit_data, 	
+            'Publicador Login'  : row.pub_login,  	
+            'Nome Publicador'   : row.pub_nome,  	
+            'Mapa'              : row.visit_cod, 		
+            'Link Mapa'         : row.visit_url, 		
+            'Endereço'          : row.visit_ender, 	
+            'Encontrou?'        : row.visit_status, 	
+            'QTD de Surdos'     : row.num_pessoas, 	
+            'Melhor Dia'        : row.melhor_dia, 	
+            'Melhor Hora'       : row.melhor_hora, 	
+            'Detalhes'          : row.terr_obs, 
+
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData); // Converte os dados para uma planilha

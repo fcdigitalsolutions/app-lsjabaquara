@@ -1240,7 +1240,7 @@ class VisitaService:
         cursor = conn.cursor()
         cursor.execute(           
             """
-        	select
+            select
 	            id             , 
 	            data_inclu	   ,
                 visit_data     ,
@@ -1254,13 +1254,76 @@ class VisitaService:
                 melhor_dia     ,
                 melhor_hora    ,      
                 terr_obs       
-            from mov_relat_visitas where 1 = 1 
+            from mov_relat_visitas where 1 = 1 order by visit_data desc
             """
             )
         rvisitas = cursor.fetchall()
         result = rows_to_dict(cursor, rvisitas)
         conn.close()
         return result
+
+    def get_visit_celebra(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(           
+            """
+            select
+	            visit.id               , 
+	            visit.data_inclu       ,
+                visit_data     	 	   ,
+                visit.pub_login        ,        
+				visit.pub_nome         ,
+	            visit.visit_cod        ,	
+                visit.visit_url        , 
+                visit.visit_ender      ,     
+                visit.visit_status     ,
+                visit.num_pessoas,
+                visit.melhor_dia       ,
+                visit.melhor_hora      ,      
+                visit.terr_obs         , 
+                (select count(id) from cad_territorios) as terr_total, 
+                (select sum(ter1.num_pessoas) from cad_territorios ter1 ) as terr_totsurdos
+            from mov_relat_visitas visit
+            left join cad_territorios on visit_cod = terr_nome and terr_tp_local in ('1','3')	
+            where 1 = 1 order by visit_data desc
+            """
+            )
+        rvisitas = cursor.fetchall()
+        result = rows_to_dict(cursor, rvisitas)
+        conn.close()
+        return result
+    
+    def get_visit_comercio(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(           
+            """
+              select
+	            visit.id               , 
+	            visit.data_inclu       ,
+                visit_data     	 	   ,
+                visit.pub_login        ,        
+				visit.pub_nome         ,
+	            visit.visit_cod        ,	
+                visit.visit_url        , 
+                visit.visit_ender      ,     
+                visit.visit_status     ,
+                visit.num_pessoas,
+                visit.melhor_dia       ,
+                visit.melhor_hora      ,      
+                visit.terr_obs         , 
+                (select count(id) from cad_territorios) as terr_total, 
+                (select sum(ter1.num_pessoas) from cad_territorios ter1 ) as terr_totsurdos
+            from mov_relat_visitas visit
+            left join cad_territorios on visit_cod = terr_nome and terr_tp_local in ('2')	
+            where 1 = 1 order by visit_data desc
+            """
+            )
+        rvisitas = cursor.fetchall()
+        result = rows_to_dict(cursor, rvisitas)
+        conn.close()
+        return result
+
 
     def delete_visit(self, rvisitas_id):
         conn = get_db_connection()
