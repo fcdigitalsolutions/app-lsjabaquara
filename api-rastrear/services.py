@@ -1200,7 +1200,16 @@ class TerritService:
     def get_all_territ(self):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM cad_territorios where 1 = 1 ORDER BY terr_nome ASC')
+        cursor.execute("SELECT * FROM cad_territorios where 1 = 1 ORDER BY terr_nome ASC")
+        territ = cursor.fetchall()
+        result = rows_to_dict(cursor, territ)
+        conn.close()
+        return result
+    
+    def get_all_territ_normal(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM cad_territorios where 1 = 1 and terr_tp_local in ('1','3') ORDER BY terr_nome ASC")
         territ = cursor.fetchall()
         result = rows_to_dict(cursor, territ)
         conn.close()
@@ -1255,6 +1264,36 @@ class VisitaService:
                 melhor_hora    ,      
                 terr_obs       
             from mov_relat_visitas where 1 = 1 order by visit_data desc
+            """
+            )
+        rvisitas = cursor.fetchall()
+        result = rows_to_dict(cursor, rvisitas)
+        conn.close()
+        return result
+    
+    def get_all_visit_normal(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(           
+            """
+           	select
+	            vist.id             , 
+	            vist.data_inclu	   ,
+                vist.visit_data     ,
+                vist.pub_login      ,        
+				vist.pub_nome       ,
+	            vist.visit_cod      ,	
+                vist.visit_url      , 
+                vist.visit_ender    ,     
+                vist.visit_status   ,
+                vist.num_pessoas    ,
+                vist.melhor_dia     ,
+                vist.melhor_hora    ,      
+                vist.terr_obs       ,       
+                terr.terr_tp_local
+            from mov_relat_visitas vist 
+            inner join cad_territorios terr on terr.terr_nome = vist.visit_cod and terr.terr_tp_local in ('1','3')
+            where 1 = 1 order by vist.visit_data desc
             """
             )
         rvisitas = cursor.fetchall()

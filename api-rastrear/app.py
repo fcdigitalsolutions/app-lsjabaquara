@@ -690,6 +690,15 @@ def get_territall():
         'data_inclu': format_date(territ.get('data_inclu'))
     } for territ in territ])
 
+@app.route('/territnormal', methods=['GET'])
+def get_territnormal():
+    territ = territ_service.get_all_territ_normal()
+    return jsonify([{
+        **dict(territ),
+        'dt_ultvisit': format_date(territ.get('dt_ultvisit')),
+        'data_inclu': format_date(territ.get('data_inclu'))
+    } for territ in territ])
+
 @app.route('/territ', methods=['POST'])
 def add_territ():
     data = request.json
@@ -812,6 +821,16 @@ def get_rvisitall():
         'visit_data': format_date(rvisitas.get('visit_data')),
         'data_inclu': format_date(rvisitas.get('data_inclu'))
     } for rvisitas in rvisitas])
+
+@app.route('/rvisitnormal', methods=['GET'])
+def get_rvisitnormal():
+    rvisitas = rvisita_service.get_all_visit_normal()
+    return jsonify([{
+        **dict(rvisitas),        
+        'visit_data': format_date(rvisitas.get('visit_data')),
+        'data_inclu': format_date(rvisitas.get('data_inclu'))
+    } for rvisitas in rvisitas])
+
 
 @app.route('/rvisicelebr', methods=['GET'])
 def get_rvisitcelebra():
