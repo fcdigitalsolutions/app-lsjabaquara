@@ -20,7 +20,9 @@ import {
 import api_service from "../services/api_service";
 
 const DashGestor = () => {
-  const [visitData, setVisitData] = useState([]);
+  const [visitCelebraData, setVisitCelebrData] = useState([]);
+  const [visitComercData, setVisitComercData] = useState([]);
+//  const [visitData, setVisitData] = useState([]);
   const [territoryData, setTerritoryData] = useState([]);
 
   // Filtros globais
@@ -39,9 +41,9 @@ const DashGestor = () => {
 
   const [chartData, setChartData] = useState([]);
   const [summary, setSummary] = useState({
+    totalVisits: 0,
     totalTerritorios: 0,
     totalSurdos: 0,
-    totalVisits: 0,
     familyVisits: 0,
     foundVisits: 0,
     otherVisits: 0,
@@ -50,7 +52,9 @@ const DashGestor = () => {
 
   // Carregar dados das rotas
   useEffect(() => {
-    api_service.get("/rvisicelebr").then((response) => setVisitData(response.data));
+ //   api_service.get("/rvisitall").then((response) => setVisitData(response.data));
+    api_service.get("/rvisicelebr").then((response) => setVisitCelebrData(response.data));
+    api_service.get("/rvisicomerc").then((response) => setVisitComercData(response.data));
     api_service.get("/territall").then((response) => setTerritoryData(response.data));
   }, []);
 
@@ -64,7 +68,11 @@ const DashGestor = () => {
       const diffInMonths =
         (now.getFullYear() - visitDate.getFullYear()) * 12 +
         (now.getMonth() - visitDate.getMonth());
-      return diffInMonths <= selectedPeriod && year === selectedYear;
+      return (
+        diffInMonths <= selectedPeriod &&
+        year === selectedYear &&
+        visit.terr_tp_local === "2" // Filtra apenas território comercial
+      );
     });
 
     const territoryCounts = filteredData.reduce((acc, visit) => {
@@ -190,20 +198,6 @@ const DashGestor = () => {
   };
 
 
-  // Função para determinar o tipo de local
-  const getStatusTpLocal = (terr_tp_local) => {
-    switch (terr_tp_local) {
-      case "1":
-        return "Casa";
-      case "2":
-        return "Trabalho";
-      case "3":
-        return "Prédio";
-      default:
-        return "Outros";
-    }
-  };
-
   // Função para determinar o status da visita
   const getStatusVisit = (visit_status) => {
     switch (visit_status) {
@@ -227,17 +221,30 @@ const DashGestor = () => {
     const startDate = new Date(`${selectedYear}-03-08`);
     const endDate = new Date(`${selectedYear}-04-12`);
 
+    if (!visitCelebraData || !visitComercData) return;
     // Filtrar dados por período e tipo de local (excluindo Trabalho)
-    const filteredData = visitData.filter((visit) => {
+    const filteredCelebrData = visitCelebraData.filter((visit) => {
       if (!visit.visit_data) return false;
       const [day, month, year] = visit.visit_data.split("/");
       const visitDate = new Date(`${year}-${month}-${day}`);
-      const type = getStatusTpLocal(visit.terr_tp_local);
 
       return (
         visitDate >= startDate &&
         visitDate <= endDate &&
-        type !== "Trabalho" &&
+        year === selectedYear
+      );
+    });
+
+    
+     // Filtrar dados por período e tipo de local (excluindo Trabalho)
+    const filteredComercData = visitComercData.filter((visit) => {
+      if (!visit.visit_data) return false;
+      const [day, month, year] = visit.visit_data.split("/");
+      const visitDate = new Date(`${year}-${month}-${day}`);
+
+      return (
+        visitDate >= startDate &&
+        visitDate <= endDate &&
         year === selectedYear
       );
     });
@@ -245,16 +252,17 @@ const DashGestor = () => {
     let familyCount = 0;
     let foundCount = 0;
     let otherCount = 0;
+    let totalVisits = 0;
     let totalTerritorios = 0;
     let totalSurdos = 0;
-    let totalVisits = 0;
     let experienceText = "";
 
-    filteredData.forEach((visit) => {
+    filteredCelebrData.forEach((visit) => {
       const type = getStatusVisit(visit.visit_status);
       totalVisits++;
-      totalTerritorios = visit.terr_total;
+      totalTerritorios = visit.terr_total; 
       totalSurdos = visit.terr_totsurdos; 
+
       if (type === "Família") {
         familyCount++;
       } else if (type === "Sim") {
@@ -262,14 +270,32 @@ const DashGestor = () => {
       } else {
         otherCount++;
       }
-     
+
       // Buscar experiência nas observações
       if (visit.terr_obs && visit.terr_obs.includes("Experiência:")) {
         experienceText = visit.terr_obs.split("Experiência:")[1].trim();
       }
     });
 
- 
+    filteredComercData.forEach((visit) => {
+      const type = getStatusVisit(visit.visit_status);
+      totalVisits++;
+    
+
+      if (type === "Família") {
+        familyCount++;
+      } else if (type === "Sim") {
+        foundCount++;
+      } else {
+        otherCount++;
+      }
+
+      // Buscar experiência nas observações
+      if (visit.terr_obs && visit.terr_obs.includes("Experiência:")) {
+        experienceText = visit.terr_obs.split("Experiência:")[1].trim();
+      }
+    });
+
     setChartData([
       { name: "Família", visitas: familyCount },
       { name: "Sim", visitas: foundCount },
@@ -278,79 +304,107 @@ const DashGestor = () => {
 
     setSummary({
       totalVisits,
+
       familyVisits: familyCount,
       foundVisits: foundCount,
       otherVisits: otherCount,
     });
 
     setExperienceText(experienceText);
-  }, [visitData, selectedYear]);
+  }, [visitCelebraData, visitComercData, selectedYear]);
 
   useEffect(() => {
-    if (visitData.length > 0) {
+    if (visitCelebraData.length > 0 && visitComercData.length > 0) {
       processChartData();
     }
-  }, [visitData, selectedYear, processChartData]);
+  }, [visitCelebraData, visitComercData, selectedYear, processChartData]);
 
   // Atualizar gráficos quando dados ou filtros mudam
   useEffect(() => {
-    if (visitData.length > 0 && territoryData.length > 0) {
-      processTerritoryData(visitData);
-      processRegionData(visitData, territoryData);
+    if (visitCelebraData.length > 0 && territoryData.length > 0) {
+      processTerritoryData(visitCelebraData);
+      processRegionData(visitCelebraData, territoryData);
       processStatusData(territoryData);
-      processVisitStatusData(visitData);
+      processVisitStatusData(visitCelebraData);
     }
-  }, [visitData, territoryData, processTerritoryData, processRegionData, processStatusData, processVisitStatusData]);
-
-
+  }, [visitCelebraData, territoryData, processTerritoryData, processRegionData, processStatusData, processVisitStatusData]);
+  
   return (
     <Box sx={{ padding: "16px", backgroundColor: "#f5f5f5" }}>
       <Typography variant="h4" sx={{ marginBottom: "20px" }}>
         Painel de Gestão - Visões
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-        {/* Gráfico e Painel - Territórios */}
-        <Box sx={{ flex: "1 1 45%", minWidth: "250px", backgroundColor: "#f9f9f9", padding: "16px", borderRadius: "8px" }}>
+
+        {/* Gráfico e Painel - Trabalho Território Comercios */}
+        <Box
+          sx={{
+            flex: "1 1 45%",
+            minWidth: "250px",
+            backgroundColor: "#f9f9f9",
+            padding: "16px",
+            borderRadius: "8px"
+          }}
+        >
+          {/* Filtro por ano */}
           <Box sx={{ display: "flex", gap: 2, marginBottom: "20px" }}>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Ano</InputLabel>
               <Select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
-                {[2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030].map((year) => (
+                {[2023, 2024, 2025, 2026].map((year) => (
                   <MenuItem key={year} value={year.toString()}>
                     {year}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Período</InputLabel>
-              <Select value={selectedPeriod} onChange={(e) => setSelectedPeriod(Number(e.target.value))}>
-                <MenuItem value={3}>Últimos 3 Meses</MenuItem>
-                <MenuItem value={6}>Últimos 6 Meses</MenuItem>
-                <MenuItem value={12}>Últimos 12 Meses</MenuItem>
-              </Select>
-            </FormControl>
           </Box>
-          <Typography variant="h6" sx={{ marginBottom: "10px" }}>Visitas por Território</Typography>
+
+          {/* Título */}
+          <Typography variant="h6" sx={{ marginBottom: "10px" }}>
+            Trabalho Território Comércios ({selectedYear})
+          </Typography>
+
+          {/* Gráfico */}
           <Box sx={{ height: "200px" }}>
             <ResponsiveContainer>
-              <BarChart data={territoryChartData}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="territory" />
+                <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="visitas" fill="#8884d8" />
+                <Bar dataKey="visitas" fill="#82ca9d" />
               </BarChart>
             </ResponsiveContainer>
           </Box>
+
+          {/* Resumo */}
           <Box sx={{ marginTop: "20px" }}>
-            <Typography variant="body1">Total de Visitas: {territorySummary.totalVisitas}</Typography>
-            <Typography variant="body1">Território Mais Visitado: {territorySummary.mostVisited} ({territorySummary.mostVisitedCount} Visitas)</Typography>
+     
+            <Typography variant="body1">
+              Total de Visitas: <strong>{summary.totalVisits}</strong>
+            </Typography>
+            <Typography variant="body1">
+              Convites entregues <strong>para a Família: {summary.familyVisits} / ({(summary.familyVisits / summary.totalVisits * 100).toFixed(2)}%)</strong>
+            </Typography>
+            <Typography variant="body1">
+              Convites entregues direto <strong>para os Surdos: {summary.foundVisits} / ({(summary.foundVisits / summary.totalVisits * 100).toFixed(2)}%)</strong>
+            </Typography>
+            <Typography variant="body1">
+              Outros: <strong>{summary.otherVisits}</strong>
+            </Typography>
           </Box>
+
+          {/* Rodapé com Experiência */}
+          {experienceText && (
+            <Box sx={{ marginTop: "10px", padding: "8px", backgroundColor: "#e0f7fa", borderRadius: "4px" }}>
+              <Typography variant="body2">
+                <strong>Experiência:</strong> {experienceText}
+              </Typography>
+            </Box>
+          )}
         </Box>
-
-
 
         {/* Gráfico e Painel - Campanha de Celebração */}
         <Box
@@ -367,7 +421,7 @@ const DashGestor = () => {
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Ano</InputLabel>
               <Select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
-              {[2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030].map((year) => (
+                {[2023, 2024, 2025, 2026].map((year) => (
                   <MenuItem key={year} value={year.toString()}>
                     {year}
                   </MenuItem>
@@ -422,6 +476,47 @@ const DashGestor = () => {
               </Typography>
             </Box>
           )}
+        </Box>
+
+        {/* Gráfico e Painel - Territórios */}
+        <Box sx={{ flex: "1 1 45%", minWidth: "250px", backgroundColor: "#f9f9f9", padding: "16px", borderRadius: "8px" }}>
+          <Box sx={{ display: "flex", gap: 2, marginBottom: "20px" }}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Ano</InputLabel>
+              <Select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+                {[2023, 2024, 2025, 2026].map((year) => (
+                  <MenuItem key={year} value={year.toString()}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Período</InputLabel>
+              <Select value={selectedPeriod} onChange={(e) => setSelectedPeriod(Number(e.target.value))}>
+                <MenuItem value={3}>Últimos 3 Meses</MenuItem>
+                <MenuItem value={6}>Últimos 6 Meses</MenuItem>
+                <MenuItem value={12}>Últimos 12 Meses</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          <Typography variant="h6" sx={{ marginBottom: "10px" }}>Visitas por Território</Typography>
+          <Box sx={{ height: "200px" }}>
+            <ResponsiveContainer>
+              <BarChart data={territoryChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="territory" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="visitas" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+          <Box sx={{ marginTop: "20px" }}>
+            <Typography variant="body1">Total de Visitas: {territorySummary.totalVisitas}</Typography>
+            <Typography variant="body1">Território Mais Visitado: {territorySummary.mostVisited} ({territorySummary.mostVisitedCount} Visitas)</Typography>
+          </Box>
         </Box>
 
 
