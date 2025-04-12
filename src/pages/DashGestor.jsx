@@ -48,8 +48,8 @@ const DashGestor = () => {
 
   // Carregar dados das rotas
   useEffect(() => {
-    api_service.get("/rvisitnormal").then((response) => setVisitData(response.data));
-    api_service.get("/territnormal").then((response) => setTerritoryData(response.data));
+    api_service.get("/rvisitall").then((response) => setVisitData(response.data));
+    api_service.get("/territall").then((response) => setTerritoryData(response.data));
   }, []);
 
   // Funções de processamento com `useCallback`
